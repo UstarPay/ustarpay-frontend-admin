@@ -1,0 +1,298 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import type { ApiResponse, PaginatedResponse } from '@shared/types'
+
+// 获取环境变量，提供默认值
+const getApiBaseUrl = () => {
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/'  
+}
+
+// API 基础配置
+const API_BASE_URL = getApiBaseUrl()
+const API_TIMEOUT = 30000
+
+// 错误消息映射
+const ERROR_MESSAGES: Record<string, string> = {
+  400: '请求参数错误',
+  401: '未授权，请重新登录',
+  403: '权限不足',
+  404: '请求的资源不存在',
+  408: '请求超时',
+  409: '资源冲突',
+  422: '数据验证失败',
+  429: '请求过于频繁',
+  500: '服务器内部错误',
+  502: '网关错误',
+  503: '服务不可用',
+  504: '网关超时',
+}
+
+// 创建 axios 实例
+const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// 请求拦截器，自动加 token
+apiClient.interceptors.request.use(config => {
+  // 优先从 zustand 取 token
+  const token = useAuthStore.getState().token || localStorage.getItem('accessToken');
+  
+  if (!config.url?.includes('/login') && token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 响应拦截器
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    return response
+  },
+  async (error) => {
+    const { response } = error
+
+    // 网络错误处理
+    if (!response) {
+      throw new Error('网络连接失败，请检查网络设置')
+    }
+
+    const status = response.status
+    const errorMessage = ERROR_MESSAGES[status] || '未知错误'
+
+    // 401 错误 - 未授权
+    if (status === 401) {
+      const { clearAuth } = useAuthStore.getState()
+      clearAuth()
+      
+      // 跳转到登录页（避免循环）
+      if (!window.location.pathname.includes('/login')) {
+        // window.location.href = '/auth/login'
+      }
+      
+      throw new Error('登录已过期，请重新登录')
+    }
+
+    // 403 错误 - 权限不足
+    if (status === 403) {
+      throw new Error('权限不足，无法执行此操作')
+    }
+
+    // 429 错误 - 请求频率限制
+    if (status === 429) {
+      const retryAfter = response.headers['retry-after']
+      if (retryAfter) {
+        throw new Error(`请求过于频繁，请 ${retryAfter} 秒后重试`)
+      } else {
+        throw new Error('请求过于频繁，请稍后重试')
+      }
+    }
+
+    // 服务器错误
+    if (status >= 500) {
+      throw new Error(`服务器错误: ${errorMessage}`)
+    }
+
+    // 业务错误
+    const responseData = response.data
+    if (responseData?.message) {
+      throw new Error(responseData.message)
+    } else {
+      throw new Error(errorMessage)
+    }
+
+    return Promise.reject(error)
+  }
+)
+
+// API 响应包装器
+class ApiService {
+  private client: AxiosInstance
+  public authPrefix: string | undefined = undefined
+  public tenantPrefix: string | undefined = undefined
+
+  constructor(client: AxiosInstance) {
+    this.client = client
+
+    this.authPrefix = import.meta.env.VITE_AUTH_PREFIX || '/auth/v1'
+    this.tenantPrefix = import.meta.env.VITE_TENANT_PREFIX || '/admin-tenant/v1'
+  }
+
+  // GET 请求
+  async get<T = any>(
+    url: string,
+    params?: any,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<T>> {
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.get( `${config?.prefix || this.tenantPrefix}${url}`, {
+      ...config?.config,
+      params
+    })
+    return response.data
+  }
+
+  // POST 请求
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<T>> {
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.post( `${config?.prefix || this.tenantPrefix}${url}`, data, config?.config)
+    return response.data
+  }
+
+  // PUT 请求
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<T>> {
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.put( `${config?.prefix || this.tenantPrefix}${url}`, data, config?.config)
+    return response.data
+  }
+
+  // PATCH 请求
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<T>> {
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.patch( `${config?.prefix || this.tenantPrefix}${url}`, data, config?.config)
+    return response.data
+  }
+
+  // DELETE 请求
+  async delete<T = any>(
+    url: string,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<T>> {
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.delete( `${config?.prefix || this.tenantPrefix}${url}`, config?.config)
+    return response.data
+  }
+
+  // 分页查询
+  async getPaginated<T = any>(
+    url: string,
+    params?: {
+      page?: number
+      pageSize?: number
+      search?: string
+      sort?: string
+      order?: 'asc' | 'desc'
+      [key: string]: any
+    },
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<ApiResponse<PaginatedResponse<T>>> {
+    const response: AxiosResponse<ApiResponse<PaginatedResponse<T>>> = await this.client.get( `${config?.prefix || this.tenantPrefix}${url}`, {
+      ...config?.config,
+      params: {
+        ...params,
+        page: params?.page || 1,
+        pageSize: params?.pageSize || 20,
+      },
+    })
+    return response.data
+  }
+
+  // 文件上传
+  async upload<T = any>(
+    url: string,
+    file: File,
+    options?: {
+      onProgress?: (progress: number) => void
+      metadata?: Record<string, any>
+    }
+  ): Promise<ApiResponse<T>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    if (options?.metadata) {
+      Object.entries(options.metadata).forEach(([key, value]) => {
+        formData.append(key, String(value))
+      })
+    }
+
+    const response: AxiosResponse<ApiResponse<T>> = await this.client.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (options?.onProgress && progressEvent.total) {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          )
+          options.onProgress(progress)
+        }
+      },
+    })
+
+    return response.data
+  }
+
+  // 文件下载
+  async download(
+    url: string,
+    filename?: string,
+    config?: { config?: AxiosRequestConfig; prefix?: string }
+  ): Promise<void> {
+    const response: AxiosResponse = await this.client.get( `${config?.prefix || this.tenantPrefix}${url}`, {
+      ...config?.config,
+      responseType: 'blob',
+    })
+
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    
+    link.href = downloadUrl
+    link.download = filename || 'download'
+    document.body.appendChild(link)
+    link.click()
+    
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  }
+
+  // 批量请求
+  async batch<T = any>(
+    requests: Array<{
+      method: 'get' | 'post' | 'put' | 'patch' | 'delete'
+      url: string
+      data?: any
+      config?: { config?: AxiosRequestConfig; prefix?: string }
+    }>
+  ): Promise<ApiResponse<T>[]> {
+    const promises = requests.map(({ method, url, data, config }) => {
+      switch (method) {
+        case 'get':
+          return this.get<T>(url, config)
+        case 'post':
+          return this.post<T>(url, data, config)
+        case 'put':
+          return this.put<T>(url, data, config)
+        case 'patch':
+          return this.patch<T>(url, data, config)
+        case 'delete':
+          return this.delete<T>(url, config)
+        default:
+          throw new Error(`Unsupported method: ${method}`)
+      }
+    })
+
+    return Promise.all(promises)
+  }
+}
+
+// 导出 API 服务实例
+export const api = new ApiService(apiClient)
+
+// 导出默认实例（向后兼容）
+export default api
+
+// 生成请求 ID
+function generateRequestId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}

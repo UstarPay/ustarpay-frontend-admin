@@ -1,0 +1,247 @@
+/* 租户详情页面样式 */
+
+.tenant-detail-tabs {
+  margin-top: 8px;
+}
+
+.tenant-detail-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+  padding: 16px 16px 8px 16px;
+  background: transparent;
+}
+
+.tenant-detail-tabs .ant-tabs-nav-wrap {
+  padding: 0;
+}
+
+.tenant-detail-tabs .ant-tabs-nav-list {
+  padding: 0;
+}
+
+.tenant-detail-tabs .ant-tabs-tab {
+  padding: 12px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin-right: 8px;
+  background: transparent;
+  border: none;
+  color: #8c8c8c;
+  position: relative;
+}
+
+.tenant-detail-tabs .ant-tabs-tab:hover {
+  background: transparent;
+  color: #1976d2;
+  transform: none;
+}
+
+.tenant-detail-tabs .ant-tabs-tab-active {
+  background: transparent !important;
+  color: #1976d2 !important;
+  border: none !important;
+  font-weight: 600;
+}
+
+.tenant-detail-tabs .ant-tabs-content-holder {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f5f5f5;
+  margin-top: 8px;
+}
+
+.tenant-detail-tabs .ant-tabs-tabpane {
+  padding: 0;
+}
+
+.tenant-descriptions .ant-descriptions-item-label {
+  font-weight: 600;
+  color: #262626;
+  white-space: nowrap;
+  min-width: 120px;
+  width: 120px;
+}
+
+.tenant-descriptions .ant-descriptions-item-content {
+  word-break: break-all;
+  min-width: 0;
+}
+
+.tenant-descriptions .ant-descriptions-item {
+  padding-bottom: 16px;
+}
+
+.tenant-descriptions table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.tenant-descriptions .ant-descriptions-item-label {
+  width: 140px !important;
+  vertical-align: top;
+  padding: 12px 16px !important;
+}
+
+.tenant-descriptions .ant-descriptions-item-content {
+  width: auto !important;
+  vertical-align: top;
+  padding: 12px 16px !important;
+}
+
+.tenant-descriptions .ant-descriptions-row:last-child .ant-descriptions-item {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* 优化边框样式 */
+.tenant-descriptions.ant-descriptions-bordered .ant-descriptions-item-label,
+.tenant-descriptions.ant-descriptions-bordered .ant-descriptions-item-content {
+  border-right: 1px solid #e8e8e8;
+}
+
+.tenant-descriptions.ant-descriptions-bordered .ant-descriptions-item:last-child .ant-descriptions-item-label,
+.tenant-descriptions.ant-descriptions-bordered .ant-descriptions-item:last-child .ant-descriptions-item-content {
+  border-right: none;
+}
+
+.wallet-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.user-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.ant-card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  transform: translateY(-2px);
+}
+
+.ant-statistic-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* 加载动画 */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* 选项卡图标和文字样式 */
+.tenant-detail-tabs .ant-tabs-tab .anticon {
+  margin-right: 8px;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.tenant-detail-tabs .ant-tabs-tab-active .anticon {
+  color: #1976d2;
+}
+
+.tenant-detail-tabs .ant-tabs-tab:hover .anticon {
+  color: #1976d2;
+}
+
+/* Badge 样式优化 */
+.tenant-detail-tabs .ant-badge {
+  margin-left: 6px;
+}
+
+.tenant-detail-tabs .ant-badge .ant-badge-count {
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+  .tenant-detail-tabs .ant-tabs-nav {
+    padding: 12px 12px 8px 12px;
+  }
+  
+  .tenant-detail-tabs .ant-tabs-tab {
+    padding: 10px 16px;
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  
+  .tenant-detail-tabs .ant-tabs-tab .anticon {
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  
+  .tenant-descriptions .ant-descriptions-item-label {
+    width: 100px !important;
+    min-width: 100px;
+    font-size: 13px;
+  }
+  
+  .tenant-descriptions .ant-descriptions-item-content {
+    font-size: 14px;
+  }
+}
+
+/* 修复Descriptions在不同屏幕下的布局 */
+@media (max-width: 1200px) {
+  .tenant-descriptions .ant-descriptions-item-label {
+    width: 130px !important;
+    min-width: 130px;
+  }
+}
+
+/* 确保内容不会溢出 */
+.tenant-descriptions .ant-descriptions-item-content .ant-typography {
+  margin-bottom: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.tenant-descriptions .ant-descriptions-item-content div {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* 增强表格样式 */
+.wallet-table .ant-table-tbody > tr:hover > td,
+.user-table .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+.wallet-table .ant-table-tbody > tr > td,
+.user-table .ant-table-tbody > tr > td {
+  transition: background-color 0.3s ease;
+}
+
+/* 统计卡片增强样式 */
+.ant-statistic-content {
+  display: flex;
+  align-items: center;
+}
+
+.ant-statistic-content-value {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+} 
