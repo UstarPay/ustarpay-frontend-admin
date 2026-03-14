@@ -29,6 +29,7 @@ import {
   WithdrawalListPage
 } from '@/pages'
 import { ColdWalletListPage, HotWalletDetailPage, ColdWalletDetailPage } from '@/pages/wallets'
+import { CardListPage, CardMerchantListPage, CardTransactionListPage } from '@/pages/cards'
 import { CollectionConfigPage, CollectionTaskPage, CollectionStatsPage } from '@/pages/collection'
 
 export function AppRoutes() {
@@ -66,6 +67,10 @@ export function AppRoutes() {
         <Route path="hot-wallets/:id" element={<HotWalletDetailPage />} />
         <Route path="cold-wallets/list" element={<ColdWalletListPage />} />
         <Route path="cold-wallets/:id" element={<ColdWalletDetailPage />} />
+        <Route path="cards" element={<Navigate to="/cards/list" replace />} />
+        <Route path="cards/list" element={<CardListPage />} />
+        <Route path="cards/merchants" element={<CardMerchantListPage />} />
+        <Route path="cards/transactions" element={<CardTransactionListPage />} />
         <Route path="collection/configs" element={<CollectionConfigPage />} />
         <Route path="collection/tasks" element={<CollectionTaskPage />} />
         <Route path="collection/stats" element={<CollectionStatsPage />} />

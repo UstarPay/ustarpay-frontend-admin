@@ -17,6 +17,8 @@ export { walletService } from './walletService'
 export { withdrawalService } from './withdrawalService'
 export { hotWalletService } from './hotWalletService'
 export { coldWalletService } from './coldWalletService'
+export { cardService } from './cardService'
+export { cardMerchantService } from './cardMerchantService'
 export { collectionService } from './collectionService'
 export { withdrawalRiskConfigService } from './withdrawalRiskConfigService'
 

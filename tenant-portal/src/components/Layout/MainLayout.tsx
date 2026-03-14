@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import {
   BarChartOutlined,
   BellOutlined,
+  CreditCardOutlined,
   DashboardOutlined,
   HistoryOutlined,
   LogoutOutlined,
@@ -33,6 +34,25 @@ const menuItems: MenuItem[] = [
     key: '/dashboard',
     icon: <DashboardOutlined />,
     label: '仪表盘',
+  },
+  {
+    key: '/cards',
+    icon: <CreditCardOutlined />,
+    label: '卡片管理',
+    children: [
+      {
+        key: '/cards/merchants',
+        label: '卡商列表',
+      },
+      {
+        key: '/cards/list',
+        label: '卡片列表',
+      },
+      {
+        key: '/cards/transactions',
+        label: '卡交易记录',
+      },
+    ],
   },
   {
     key: '/wallets',

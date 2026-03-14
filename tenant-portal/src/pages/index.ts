@@ -9,6 +9,7 @@ export { default as TenantInfoPage } from './tenant/TenantInfoPage'
  
 
 export * from "./wallets"
+export * from "./cards"
 export * from "./collection"
 
 // 日志管理页面

@@ -125,6 +125,9 @@ export * from './user'
 // 钱包相关类型
 export * from './wallet'
 
+// 卡商相关类型
+export * from './cardMerchant'
+
 // 提现相关类型
 export * from './withdrawal'
 

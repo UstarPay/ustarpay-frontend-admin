@@ -6,8 +6,6 @@ import {
   Button, 
   Space, 
   Card, 
-  Row, 
-  Col,
   Tag,
   Tooltip,
   Empty
@@ -304,45 +302,37 @@ const SearchTable: React.FC<SearchTableProps> = ({
 
     return (
       <Card className="mb-4" size="small">
-        <Row gutter={[16, 16]} align="middle">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
           {visibleFields.map(field => (
-            <Col key={field.key} span={field.span || 6}>
-              <div className="mb-2">
-                <label className="text-sm font-medium text-gray-600">
-                  {field.label}
-                </label>
-              </div>
+            <div
+              key={field.key}
+              className="flex flex-col gap-1"
+              style={{ flex: '1 1 200px', maxWidth: visibleFields.length === 1 ? 320 : undefined }}
+            >
+              <label className="text-sm font-medium text-gray-600">{field.label}</label>
               {renderSearchField(field)}
-            </Col>
+            </div>
           ))}
-          <Col span={6}>
-            <Space>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={() => handleSearch(searchForm)}
-              >
-                搜索
+          <Space className="shrink-0 ml-auto">
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={() => handleSearch(searchForm)}
+            >
+              搜索
+            </Button>
+            {showReset && (
+              <Button icon={<ClearOutlined />} onClick={handleReset}>
+                重置
               </Button>
-              {showReset && (
-                <Button
-                  icon={<ClearOutlined />}
-                  onClick={handleReset}
-                >
-                  重置
-                </Button>
-              )}
-              {showRefresh && (
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                >
-                  刷新
-                </Button>
-              )}
-            </Space>
-          </Col>
-        </Row>
+            )}
+            {showRefresh && (
+              <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
+                刷新
+              </Button>
+            )}
+          </Space>
+        </div>
       </Card>
     )
   }
