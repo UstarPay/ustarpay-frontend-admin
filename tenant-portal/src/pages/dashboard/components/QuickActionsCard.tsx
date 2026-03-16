@@ -17,7 +17,7 @@ const QuickActionsCard: React.FC = () => {
 
   const actions = [
     {
-      title: '钱包管理',
+      title: '数字钱包列表',
       icon: <WalletOutlined style={{ fontSize: 24 }} />,
       color: '#1890ff',
       path: '/wallets/list'
@@ -38,7 +38,7 @@ const QuickActionsCard: React.FC = () => {
       title: '归集',
       icon: <SwapOutlined style={{ fontSize: 24 }} />,
       color: '#722ed1',
-      path: '/collection/tasks'
+      path: '/collection/configs'
     },
     {
       title: '余额监控',

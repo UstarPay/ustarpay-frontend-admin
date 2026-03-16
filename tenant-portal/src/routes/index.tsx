@@ -26,6 +26,8 @@ import {
   PasswordUpdatePage,
   SecondaryPasswordUpdatePage,
   HotWalletListPage,
+  FundAccountListPage,
+  CardFundAccountListPage,
   WithdrawalListPage
 } from '@/pages'
 import { ColdWalletListPage, HotWalletDetailPage, ColdWalletDetailPage } from '@/pages/wallets'
@@ -58,6 +60,8 @@ export function AppRoutes() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="tenant" element={<TenantInfoPage />} />
         <Route path="wallets/list" element={<WalletListPage />} />
+        <Route path="wallets/fund-accounts" element={<FundAccountListPage />} />
+        <Route path="wallets/card-fund-accounts" element={<CardFundAccountListPage />} />
         <Route path="wallets/:id" element={<WalletDetailPage />} />
         <Route path="wallets/monitor" element={<BalanceMonitorPage />} />
 

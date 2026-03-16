@@ -37,7 +37,7 @@ export const hotWalletService = {
     return response.data
   },
 
-  // 更新热钱包（描述、提现钱包、Gas钱包、状态）
+  // 更新热钱包
   updateHotWallet: async (id: string, data: UpdateHotWalletRequest): Promise<HotWallet> => {
     const response = await api.put<HotWallet>(`/hot-wallets/${id}`, data)
     return response.data

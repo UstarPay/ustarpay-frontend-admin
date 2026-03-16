@@ -137,7 +137,7 @@ const MyPage = () => {
   actions={
     <Space>
       <Button icon={<ReloadOutlined />}>刷新</Button>
-      <Button type="primary" icon={<PlusOutlined />}>创建钱包</Button>
+      <Button type="primary" icon={<ReloadOutlined />}>刷新列表</Button>
     </Space>
   }
 />

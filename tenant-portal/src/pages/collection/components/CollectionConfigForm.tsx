@@ -447,7 +447,7 @@ const CollectionConfigForm: React.FC<CollectionConfigFormProps> = ({
             <div className="flex items-center gap-2">
               <InfoCircleOutlined style={{ color: '#722ed1' }} />
               <Text type="secondary" className="text-sm text-purple-700">
-                从冷钱包列表中选择归集目标地址，数据来源于 tenant_cold_wallets
+                从冷钱包列表中选择归集目标地址
               </Text>
             </div>
           </div>

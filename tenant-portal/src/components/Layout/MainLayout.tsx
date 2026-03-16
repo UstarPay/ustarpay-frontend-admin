@@ -2,9 +2,9 @@ import { authService } from '@/services'
 import { useAppStore } from '@/stores/appStore'
 import { useAuthStore } from '@/stores/authStore'
 import {
-  BarChartOutlined,
   BellOutlined,
   CreditCardOutlined,
+  BankOutlined,
   DashboardOutlined,
   HistoryOutlined,
   LogoutOutlined,
@@ -57,11 +57,19 @@ const menuItems: MenuItem[] = [
   {
     key: '/wallets',
     icon: <WalletOutlined />,
-    label: '钱包管理',
+    label: '资产管理',
     children: [
       {
         key: '/wallets/list',
-        label: '钱包列表',
+        label: '数字钱包列表',
+      },
+      {
+        key: '/wallets/fund-accounts',
+        label: '资金账户列表',
+      },
+      {
+        key: '/wallets/card-fund-accounts',
+        label: '卡账户列表',
       },
       // {
       //   key: '/wallets/balances',
@@ -108,10 +116,6 @@ const menuItems: MenuItem[] = [
       {
         key: '/collection/configs',
         label: '归集配置',
-      },
-      {
-        key: '/collection/tasks',
-        label: '归集任务',
       },
     ],
   },
@@ -233,7 +237,9 @@ export function MainLayout() {
 
   // 获取当前选中的菜单项
   const getSelectedKeys = () => {
-    const pathname = location.pathname
+    const pathname = location.pathname === '/collection/tasks'
+      ? '/collection/configs'
+      : location.pathname
     // 尝试精确匹配
     if (menuItems.some(item => item?.key === pathname)) {
       return [pathname]
@@ -256,7 +262,9 @@ export function MainLayout() {
 
   // 获取展开的菜单项
   const getOpenKeys = () => {
-    const pathname = location.pathname
+    const pathname = location.pathname === '/collection/tasks'
+      ? '/collection/configs'
+      : location.pathname
     const openKeys: string[] = []
 
     for (const item of menuItems) {
@@ -336,10 +344,21 @@ export function MainLayout() {
       }}
       className={sidebar.mobile ? 'fixed left-0 top-0 bottom-0 z-50' : ''}
     >
-      <div className="h-16 flex items-center justify-center border-b border-gray-200">
-        <div className="text-xl font-bold text-blue-600">
-          {sidebar.collapsed ? 'TP' : '租户门户'}
-        </div>
+      <div className="h-16 flex items-center justify-center gap-2 border-b border-gray-200 px-3">
+        {/* 企业 Logo 占位：可配置 VITE_APP_LOGO 替换为实际 logo 路径 */}
+        <Avatar
+          size={sidebar.collapsed ? 32 : 40}
+          src={import.meta.env.VITE_APP_LOGO}
+          icon={<BankOutlined />}
+          style={{
+            flexShrink: 0,
+            background: token.colorPrimaryBg,
+            color: token.colorPrimary,
+          }}
+        />
+        {!sidebar.collapsed && (
+          <span className="text-lg font-bold text-blue-600 truncate">UStarPay</span>
+        )}
       </div>
 
       <Menu

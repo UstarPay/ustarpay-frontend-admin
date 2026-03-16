@@ -7,17 +7,14 @@ import {
   Space, 
   Card, 
   Tag,
-  Tooltip,
   Empty
 } from 'antd'
 import { 
   SearchOutlined, 
   ReloadOutlined, 
-  FilterOutlined,
   ClearOutlined 
 } from '@ant-design/icons'
 
-const { Search } = Input
 const { Option } = Select
 
 // 搜索字段类型定义
@@ -36,8 +33,14 @@ export interface SearchField {
   multiple?: boolean
   /** 字段宽度 */
   span?: number
+  /** 最小宽度 */
+  minWidth?: number | string
   /** 是否显示 */
   visible?: boolean
+  /** 是否禁用（可为函数，根据当前表单值计算） */
+  disabled?: boolean | ((formValues: SearchFormValues) => boolean)
+  /** 当指定字段变化时清空本字段（用于级联） */
+  clearWhen?: string
 }
 
 // 表格列定义
@@ -54,6 +57,8 @@ export interface TableColumn {
   fixed?: 'left' | 'right'
   /** 是否可排序 */
   sorter?: boolean | ((a: any, b: any) => number)
+  /** 文字超出省略 */
+  ellipsis?: boolean
   /** 渲染函数 */
   render?: (value: any, record: any, index: number) => React.ReactNode
   /** 是否显示 */
@@ -85,6 +90,14 @@ export interface SearchTableProps {
   pageSize?: number
   /** 是否显示分页 */
   showPagination?: boolean
+  /** 是否使用服务端分页 */
+  serverSidePagination?: boolean
+  /** 受控分页配置 */
+  pagination?: {
+    current: number
+    pageSize: number
+    total: number
+  }
   /** 表格滚动配置 */
   scroll?: { x?: number | string; y?: number | string }
   /** 行选择配置 */
@@ -95,6 +108,8 @@ export interface SearchTableProps {
   className?: string
   /** 搜索回调 */
   onSearch?: (values: SearchFormValues) => void
+  /** 表单值变化回调（用于级联等场景） */
+  onFormChange?: (values: SearchFormValues) => void
   /** 刷新回调 */
   onRefresh?: () => void
   /** 重置回调 */
@@ -117,11 +132,14 @@ const SearchTable: React.FC<SearchTableProps> = ({
   showReset = true,
   pageSize = 10,
   showPagination = true,
+  serverSidePagination = false,
+  pagination: controlledPagination,
   scroll,
   rowSelection,
   loading = false,
   className = '',
   onSearch,
+  onFormChange,
   onRefresh,
   onReset,
   onTableChange
@@ -135,8 +153,14 @@ const SearchTable: React.FC<SearchTableProps> = ({
     total: 0
   })
 
+  const effectivePagination = controlledPagination || pagination
+
   // 过滤后的数据
   const filteredData = useMemo(() => {
+    if (serverSidePagination) {
+      return dataSource
+    }
+
     if (!searchForm || Object.keys(searchForm).length === 0) {
       return dataSource
     }
@@ -167,39 +191,48 @@ const SearchTable: React.FC<SearchTableProps> = ({
         }
       })
     })
-  }, [dataSource, searchForm, searchFields])
+  }, [dataSource, searchForm, searchFields, serverSidePagination])
 
   // 更新分页总数
   React.useEffect(() => {
+    if (serverSidePagination || controlledPagination) {
+      return
+    }
+
     setPagination(prev => ({
       ...prev,
       total: filteredData.length,
       current: 1 // 重置到第一页
     }))
-  }, [filteredData.length])
+  }, [filteredData.length, serverSidePagination, controlledPagination])
 
   // 分页数据
   const paginatedData = useMemo(() => {
     if (!showPagination) return filteredData
+    if (serverSidePagination) return filteredData
     
-    const start = (pagination.current - 1) * pagination.pageSize
-    const end = start + pagination.pageSize
+    const start = (effectivePagination.current - 1) * effectivePagination.pageSize
+    const end = start + effectivePagination.pageSize
     return filteredData.slice(start, end)
-  }, [filteredData, pagination.current, pagination.pageSize, showPagination])
+  }, [filteredData, effectivePagination.current, effectivePagination.pageSize, showPagination, serverSidePagination])
 
   // 处理搜索
   const handleSearch = useCallback((values: SearchFormValues) => {
     setSearchForm(values)
-    setPagination(prev => ({ ...prev, current: 1 }))
+    if (!controlledPagination) {
+      setPagination(prev => ({ ...prev, current: 1 }))
+    }
     onSearch?.(values)
-  }, [onSearch])
+  }, [onSearch, controlledPagination])
 
   // 处理重置
   const handleReset = useCallback(() => {
     setSearchForm({})
-    setPagination(prev => ({ ...prev, current: 1 }))
+    if (!controlledPagination) {
+      setPagination(prev => ({ ...prev, current: 1 }))
+    }
     onReset?.()
-  }, [onReset])
+  }, [onReset, controlledPagination])
 
   // 处理刷新
   const handleRefresh = useCallback(() => {
@@ -208,9 +241,11 @@ const SearchTable: React.FC<SearchTableProps> = ({
 
   // 处理表格变化
   const handleTableChange = useCallback((pagination: any, filters: any, sorter: any) => {
-    setPagination(pagination)
+    if (!controlledPagination) {
+      setPagination(pagination)
+    }
     onTableChange?.(pagination, filters, sorter)
-  }, [onTableChange])
+  }, [onTableChange, controlledPagination])
 
   // 渲染搜索字段
   const renderSearchField = (field: SearchField) => {
@@ -231,19 +266,32 @@ const SearchTable: React.FC<SearchTableProps> = ({
             onChange={(e) => {
               const newForm = { ...searchForm, [field.key]: e.target.value }
               setSearchForm(newForm)
+              onFormChange?.(newForm)
             }}
             onPressEnter={() => handleSearch(searchForm)}
           />
         )
       
       case 'select':
+        const selectDisabled = typeof field.disabled === 'function'
+          ? field.disabled(searchForm)
+          : field.disabled
+        const clearFields: string[] = []
+        searchFields.forEach(f => {
+          if ('clearWhen' in f && f.clearWhen === field.key) {
+            clearFields.push(f.key)
+          }
+        })
         return (
           <Select
             {...commonProps}
             value={searchForm[field.key]}
+            disabled={selectDisabled}
             onChange={(value) => {
               const newForm = { ...searchForm, [field.key]: value }
+              clearFields.forEach(k => { newForm[k] = undefined })
               setSearchForm(newForm)
+              onFormChange?.(newForm)
             }}
             mode={field.multiple ? 'multiple' : undefined}
             allowClear
@@ -271,6 +319,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
             onChange={(e) => {
               const newForm = { ...searchForm, [field.key]: e.target.value }
               setSearchForm(newForm)
+              onFormChange?.(newForm)
             }}
             onPressEnter={() => handleSearch(searchForm)}
           />
@@ -285,6 +334,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
             onChange={(e) => {
               const newForm = { ...searchForm, [field.key]: e.target.value }
               setSearchForm(newForm)
+              onFormChange?.(newForm)
             }}
           />
         )
@@ -299,6 +349,22 @@ const SearchTable: React.FC<SearchTableProps> = ({
     if (!showSearch || searchFields.length === 0) return null
 
     const visibleFields = searchFields.filter(field => field.visible !== false)
+    const getFieldWrapperStyle = (field: SearchField): React.CSSProperties => {
+      const resolvedMinWidth = field.minWidth ?? (field.span ? Math.max(field.span * 36, 120) : 200)
+
+      if (field.span && field.span > 0 && field.span <= 24) {
+        return {
+          flex: `0 1 calc(${(field.span / 24) * 100}% - 24px)`,
+          minWidth: resolvedMinWidth
+        }
+      }
+
+      return {
+        flex: `1 1 ${typeof resolvedMinWidth === 'number' ? `${resolvedMinWidth}px` : resolvedMinWidth}`,
+        minWidth: resolvedMinWidth,
+        maxWidth: visibleFields.length === 1 ? 320 : undefined
+      }
+    }
 
     return (
       <Card className="mb-4" size="small">
@@ -307,7 +373,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
             <div
               key={field.key}
               className="flex flex-col gap-1"
-              style={{ flex: '1 1 200px', maxWidth: visibleFields.length === 1 ? 320 : undefined }}
+              style={getFieldWrapperStyle(field)}
             >
               <label className="text-sm font-medium text-gray-600">{field.label}</label>
               {renderSearchField(field)}
@@ -349,6 +415,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
         width: col.width,
         fixed: col.fixed,
         sorter: col.sorter,
+        ellipsis: col.ellipsis,
         render: col.render
       }))
   }, [columns])
@@ -375,7 +442,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
           scroll={scroll}
           rowSelection={rowSelection}
           pagination={showPagination ? {
-            ...pagination,
+            ...effectivePagination,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) => 
@@ -393,4 +460,3 @@ const SearchTable: React.FC<SearchTableProps> = ({
 }
 
 export default SearchTable
-export type { SearchField, TableColumn, SearchFormValues }

@@ -5,6 +5,7 @@ export interface Deposit extends BaseEntity {
   tenantId: string
   txHash?: string
   address: string
+  fromAddress?: string
   chainCode: string
   symbol: string
   amount: string
@@ -32,10 +33,10 @@ export enum DepositStatus {
 // 充值状态标签映射
 export const DEPOSIT_STATUS_LABELS = {
   [DepositStatus.PENDING]: '待确认',
-  [DepositStatus.CONFIRMED]: '确认成功',
-  [DepositStatus.CONFIRMATION_FAILED]: '确认失败',
-  [DepositStatus.COMPLETED]: '交易成功',
-  [DepositStatus.FAILED]: '交易失败',
+  [DepositStatus.CONFIRMED]: '充值成功',
+  [DepositStatus.CONFIRMATION_FAILED]: '充值失败',
+  [DepositStatus.COMPLETED]: '充值成功(旧状态)',
+  [DepositStatus.FAILED]: '充值失败(旧状态)',
   [DepositStatus.CANCELLED]: '已取消',
 }
 

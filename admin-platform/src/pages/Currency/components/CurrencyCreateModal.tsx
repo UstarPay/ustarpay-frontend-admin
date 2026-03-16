@@ -39,6 +39,11 @@ const CurrencyCreateModal: React.FC<CurrencyCreateModalProps> = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
+      // 根据选择的 chainCode 找到对应的 chain_network
+      const selectedChain = chains.find(c => c.chainCode === values.chainCode)
+      if (selectedChain) {
+        values.chain_network = selectedChain.chainNetwork
+      }
       onSubmit(values)
     } catch (error) {
       console.error('表单验证失败:', error)
@@ -122,18 +127,6 @@ const CurrencyCreateModal: React.FC<CurrencyCreateModalProps> = ({
         <Form.Item
           name="contractAddress"
           label="合约地址"
-          rules={[
-            {
-              validator: (_, value) => {
-                if (!value) return Promise.resolve()
-                // 简单的地址格式验证
-                if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
-                  return Promise.reject(new Error('请输入有效的合约地址'))
-                }
-                return Promise.resolve()
-              }
-            }
-          ]}
         >
           <Input placeholder="合约代币地址（原生币可留空）" />
         </Form.Item>

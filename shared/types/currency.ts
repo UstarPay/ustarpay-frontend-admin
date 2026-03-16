@@ -1,6 +1,7 @@
 export interface Currency {
   id: number
   chainCode: string
+  chainNetwork?: string
   symbol: string
   name: string
   decimals: number
@@ -26,6 +27,7 @@ export interface Currency {
 
 export interface CreateCurrencyRequest {
   chainCode: string
+  chain_network?: string
   symbol: string
   name: string
   decimals: number

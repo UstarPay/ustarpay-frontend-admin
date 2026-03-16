@@ -150,7 +150,7 @@ export function LoginPage() {
               </div>
               
               <Title level={1} className="brand-title">
-                NH Wallet
+                UStarPay
               </Title>
               
               <Title level={3} className="brand-subtitle">

@@ -109,7 +109,7 @@ const TwoFactorAuthComponent: React.FC<TwoFactorAuthComponentProps> = ({
   // 生成QR码内容
   const generateQRContent = () => {
     if (!twoFAStatus?.data?.secret) return ''
-    const issuer = 'NH Wallet'
+    const issuer = 'UStarPay'
     const accountName = tenantInfo?.email || 'tenant'
     return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${twoFAStatus.data.secret}&issuer=${encodeURIComponent(issuer)}`
   }

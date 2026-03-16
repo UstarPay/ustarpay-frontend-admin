@@ -18,6 +18,12 @@ export interface CardRecord {
   merchant_name?: string // 卡商名称
   created_at: string
   updated_at: string
+  // 用户信息
+  user_name?: string      // 用户名
+  user_email?: string     // 用户邮箱
+  user_phone?: string     // 用户手机号
+  user_status?: number    // 用户状态
+  country_code?: string   // 国家代码
 }
 
 // 开卡费用配置类型

@@ -3,6 +3,7 @@ export interface Chain {
   chainId: number
   chainCode: string
   chainName: string
+  chainNetwork?: string
   nativeSymbol: string
   rpcUrls: string[]
   explorerUrl: string
@@ -34,15 +35,20 @@ export interface Chain {
 }
 
 export interface CreateChainRequest {
+  chainId: number
   chainCode: string
   chainName: string
+  chain_network?: string
   nativeSymbol: string
   rpcUrls: string[]
-  explorerUrl: string
-  confirmationBlocks: number
-  lastScanHeight: number
-  lastScanTime: string
-  scanInterval: number
+  wsUrls?: string[]
+  explorerUrls?: string[]
+  confirmationBlocks?: number
+  scanHeight?: number
+  scanInterval?: number
+  blockTime?: number
+  isActive?: boolean
+  isMainnet?: boolean
   status?: number
 }
 

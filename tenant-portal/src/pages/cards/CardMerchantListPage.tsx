@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   Button,
+  Card,
   Space,
   Typography,
   Tag,
@@ -11,11 +12,18 @@ import {
   message,
   Popconfirm
 } from 'antd'
-import { CreditCardOutlined, PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import {
+  CreditCardOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { cardMerchantService } from '@/services'
 import type { CardMerchant, CreateCardMerchantRequest, UpdateCardMerchantRequest } from '@shared/types'
-import { PageHeaderCard, SearchTable } from '@shared/components'
+import { SearchTable } from '@shared/components'
 import type { SearchField, TableColumn } from '@shared/components'
 
 const CardMerchantListPage: React.FC = () => {
@@ -157,6 +165,14 @@ const CardMerchantListPage: React.FC = () => {
 
   const merchants = (merchantData as any)?.data?.items || []
   const total = (merchantData as any)?.data?.total ?? 0
+  const activeCount = merchants.filter((item: CardMerchant) => item.status === 1).length
+  const inactiveCount = merchants.filter((item: CardMerchant) => item.status !== 1).length
+  const latestCreatedAt = merchants.length > 0
+    ? merchants
+      .map((item: CardMerchant) => item.created_at)
+      .filter(Boolean)
+      .sort((a: string, b: string) => new Date(b).getTime() - new Date(a).getTime())[0]
+    : ''
 
   const searchFields: SearchField[] = [
     {
@@ -263,35 +279,103 @@ const CardMerchantListPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeaderCard
-        title="卡商列表"
-        subtitle="管理 DTC 卡商凭证，配置 API 密钥、签名密钥、接口域名等信息"
-        logoText="🏦"
-        gradientColors={['#52c41a', '#73d13d', '#95de64', '#b7eb8f']}
-        actions={
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading}>
-              刷新
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-              创建卡商
-            </Button>
-          </Space>
-        }
-      />
+      <Card
+        bordered={false}
+        className="overflow-hidden rounded-[32px] border-0 bg-[#0f172a] text-white shadow-[0_28px_70px_rgba(15,23,42,0.34)]"
+        bodyStyle={{ padding: 0 }}
+      >
+        <div className="relative overflow-hidden px-6 py-6 lg:px-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_32%)]" />
+          <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-[0.36em] text-emerald-200/80">Merchant Control Tower</div>
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-white">卡商列表</div>
+              <div className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+                这里更偏接入治理中心，重点是凭证维护、状态可用性和接入档案，而不是环境分布统计。
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-10 rounded-full border-white/15 bg-white/10 px-5 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white">
+                  刷新卡商
+                </Button>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} className="h-10 rounded-full bg-emerald-500 px-5 shadow-none hover:!bg-emerald-400">
+                  创建卡商
+                </Button>
+              </div>
+            </div>
 
-      <SearchTable
-        dataSource={merchants}
-        columns={columns}
-        searchFields={searchFields}
-        title="卡商列表"
-        loading={isLoading}
-        scroll={{ x: 1100 }}
-        showPagination={false}
-        onSearch={handleSearch}
-        onRefresh={() => refetch()}
-        onReset={handleReset}
-      />
+            <div className="grid grid-cols-2 gap-3 self-stretch">
+              {[
+                { label: '总卡商数', value: total, helper: '当前查询范围', icon: <CreditCardOutlined className="text-sky-300" /> },
+                { label: '启用卡商', value: activeCount, helper: '可参与路由', icon: <SafetyCertificateOutlined className="text-emerald-300" /> },
+                { label: '停用卡商', value: inactiveCount, helper: '需人工处理', icon: <DeleteOutlined className="text-rose-300" /> },
+                { label: '最近接入', value: latestCreatedAt ? new Date(latestCreatedAt).toLocaleDateString('zh-CN') : '暂无', helper: '最近创建时间', icon: <CreditCardOutlined className="text-violet-300" /> },
+              ].map(item => (
+                <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm xl:min-h-[128px]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs uppercase tracking-[0.16em] text-slate-400">{item.label}</div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
+                      {item.icon}
+                    </div>
+                  </div>
+                  <div className="mt-3 break-all text-2xl font-semibold text-white">{item.value}</div>
+                  <div className="mt-1 text-xs text-slate-400">{item.helper}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card bordered={false} className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-sm" bodyStyle={{ padding: 24 }}>
+        <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:items-center">
+          <div>
+            <div className="text-sm font-medium text-slate-500">配置清单</div>
+            <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">卡商接入与凭证档案</div>
+            <div className="mt-2 text-sm text-slate-600">
+              按卡商名称搜索，配合环境与状态标签快速判断是否适合切入生产流量。
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              { label: '总卡商数', value: total, tone: 'bg-slate-100 text-slate-700' },
+              { label: '启用占比', value: total > 0 ? `${Math.round((activeCount / total) * 100)}%` : '0%', tone: 'bg-emerald-50 text-emerald-700' },
+              { label: '停用占比', value: total > 0 ? `${Math.round((inactiveCount / total) * 100)}%` : '0%', tone: 'bg-rose-50 text-rose-700' }
+            ].map(item => (
+              <div key={item.label} className={`rounded-2xl px-4 py-3 ${item.tone}`}>
+                <div className="text-xs">{item.label}</div>
+                <div className="mt-1 text-xl font-semibold">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <SearchTable
+          dataSource={merchants}
+          columns={columns}
+          searchFields={searchFields}
+          title="卡商配置列表"
+          className="[&_.ant-card]:border-slate-200 [&_.ant-card]:shadow-none [&_.ant-card]:rounded-[24px]"
+          loading={isLoading}
+          scroll={{ x: 1100 }}
+          showPagination
+          serverSidePagination
+          pagination={{
+            current: searchParams.page,
+            pageSize: searchParams.pageSize,
+            total,
+          }}
+          onSearch={handleSearch}
+          onRefresh={() => refetch()}
+          onReset={handleReset}
+          onTableChange={(pagination) => {
+            setSearchParams(prev => ({
+              ...prev,
+              page: pagination.current || 1,
+              pageSize: pagination.pageSize || prev.pageSize,
+            }))
+          }}
+        />
+      </Card>
 
       <Modal
         title={editingMerchant ? '编辑卡商' : '创建卡商'}
