@@ -1,8 +1,9 @@
-import { authService } from '@/services'
+﻿import { authService } from '@/services'
 import { useAppStore } from '@/stores/appStore'
 import { useAuthStore } from '@/stores/authStore'
 import {
   BellOutlined,
+  ControlOutlined,
   CreditCardOutlined,
   BankOutlined,
   DashboardOutlined,
@@ -12,215 +13,214 @@ import {
   MenuUnfoldOutlined,
   SecurityScanOutlined,
   SettingOutlined,
+  TeamOutlined,
   TransactionOutlined,
   UserOutlined,
   WalletOutlined,
-  ControlOutlined
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { Avatar, Badge, Button, Drawer, Dropdown, Layout, Menu, theme } from 'antd'
-import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 const { Header, Sider, Content } = Layout
 const { useToken } = theme
 
-// 菜单项类型
 type MenuItem = Required<MenuProps>['items'][number]
+type MenuNode = {
+  key: string
+  label: string
+  icon?: ReactNode
+  permissions?: string[]
+  children?: MenuNode[]
+}
 
-// 菜单配置
-const menuItems: MenuItem[] = [
+const menuTree: MenuNode[] = [
   {
     key: '/dashboard',
     icon: <DashboardOutlined />,
-    label: '仪表盘',
+    label: '\u4eea\u8868\u76d8',
+    permissions: ['dashboard:view'],
   },
   {
     key: '/cards',
     icon: <CreditCardOutlined />,
-    label: '卡片管理',
+    label: '\u5361\u7247\u7ba1\u7406',
+    permissions: ['cards:view'],
     children: [
-      {
-        key: '/cards/merchants',
-        label: '卡商列表',
-      },
-      {
-        key: '/cards/list',
-        label: '卡片列表',
-      },
-      {
-        key: '/cards/transactions',
-        label: '卡交易记录',
-      },
+      { key: '/cards/merchants', label: '\u5361\u5546\u5217\u8868', permissions: ['cards:view'] },
+      { key: '/cards/list', label: '\u5361\u7247\u5217\u8868', permissions: ['cards:view'] },
+      { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u8bb0\u5f55', permissions: ['cards:view'] },
+    ],
+  },
+  {
+    key: '/tenant-users',
+    icon: <UserOutlined />,
+    label: '\u7528\u6237\u7ba1\u7406',
+    permissions: ['tenant_users:view', 'tenant_user_kyc:view'],
+    children: [
+      { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
+      { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
     ],
   },
   {
     key: '/wallets',
     icon: <WalletOutlined />,
     label: '资产管理',
+    permissions: ['wallets:view'],
     children: [
       {
         key: '/wallets/list',
         label: '数字钱包列表',
+        permissions: ['wallets:view'],
       },
       {
         key: '/wallets/fund-accounts',
         label: '资金账户列表',
+        permissions: ['wallets:view'],
       },
       {
         key: '/wallets/card-fund-accounts',
         label: '卡账户列表',
+        permissions: ['wallets:view'],
       },
-      // {
-      //   key: '/wallets/balances',
-      //   label: '钱包资产',
-      // },
-      // {
-      //   key: '/wallets/addresses',
-      //   label: '地址管理',
-      // },
-
     ],
   },
   {
     key: '/hot-wallets',
     icon: <WalletOutlined />,
-    label: '热钱包管理',
+    label: '\u70ed\u94b1\u5305\u7ba1\u7406',
+    permissions: ['hot_wallets:view'],
     children: [
-      {
-        key: '/hot-wallets/list',
-        label: '热钱包列表',
-      },
+      { key: '/hot-wallets/list', label: '\u70ed\u94b1\u5305\u5217\u8868', permissions: ['hot_wallets:view'] },
     ],
   },
   {
     key: '/cold-wallets',
     icon: <WalletOutlined />,
-    label: '冷钱包管理',
+    label: '\u51b7\u94b1\u5305\u7ba1\u7406',
+    permissions: ['cold_wallets:view'],
     children: [
-      {
-        key: '/cold-wallets/list',
-        label: '冷钱包列表',
-      },
+      { key: '/cold-wallets/list', label: '\u51b7\u94b1\u5305\u5217\u8868', permissions: ['cold_wallets:view'] },
     ],
   },
   {
     key: 'tasks',
     icon: <ControlOutlined />,
-    label: '任务管理',
+    label: '\u4efb\u52a1\u7ba1\u7406',
+    permissions: ['balance_monitor:view', 'collection:view'],
     children: [
       {
         key: '/wallets/monitor',
         label: '余额监控',
+        permissions: ['balance_monitor:view'],
       },
       {
         key: '/collection/configs',
         label: '归集配置',
+        permissions: ['collection:view'],
       },
+      { key: '/collection/tasks', label: '\u5f52\u96c6\u4efb\u52a1', permissions: ['collection:view'] },
     ],
   },
   {
     key: '/transactions',
     icon: <TransactionOutlined />,
-    label: '交易管理',
+    label: '\u4ea4\u6613\u7ba1\u7406',
+    permissions: ['transactions:view', 'internal_transfers:view', 'withdrawals:view'],
     children: [
-      {
-        key: '/transactions/list',
-        label: '交易记录',
-      },
-      {
-        key: '/transactions/internal',
-        label: '内部转账',
-      },
-      // {
-      //   key: '/transactions/pending',
-      //   label: '待处理交易',
-      // },
-      {
-        key: '/transactions/withdraw',
-        label: '发起提现',
-      },
+      { key: '/transactions/list', label: '\u4ea4\u6613\u8bb0\u5f55', permissions: ['transactions:view'] },
+      { key: '/transactions/internal', label: '\u5185\u90e8\u8f6c\u8d26', permissions: ['internal_transfers:view'] },
+      { key: '/transactions/withdraw', label: '\u53d1\u8d77\u63d0\u73b0', permissions: ['withdrawals:view'] },
     ],
   },
   {
     key: '/history',
     icon: <HistoryOutlined />,
-    label: '历史记录',
+    label: '\u5386\u53f2\u8bb0\u5f55',
+    permissions: ['deposits:view', 'withdrawals:view'],
     children: [
-      {
-        key: '/history/deposits',
-        label: '充值记录',
-      },
-      {
-        key: '/history/withdrawals',
-        label: '提现记录',
-      },
-      {
-        key: '/history/transfers',
-        label: '转账记录',
-      },
+      { key: '/history/deposits', label: '\u5145\u503c\u8bb0\u5f55', permissions: ['deposits:view'] },
+      { key: '/history/withdrawals', label: '\u63d0\u73b0\u8bb0\u5f55', permissions: ['withdrawals:view'] },
     ],
   },
   {
     key: '/security',
     icon: <SecurityScanOutlined />,
-    label: '安全中心',
+    label: '\u5b89\u5168\u4e2d\u5fc3',
+    permissions: ['security:2fa'],
     children: [
-      {
-        key: '/security/2fa',
-        label: '两步验证',
-      },
-      // { key: '/security/sessions', label: '登录会话' },
-      // { key: '/security/logs', label: '操作日志' },
+      { key: '/security/2fa', label: '\u4e24\u6b65\u9a8c\u8bc1', permissions: ['security:2fa'] },
     ],
   },
   {
     key: '/settings',
     icon: <SettingOutlined />,
-    label: '系统设置',
+    label: '\u7cfb\u7edf\u8bbe\u7f6e',
+    permissions: ['tenant:view'],
     children: [
-      {
-        key: '/settings/profile',
-        label: '个人资料',
-      },
-      // 已隐藏
-      // { key: '/settings/notifications', label: '通知设置' },
-      // { key: '/settings/preferences', label: '偏好设置' },
-      // { key: '/settings/api-keys', label: 'API密钥管理' },
-      // { key: '/settings/config', label: '系统配置' },
+      { key: '/settings/profile', label: '\u4e2a\u4eba\u8d44\u6599', permissions: ['tenant:view'] },
     ],
   },
-  // 已隐藏
-  // {
-  //   key: '/logs',
-  //   icon: <HistoryOutlined />,
-  //   label: '日志管理',
-  //   children: [
-  //     { key: '/logs/api', label: 'API日志' },
-  //     { key: '/logs/webhook', label: 'Webhook日志' },
-  //   ],
-  // },
-  // {
-  //   key: '/analytics',
-  //   icon: <BarChartOutlined />,
-  //   label: '数据分析',
-  //   children: [
-  //     { key: '/analytics/stats', label: '统计报表' },
-  //   ],
-  // },
+  {
+    key: '/rbac',
+    icon: <TeamOutlined />,
+    label: 'RBAC管理',
+    permissions: ['tenant_rbac_users:view', 'tenant_rbac_roles:view', 'tenant_rbac_permissions:view'],
+    children: [
+      { key: '/rbac/users', label: '用户管理', permissions: ['tenant_rbac_users:view'] },
+      { key: '/rbac/roles', label: '角色管理', permissions: ['tenant_rbac_roles:view'] },
+      { key: '/rbac/permissions', label: '权限管理', permissions: ['tenant_rbac_permissions:view'] },
+    ],
+  },
 ]
+
+function hasAnyPermission(userPermissions: string[], required?: string[]) {
+  if (!required || required.length === 0) {
+    return true
+  }
+  return required.some((permission) => userPermissions.includes(permission))
+}
+
+function filterMenuTree(nodes: MenuNode[], userPermissions: string[]): MenuNode[] {
+  return nodes.reduce<MenuNode[]>((result, node) => {
+    const filteredChildren = node.children ? filterMenuTree(node.children, userPermissions) : undefined
+    const selfVisible = hasAnyPermission(userPermissions, node.permissions)
+
+    if (!selfVisible && (!filteredChildren || filteredChildren.length === 0)) {
+      return result
+    }
+
+    result.push({
+      ...node,
+      children: filteredChildren,
+    })
+    return result
+  }, [])
+}
+
+function toMenuItems(nodes: MenuNode[]): MenuItem[] {
+  return nodes.map((node) => ({
+    key: node.key,
+    icon: node.icon,
+    label: node.label,
+    children: node.children ? toMenuItems(node.children) : undefined,
+  }))
+}
 
 export function MainLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { token } = useToken()
-
-  const { user, clearAuth } = useAuthStore()
+  const { user, clearAuth, permissions } = useAuthStore()
   const { sidebar, setSidebarCollapsed, setSidebarMobile } = useAppStore()
+  const [notifications] = useState(3)
 
-  const [notifications] = useState(3) // 示例通知数量
+  const visibleMenuItems = useMemo(() => {
+    return toMenuItems(filterMenuTree(menuTree, permissions))
+  }, [permissions])
 
-  // 响应式处理
   useEffect(() => {
     const handleResize = () => {
       const isMobile = window.innerWidth < 768
@@ -233,45 +233,40 @@ export function MainLayout() {
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [setSidebarMobile, setSidebarCollapsed])
+  }, [setSidebarCollapsed, setSidebarMobile])
 
-  // 获取当前选中的菜单项
   const getSelectedKeys = () => {
     const pathname = location.pathname === '/collection/tasks'
       ? '/collection/configs'
       : location.pathname
-    // 尝试精确匹配
-    if (menuItems.some(item => item?.key === pathname)) {
+    if (visibleMenuItems.some((item) => item?.key === pathname)) {
       return [pathname]
     }
 
-    // 尝试匹配子菜单
-    for (const item of menuItems) {
+    for (const item of visibleMenuItems) {
       if (item && 'children' in item && item.children) {
         for (const child of item.children) {
-          if (child && 'key' in child && pathname.startsWith(child.key as string)) {
-            return [child.key as string]
+          if (child && 'key' in child && pathname.startsWith(String(child.key))) {
+            return [String(child.key)]
           }
         }
       }
     }
 
-    // 默认匹配
     return [pathname]
   }
 
-  // 获取展开的菜单项
   const getOpenKeys = () => {
     const pathname = location.pathname === '/collection/tasks'
       ? '/collection/configs'
       : location.pathname
     const openKeys: string[] = []
 
-    for (const item of menuItems) {
+    for (const item of visibleMenuItems) {
       if (item && 'children' in item && item.children) {
         for (const child of item.children) {
-          if (child && 'key' in child && pathname.startsWith(child.key as string)) {
-            openKeys.push(item.key as string)
+          if (child && 'key' in child && pathname.startsWith(String(child.key))) {
+            openKeys.push(String(item.key))
             break
           }
         }
@@ -281,17 +276,13 @@ export function MainLayout() {
     return openKeys
   }
 
-  // 处理菜单点击
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key)
   }
 
-  // 处理用户下拉菜单点击
   const handleUserMenuClick = async ({ key }: { key: string }) => {
     switch (key) {
       case 'profile':
-        navigate('/settings/profile')
-        break
       case 'settings':
         navigate('/settings/profile')
         break
@@ -308,30 +299,13 @@ export function MainLayout() {
     }
   }
 
-  // 用户下拉菜单
   const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '个人资料',
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '设置',
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      danger: true,
-    },
+    { key: 'profile', icon: <UserOutlined />, label: '\u4e2a\u4eba\u8d44\u6599' },
+    { key: 'settings', icon: <SettingOutlined />, label: '\u8bbe\u7f6e' },
+    { type: 'divider' },
+    { key: 'logout', icon: <LogoutOutlined />, label: '\u9000\u51fa\u767b\u5f55', danger: true },
   ]
 
-  // 侧边栏内容
   const siderContent = (
     <Sider
       trigger={null}
@@ -366,7 +340,7 @@ export function MainLayout() {
         mode="inline"
         selectedKeys={getSelectedKeys()}
         defaultOpenKeys={getOpenKeys()}
-        items={menuItems}
+        items={visibleMenuItems}
         onClick={handleMenuClick}
         style={{ borderRight: 0 }}
       />
@@ -375,13 +349,11 @@ export function MainLayout() {
 
   return (
     <Layout className="min-h-screen">
-      {/* 桌面端侧边栏 */}
       {!sidebar.mobile && siderContent}
 
-      {/* 移动端侧边栏 */}
       {sidebar.mobile && (
         <Drawer
-          title="导航菜单"
+          title="\u5bfc\u822a\u83dc\u5355"
           placement="left"
           closable={false}
           open={!sidebar.collapsed}
@@ -394,7 +366,6 @@ export function MainLayout() {
       )}
 
       <Layout className={sidebar.mobile ? '' : `ml-${sidebar.collapsed ? '20' : '64'}`}>
-        {/* 顶部导航栏 */}
         <Header
           style={{
             padding: '0 24px',
@@ -408,19 +379,12 @@ export function MainLayout() {
               type="text"
               icon={sidebar.collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setSidebarCollapsed(!sidebar.collapsed)}
-              style={{
-                fontSize: '16px',
-                width: 40,
-                height: 40,
-              }}
+              style={{ fontSize: '16px', width: 40, height: 40 }}
             />
-
-            {/* 面包屑导航可以在这里添加 */}
           </div>
 
           <div className="flex items-center gap-4">
-            {/* 通知铃铛 */}
-            <Badge count={notifications} >
+            <Badge count={notifications}>
               <Button
                 type="text"
                 icon={<BellOutlined />}
@@ -429,23 +393,15 @@ export function MainLayout() {
               />
             </Badge>
 
-            {/* 用户信息下拉菜单 */}
             <Dropdown
-              menu={{
-                items: userMenuItems,
-                onClick: handleUserMenuClick,
-              }}
+              menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
               placement="bottomRight"
               trigger={['click']}
             >
               <div className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded-md hover:bg-gray-50">
-                <Avatar
-
-                  icon={<UserOutlined />}
-                  src={user?.avatar}
-                />
+                <Avatar icon={<UserOutlined />} src={user?.avatar} />
                 <div className="hidden sm:block">
-                  <div className="text-sm font-medium">{user?.name || '用户'}</div>
+                  <div className="text-sm font-medium">{user?.name || '\u7528\u6237'}</div>
                   <div className="text-xs text-gray-500">{user?.email}</div>
                 </div>
               </div>
@@ -453,7 +409,6 @@ export function MainLayout() {
           </div>
         </Header>
 
-        {/* 主内容区域 */}
         <Content
           style={{
             padding: '24px',
