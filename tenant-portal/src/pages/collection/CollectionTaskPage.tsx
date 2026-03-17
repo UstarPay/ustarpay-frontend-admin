@@ -131,10 +131,12 @@ const CollectionTaskPage: React.FC = () => {
 
   const getStatusConfig = (status: number) => {
     const statusConfig: Record<number, { text: string; color: string; icon: React.ReactNode }> = {
-      [CollectionTaskStatus.FROZEN]: { text: '失效', color: 'default', icon: <CloseCircleOutlined /> },
-      [CollectionTaskStatus.INACTIVE]: { text: '暂停', color: 'warning', icon: <ClockCircleOutlined /> },
-      [CollectionTaskStatus.ACTIVE]: { text: '待执行', color: 'processing', icon: <SyncOutlined spin /> },
-      [CollectionTaskStatus.FINISHED]: { text: '已完成', color: 'success', icon: <CheckCircleOutlined /> },
+      [CollectionTaskStatus.PENDING]: { text: '待执行', color: 'warning', icon: <ClockCircleOutlined /> },
+      [CollectionTaskStatus.RUNNING]: { text: '执行中', color: 'processing', icon: <SyncOutlined spin /> },
+      [CollectionTaskStatus.PARTIAL_SUCCESS]: { text: '部分成功', color: 'processing', icon: <CheckCircleOutlined /> },
+      [CollectionTaskStatus.SUCCESS]: { text: '成功', color: 'success', icon: <CheckCircleOutlined /> },
+      [CollectionTaskStatus.FAILED]: { text: '失败', color: 'error', icon: <CloseCircleOutlined /> },
+      [CollectionTaskStatus.CANCELLED]: { text: '已取消', color: 'default', icon: <CloseCircleOutlined /> },
     }
     return statusConfig[status] ?? { text: '未知', color: 'default', icon: <ClockCircleOutlined /> }
   }
@@ -358,10 +360,12 @@ const CollectionTaskPage: React.FC = () => {
             value={searchParams.status ?? undefined}
             onChange={(value) => setSearchParams(prev => ({ ...prev, status: value as number, page: 1 }))}
           >
-            <Option value={CollectionTaskStatus.FROZEN}>失效</Option>
-            <Option value={CollectionTaskStatus.INACTIVE}>暂停</Option>
-            <Option value={CollectionTaskStatus.ACTIVE}>待执行</Option>
-            <Option value={CollectionTaskStatus.FINISHED}>已完成</Option>
+            <Option value={CollectionTaskStatus.PENDING}>待执行</Option>
+            <Option value={CollectionTaskStatus.RUNNING}>执行中</Option>
+            <Option value={CollectionTaskStatus.PARTIAL_SUCCESS}>部分成功</Option>
+            <Option value={CollectionTaskStatus.SUCCESS}>成功</Option>
+            <Option value={CollectionTaskStatus.FAILED}>失败</Option>
+            <Option value={CollectionTaskStatus.CANCELLED}>已取消</Option>
           </Select>
           <RangePicker
             placeholder={['开始日期', '结束日期']}

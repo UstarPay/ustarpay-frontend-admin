@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { 
   Card, 
-  Row, 
-  Col, 
   Table, 
   Button, 
   Space, 
@@ -679,115 +677,238 @@ const BalanceMonitorPage: React.FC = () => {
     }
   }
 
+  const monitorCoverage = stats && stats.totalWallets > 0
+    ? Math.round((stats.monitoredWallets / stats.totalWallets) * 100)
+    : 0
+
+  const headerMetrics = [
+    {
+      label: '覆盖率',
+      value: `${monitorCoverage}%`,
+      helper: stats ? `${stats.monitoredWallets}/${stats.totalWallets} 钱包纳入监控` : '等待统计数据',
+      tone: 'bg-[#14342b] text-[#d7f7e9]'
+    },
+    {
+      label: '触发事件',
+      value: `${stats?.triggeredAlerts ?? 0}`,
+      helper: '最近累计触发预警',
+      tone: 'bg-[#3f2a15] text-[#ffe7c2]'
+    },
+    {
+      label: '通知能力',
+      value: novuConfigured ? '已接通' : '待配置',
+      helper: novuConfigured ? 'Novu 可用' : '建议先补全通知配置',
+      tone: 'bg-[#1a3152] text-[#d8e9ff]'
+    }
+  ]
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>余额监控</Title>
-        <Button 
-          icon={<ReloadOutlined />} 
-          onClick={loadData}
-          loading={loading}
-        >
-          刷新
-        </Button>
+    <>
+      <div className="min-h-screen bg-[linear-gradient(180deg,#f7f3ec_0%,#f5f7fb_26%,#eef3f8_100%)] p-4 md:p-6">
+        <div className="mx-auto max-w-[1600px] space-y-6">
+          <section className="overflow-hidden rounded-[34px] border border-[#e7ddcf] bg-[linear-gradient(135deg,#fffaf2_0%,#f3ebe0_44%,#e7f0ef_100%)] shadow-[0_24px_60px_rgba(76,61,42,0.10)]">
+          <div className="grid gap-0 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="border-b border-[#eadfce] px-6 py-7 xl:border-b-0 xl:border-r xl:px-8 xl:py-8">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#17352e] px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-[#d7f7e9]">
+                <SettingOutlined />
+                Balance Sentinel
+              </div>
+              <Title level={1} className="!mb-2 !mt-4 !text-[34px] !font-semibold !tracking-tight !text-[#1d2a26]">
+                余额监控
+              </Title>
+              <Text className="block max-w-xl text-[15px] leading-7 !text-[#5f6d69]">
+                用于持续观察关键钱包余额，并配置阈值预警与通知接收链路。
+              </Text>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  onClick={loadData}
+                  loading={loading}
+                  className="!h-11 !rounded-full !border-0 !bg-[#17352e] !px-5 !shadow-none"
+                >
+                  刷新监控数据
+                </Button>
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={handleCreateAlert}
+                  className="!h-11 !rounded-full !border-[#cbbba6] !bg-white/80 !px-5 !text-[#4d4133]"
+                >
+                  添加预警规则
+                </Button>
+                <Button
+                  icon={<PlusCircleOutlined />}
+                  onClick={() => handleOpenConfigModal()}
+                  className="!h-11 !rounded-full !border-[#c9d6d5] !bg-[#eff8f6] !px-5 !text-[#204f46]"
+                >
+                  添加监控配置
+                </Button>
+              </div>
+
+              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                {headerMetrics.map((item) => (
+                  <div key={item.label} className={`rounded-[22px] px-4 py-4 ${item.tone}`}>
+                    <div className="text-[11px] uppercase tracking-[0.2em] opacity-80">{item.label}</div>
+                    <div className="mt-3 text-[28px] font-semibold leading-none">{item.value}</div>
+                    <div className="mt-2 text-xs opacity-80">{item.helper}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-6 py-7 xl:px-8 xl:py-8">
+              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+                <Card bordered={false} className="rounded-[24px] border border-[#e3d7c7] bg-white/80 shadow-none">
+                  <Statistic
+                    title="监控钱包"
+                    value={stats?.monitoredWallets ?? 0}
+                    suffix={stats ? `/ ${stats.totalWallets}` : ''}
+                    valueStyle={{ color: '#1d4ed8', fontWeight: 700 }}
+                  />
+                </Card>
+                <Card bordered={false} className="rounded-[24px] border border-[#d6eadf] bg-white/80 shadow-none">
+                  <Statistic
+                    title="活跃预警"
+                    value={stats?.activeAlerts ?? 0}
+                    valueStyle={{ color: '#15803d', fontWeight: 700 }}
+                  />
+                </Card>
+                <Card bordered={false} className="rounded-[24px] border border-[#f0dfba] bg-white/80 shadow-none">
+                  <Statistic
+                    title="已触发预警"
+                    value={stats?.triggeredAlerts ?? 0}
+                    valueStyle={{ color: '#d97706', fontWeight: 700 }}
+                  />
+                </Card>
+                <Card bordered={false} className="rounded-[24px] border border-[#dcd6ec] bg-white/80 shadow-none">
+                  <Statistic
+                    title="总余额"
+                    value={stats?.totalBalance ?? '0'}
+                    valueStyle={{ color: '#6d28d9', fontWeight: 700 }}
+                  />
+                </Card>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+                <div className="rounded-[26px] border border-[#eadfce] bg-white/78 px-5 py-5">
+                  <div className="text-[11px] uppercase tracking-[0.26em] text-[#a28d76]">Coverage Notes</div>
+                  <div className="mt-3 text-sm leading-7 text-[#66594a]">查看监控覆盖情况与规则配置状态。</div>
+                </div>
+                <div className="rounded-[26px] border border-[#d4e2df] bg-[#17352e] px-5 py-5 text-[#d7f7e9]">
+                  <div className="text-[11px] uppercase tracking-[0.26em] text-[#9ed7c7]">Ops Checklist</div>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div>1. 新钱包接入后立即补预警阈值</div>
+                    <div>2. 每条通知配置只绑定一条规则</div>
+                    <div>3. 先校验接收人，再启用自动通知</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+          <div className="grid gap-6 xl:grid-cols-[0.6fr_1.4fr]">
+            <aside className="min-w-0 space-y-6">
+            <Card
+              bordered={false}
+              className="rounded-[30px] border border-[#e6ddcf] bg-white/88 shadow-[0_16px_38px_rgba(76,61,42,0.06)]"
+              bodyStyle={{ padding: 24 }}
+            >
+              <div className="text-[11px] uppercase tracking-[0.28em] text-[#a28d76]">Monitor Snapshot</div>
+              <div className="mt-4 space-y-4">
+                <div className="rounded-[22px] bg-[#f7efe4] px-4 py-4">
+                  <div className="text-xs text-[#8f7b64]">平均余额</div>
+                  <div className="mt-2 text-2xl font-semibold text-[#3f3428]">{stats?.averageBalance ?? '0'}</div>
+                </div>
+                <div className="rounded-[22px] bg-[#edf7f4] px-4 py-4">
+                  <div className="text-xs text-[#5d867b]">通知配置数</div>
+                  <div className="mt-2 text-2xl font-semibold text-[#1d4f45]">{configs.length}</div>
+                </div>
+                <div className="rounded-[22px] bg-[#eef3fb] px-4 py-4">
+                  <div className="text-xs text-[#7184a0]">预警规则数</div>
+                  <div className="mt-2 text-2xl font-semibold text-[#243b5a]">{alerts.length}</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              bordered={false}
+              className="rounded-[30px] border border-[#d9e5e2] bg-[linear-gradient(180deg,#f8fffd_0%,#eef8f5_100%)] shadow-[0_16px_38px_rgba(24,80,70,0.06)]"
+              bodyStyle={{ padding: 24 }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.28em] text-[#6a8f86]">Channel Readiness</div>
+                  <div className="mt-2 whitespace-nowrap text-2xl font-semibold text-[#17352e]">通知链路</div>
+                </div>
+                <Tag color={novuConfigured ? 'success' : 'warning'}>
+                  {novuConfigured ? 'Novu 已配置' : 'Novu 未配置'}
+                </Tag>
+              </div>
+            </Card>
+          </aside>
+
+            <section className="min-w-0 space-y-6">
+              <Card
+                bordered={false}
+                className="min-w-0 rounded-[30px] border border-[#ded5c7] bg-white/90 shadow-[0_16px_38px_rgba(76,61,42,0.06)]"
+                bodyStyle={{ padding: 0 }}
+              title={
+                <div className="px-1 py-1">
+                  <div className="text-[11px] uppercase tracking-[0.28em] text-[#a28d76]">Rule Deck</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight text-[#2f261e]">预警规则</div>
+                </div>
+              }
+            >
+              <div className="w-full max-w-full overflow-x-auto">
+                <Table
+                  style={{ minWidth: 1650 }}
+                  columns={alertColumns}
+                  dataSource={alerts}
+                  rowKey="id"
+                  loading={loading}
+                  scroll={{ x: 1650 }}
+                  pagination={{
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
+                  }}
+                />
+              </div>
+            </Card>
+
+              <Card
+                bordered={false}
+                className="min-w-0 rounded-[30px] border border-[#d8e3e1] bg-white/90 shadow-[0_16px_38px_rgba(24,80,70,0.06)]"
+                bodyStyle={{ padding: 0 }}
+              title={
+                <div className="px-1 py-1">
+                  <div className="text-[11px] uppercase tracking-[0.28em] text-[#6a8f86]">Delivery Deck</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight text-[#17352e]">监控配置</div>
+                </div>
+              }
+            >
+              <div className="w-full max-w-full overflow-x-auto">
+                <Table
+                  style={{ minWidth: 1550 }}
+                  columns={configColumns}
+                  dataSource={configs}
+                  rowKey={(r) => r.id || 'config'}
+                  loading={loading}
+                  scroll={{ x: 1550 }}
+                  pagination={{
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
+                  }}
+                />
+              </div>
+            </Card>
+            </section>
+          </div>
+        </div>
       </div>
-
-      {/* 统计信息 */}
-      {stats && (
-        <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="监控钱包"
-                value={stats.monitoredWallets}
-                suffix={`/ ${stats.totalWallets}`}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="活跃预警"
-                value={stats.activeAlerts}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="已触发预警"
-                value={stats.triggeredAlerts}
-                valueStyle={{ color: '#faad14' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title="总余额"
-                value={stats.totalBalance}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      )}
-
-      {/* 预警规则 */}
-      <Card 
-        title="预警规则" 
-        className="mb-6"
-        extra={
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleCreateAlert}
-          >
-            添加预警
-          </Button>
-        }
-      >
-        <Table
-          columns={alertColumns}
-          dataSource={alerts}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-          }}
-        />
-      </Card>
-
-      {/* 监控配置 */}
-      <Card 
-        title="监控配置" 
-        className="mb-6"
-        extra={
-          <Button 
-            icon={<PlusOutlined />}
-            onClick={() => handleOpenConfigModal()}
-          >
-            添加监控配置
-          </Button>
-        }
-      >
-        <Table
-          columns={configColumns}
-          dataSource={configs}
-          rowKey={(r) => r.id || 'config'}
-          loading={loading}
-          scroll={{ x: 1100 }}
-          pagination={{
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-          }}
-        />
-      </Card>
 
       {/* 预警规则模态框 */}
       <Modal
@@ -1225,7 +1346,7 @@ const BalanceMonitorPage: React.FC = () => {
           </Space>
         </Form>
       </Modal>
-    </div>
+    </>
   )
 }
 

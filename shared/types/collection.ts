@@ -32,12 +32,14 @@ export interface TenantCollectionConfig {
 }
 
 // 归集任务状态（与 tenant_collection_tasks.status 一致）
-// -1:frozen(失效), 0:inactive(暂停), 1:active(待执行), 2:finished(已完成)
+// 0:pending, 1:running, 2:partial_success, 3:success, 4:failed, 5:cancelled
 export enum CollectionTaskStatus {
-  FROZEN = -1,
-  INACTIVE = 0,
-  ACTIVE = 1,
-  FINISHED = 2,
+  PENDING = 0,
+  RUNNING = 1,
+  PARTIAL_SUCCESS = 2,
+  SUCCESS = 3,
+  FAILED = 4,
+  CANCELLED = 5,
 }
 
 // 归集任务
@@ -122,7 +124,8 @@ export interface CollectionConfigQueryParams extends ListParams {
 }
 
 // 任务查询参数
-export interface CollectionTaskQueryParams extends ListParams {
+export interface CollectionTaskQueryParams extends Omit<ListParams, 'status'> {
+  status?: CollectionTaskStatus;
   configId?: string;
   startDate?: string;
   endDate?: string;
