@@ -1,6 +1,7 @@
-import React from 'react'
-import { Modal, Form, Input, InputNumber, Select, Switch, Row, Col } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Modal, Form, Input, InputNumber, Select, Switch, Row, Col, message } from 'antd'
 import type { CreateChainRequest } from '@shared/types/chain'
+import { configApi } from '@/services/apis/configApi'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -19,24 +20,55 @@ const ChainCreateModal: React.FC<ChainCreateModalProps> = ({
   onSubmit
 }) => {
   const [form] = Form.useForm()
+  const [chainNetworkOptions, setChainNetworkOptions] = useState<string[]>([])
+
+  // 获取网络类型配置
+  useEffect(() => {
+    if (visible) {
+      configApi.getConfigByKey('chain_network')
+        .then(res => {
+          if (res.data?.config_value) {
+            try {
+              const config = JSON.parse(res.data.config_value)
+              if (config.chainNetwork && Array.isArray(config.chainNetwork)) {
+                setChainNetworkOptions(config.chainNetwork)
+              }
+            } catch (e) {
+              console.error('Failed to parse chain_network config:', e)
+              // 使用默认值
+              setChainNetworkOptions(['EVM', 'Bitcoin', 'Tron', '其他'])
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch chain_network config:', err)
+          // 使用默认值
+          setChainNetworkOptions(['EVM', 'Bitcoin', 'Tron', '其他'])
+        })
+    }
+  }, [visible])
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
-      
-      // 处理RPC URLs和浏览器URLs
+
+      // 处理RPC URLs和浏览器URLs，并转换字段名为后端期望的格式
       const processedValues = {
-        ...values,
-        rpc_urls: values.rpc_urls_text ? values.rpc_urls_text.split('\n').filter((url: string) => url.trim()) : [],
-        ws_urls: values.ws_urls_text ? values.ws_urls_text.split('\n').filter((url: string) => url.trim()) : [],
-        explorer_urls: values.explorer_urls_text ? values.explorer_urls_text.split('\n').filter((url: string) => url.trim()) : []
+        chainId: values.chain_id,
+        chainCode: values.chain_code,
+        chainName: values.chain_name,
+        chain_network: values.chain_network,
+        nativeSymbol: values.native_currency,
+        rpcUrls: values.rpc_urls_text ? values.rpc_urls_text.split('\n').filter((url: string) => url.trim()) : [],
+        wsUrls: values.ws_urls_text ? values.ws_urls_text.split('\n').filter((url: string) => url.trim()) : [],
+        explorerUrls: values.explorer_urls_text ? values.explorer_urls_text.split('\n').filter((url: string) => url.trim()) : [],
+        confirmationBlocks: values.confirmation_blocks || 6,
+        scanHeight: values.scan_height || 1000,
+        blockTime: values.block_time || 15,
+        isActive: values.is_active !== undefined ? values.is_active : true,
+        isMainnet: values.is_mainnet !== undefined ? values.is_mainnet : true
       }
-      
-      // 移除临时字段
-      delete processedValues.rpc_urls_text
-      delete processedValues.ws_urls_text
-      delete processedValues.explorer_urls_text
-      
+
       onSubmit(processedValues)
     } catch (error) {
       console.error('表单验证失败:', error)
@@ -109,15 +141,14 @@ const ChainCreateModal: React.FC<ChainCreateModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="network_type"
+              name="chain_network"
               label="网络类型"
               rules={[{ required: true, message: '请选择网络类型' }]}
             >
               <Select placeholder="选择网络类型">
-                <Option value="evm">EVM</Option>
-                <Option value="bitcoin">Bitcoin</Option>
-                <Option value="tron">Tron</Option>
-                <Option value="other">其他</Option>
+                {chainNetworkOptions.map(option => (
+                  <Option key={option} value={option}>{option}</Option>
+                ))}
               </Select>
             </Form.Item>
           </Col>
@@ -128,9 +159,9 @@ const ChainCreateModal: React.FC<ChainCreateModalProps> = ({
               valuePropName="checked"
               initialValue={true}
             >
-              <Switch 
-                checkedChildren="主网" 
-                unCheckedChildren="测试网" 
+              <Switch
+                checkedChildren="主网"
+                unCheckedChildren="测试网"
               />
             </Form.Item>
           </Col>

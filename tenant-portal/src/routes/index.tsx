@@ -26,6 +26,8 @@ import {
   PasswordUpdatePage,
   SecondaryPasswordUpdatePage,
   HotWalletListPage,
+  FundAccountListPage,
+  CardFundAccountListPage,
   UserListPage,
   KycListPage,
   TenantRbacUserPage,
@@ -67,6 +69,8 @@ export function AppRoutes() {
         <Route path="tenant-users/list" element={protect(<UserListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
         <Route path="tenant-users/kyc" element={protect(<KycListPage />, [TENANT_PERMISSION.TENANT_USER_KYC_VIEW])} />
         <Route path="wallets/list" element={protect(<WalletListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
+        <Route path="wallets/fund-accounts" element={protect(<FundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
+        <Route path="wallets/card-fund-accounts" element={protect(<CardFundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/:id" element={protect(<WalletDetailPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/monitor" element={protect(<BalanceMonitorPage />, [TENANT_PERMISSION.BALANCE_MONITOR_VIEW])} />
         <Route path="wallets/gas-tasks" element={protect(<GasTaskPage />, [TENANT_PERMISSION.BALANCE_MONITOR_VIEW])} />

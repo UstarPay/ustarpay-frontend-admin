@@ -25,13 +25,21 @@ import {
 } from '@ant-design/icons'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { hotWalletService, chainService } from '@/services'
-import type { HotWalletWithBalance, HotWallet } from '@shared/types'
+import type { HotWallet, UpdateHotWalletRequest } from '@shared/types'
 import type { Chain } from '@shared/types'
 
 // 临时类型定义，匹配实际 API 响应
 interface ActualHotWalletWithBalance {
   wallet: HotWallet
   balanceByChain: any
+}
+
+interface CurrencyOption {
+  symbol: string
+  name: string
+  chainCodes: string[]
+  chainNames: string[]
+  isNative?: boolean
 }
 
 const { Option } = Select
@@ -80,23 +88,44 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
     }
   })
 
-  // 从 chains 数据中提取所有代币
-  const allCurrencies = (chainsData?.items as Chain[])?.flatMap((chain: Chain) => {
+  // 归并代币，避免同一个 symbol 在多条链上重复展示
+  const allCurrencies = ((chainsData?.items as Chain[]) || []).reduce<CurrencyOption[]>((acc, chain) => {
     if (!chain?.chainCode || !chain?.chainName || !Array.isArray(chain.currencies)) {
-      return []
+      return acc
     }
-    return chain.currencies
-      .filter((currency: any) => currency?.symbol && currency?.name) // 过滤掉无效代币
-      .map((currency: any) => ({
-        ...currency,
-        chainCode: chain.chainCode,
-        chainName: chain.chainName
-      }))
-  }) || []
+
+    chain.currencies
+      .filter((currency: any) => currency?.symbol && currency?.name)
+      .forEach((currency: any) => {
+        const symbol = String(currency.symbol).toUpperCase()
+        const existing = acc.find(item => item.symbol === symbol)
+
+        if (existing) {
+          if (!existing.chainCodes.includes(chain.chainCode)) {
+            existing.chainCodes.push(chain.chainCode)
+          }
+          if (!existing.chainNames.includes(chain.chainName)) {
+            existing.chainNames.push(chain.chainName)
+          }
+          existing.isNative = existing.isNative || Boolean(currency.isNative)
+          return
+        }
+
+        acc.push({
+          symbol,
+          name: currency.name,
+          chainCodes: [chain.chainCode],
+          chainNames: [chain.chainName],
+          isNative: Boolean(currency.isNative)
+        })
+      })
+
+    return acc
+  }, [])
 
   // 根据已选择的链筛选代币
   const filteredCurrencies = selectedChainCodes.length > 0
-    ? allCurrencies.filter(currency => selectedChainCodes.includes(currency.chainCode))
+    ? allCurrencies.filter(currency => currency.chainCodes.some(chainCode => selectedChainCodes.includes(chainCode)))
     : allCurrencies
 
   // 处理链选择变化
@@ -136,7 +165,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
 
   // 更新热钱包（描述、提现钱包、Gas钱包、状态）
   const updateWalletMutation = useMutation({
-    mutationFn: async (params: { id: string; data: { description?: string; isWithdrawalWallet?: boolean; isGasWallet?: boolean; status?: number } }) => {
+    mutationFn: async (params: { id: string; data: UpdateHotWalletRequest }) => {
       const { id, data } = params
       return hotWalletService.updateHotWallet(id, data)
     },
@@ -157,6 +186,8 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
           id: editingWallet.wallet.id,
           data: {
             description: values.description,
+            chainCodes: values.chainCodes?.filter(Boolean) || [],
+            symbols: values.symbols?.filter(Boolean) || [],
             isWithdrawalWallet: values.isWithdrawalWallet,
             isGasWallet: values.isGasWallet,
             status: values.status
@@ -303,6 +334,10 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
           size="small"
           className="border-blue-100 bg-blue-50/30 mb-4"
         >
+          <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+            同一个链地址可以同时承担主币提币、主币 Gas、代币提币、代币 Gas。
+            选择链后，再补充该链原生币和代币即可，例如 `BSC + BNB + USDT`。
+          </div>
           <Row gutter={24}>
             <Col span={12}>
               <Form.Item
@@ -323,11 +358,10 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
                   value={form.getFieldValue('chainCodes') || []}
                   size="large"
                   className="w-full"
-                  disabled={isEditing}
                   filterOption={(input, option) =>
                     String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                   }
-                  onChange={isEditing ? undefined : handleChainCodesChange}
+                  onChange={handleChainCodesChange}
                 >
                   {chainsLoading ? (
                     <Option disabled>加载中...</Option>
@@ -386,7 +420,6 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
                   loading={chainsLoading}
                   size="large"
                   className="w-full"
-                  disabled={isEditing}
                   filterOption={(input, option) =>
                     String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                   }
@@ -399,10 +432,10 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
                     <Option disabled>暂无代币数据</Option>
                   ) : (
                     filteredCurrencies
-                      .filter((currency: any) => currency.symbol && currency.name && currency.chainCode) // 过滤掉无效数据
-                      .map((currency: any) => (
-                        <Option key={`${currency.chainCode}-${currency.symbol}`} value={currency.symbol} label={currency.name}>
-                          {currency.name} ({currency.symbol}) - {currency.chainName}
+                      .filter(currency => currency.symbol && currency.name)
+                      .map(currency => (
+                        <Option key={currency.symbol} value={currency.symbol} label={currency.name}>
+                          {currency.name} ({currency.symbol}){currency.isNative ? ' · 原生币' : ''} - {currency.chainNames.join(' / ')}
                         </Option>
                       ))
                   )}
@@ -463,7 +496,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
               </Form.Item>
               <div className="mt-2 p-2 bg-orange-50 rounded border border-orange-200">
                 <Text type="secondary" className="text-xs text-orange-700">
-                  是否作为提现钱包使用
+                  开启后，该地址可同时承担主币和代币的提币出资
                 </Text>
               </div>
             </Col>
@@ -485,7 +518,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
               </Form.Item>
               <div className="mt-2 p-2 bg-orange-50 rounded border border-orange-200">
                 <Text type="secondary" className="text-xs text-orange-700">
-                  是否作为Gas费用钱包使用
+                  开启后，该地址可同时承担主币和代币交易的 Gas 支付
                 </Text>
               </div>
             </Col>

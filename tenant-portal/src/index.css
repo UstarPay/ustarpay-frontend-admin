@@ -291,10 +291,13 @@ body.dark {
 
 /* 稳重深蓝风格菜单与侧边栏 */
 .ant-layout-sider {
-  background: #1a2233 !important;
+  background: linear-gradient(180deg, #0f172a 0%, #172554 52%, #1e293b 100%) !important;
 }
 .ant-menu, .ant-menu-sub {
-  background: #1a2233 !important;
+  background: transparent !important;
+}
+.ant-layout-sider-children {
+  background: linear-gradient(180deg, #0f172a 0%, #172554 52%, #1e293b 100%) !important;
 }
 .ant-menu-item, .ant-menu-submenu-title {
   color: #e0e7ef !important;
@@ -304,10 +307,13 @@ body.dark {
   color: #fff !important;
 }
 .ant-menu-item:hover, .ant-menu-submenu-title:hover {
-  background: #22304a !important;
+  background: rgba(34, 48, 74, 0.78) !important;
   color: #fff !important;
 }
 .ant-menu-submenu-arrow,
 .ant-menu-item .anticon, .ant-menu-submenu-title .anticon {
   color: #94a3b8 !important;
+}
+.ant-layout-sider-trigger {
+  background: linear-gradient(90deg, #172554 0%, #1d4ed8 100%) !important;
 }

@@ -1,5 +1,4 @@
 import type {
-  CreateWalletRequest,
   Transaction,
   Wallet,
   WalletBalance,
@@ -21,11 +20,6 @@ export const walletService = {
   // 获取钱包详情
   getWallet: async (walletId: string) => {
     return api.get<Wallet>(`/wallets/${walletId}`)
-  },
-
-  // 创建钱包
-  createWallet: async (data: CreateWalletRequest) => {
-    return api.post<Wallet>('/wallets', data)
   },
 
   // 删除钱包
@@ -182,7 +176,7 @@ export const walletService = {
   },
 
   // 更新钱包
-  updateWallet: async (walletId: string, data: Partial<CreateWalletRequest>) => {
+  updateWallet: async (walletId: string, data: Partial<{ status: number }>) => {
     return api.put<Wallet>(`/wallets/${walletId}`, data)
   },
 

@@ -5,6 +5,7 @@ import {
   BellOutlined,
   ControlOutlined,
   CreditCardOutlined,
+  BankOutlined,
   DashboardOutlined,
   HistoryOutlined,
   LogoutOutlined,
@@ -66,10 +67,24 @@ const menuTree: MenuNode[] = [
   {
     key: '/wallets',
     icon: <WalletOutlined />,
-    label: '\u94b1\u5305\u7ba1\u7406',
+    label: '资产管理',
     permissions: ['wallets:view'],
     children: [
-      { key: '/wallets/list', label: '\u94b1\u5305\u5217\u8868', permissions: ['wallets:view'] },
+      {
+        key: '/wallets/list',
+        label: '数字钱包列表',
+        permissions: ['wallets:view'],
+      },
+      {
+        key: '/wallets/fund-accounts',
+        label: '资金账户列表',
+        permissions: ['wallets:view'],
+      },
+      {
+        key: '/wallets/card-fund-accounts',
+        label: '卡账户列表',
+        permissions: ['wallets:view'],
+      },
     ],
   },
   {
@@ -96,8 +111,16 @@ const menuTree: MenuNode[] = [
     label: '\u4efb\u52a1\u7ba1\u7406',
     permissions: ['balance_monitor:view', 'collection:view'],
     children: [
-      { key: '/wallets/monitor', label: '\u4f59\u989d\u76d1\u63a7', permissions: ['balance_monitor:view'] },
-      { key: '/collection/configs', label: '\u5f52\u96c6\u914d\u7f6e', permissions: ['collection:view'] },
+      {
+        key: '/wallets/monitor',
+        label: '余额监控',
+        permissions: ['balance_monitor:view'],
+      },
+      {
+        key: '/collection/configs',
+        label: '归集配置',
+        permissions: ['collection:view'],
+      },
       { key: '/collection/tasks', label: '\u5f52\u96c6\u4efb\u52a1', permissions: ['collection:view'] },
     ],
   },
@@ -109,7 +132,7 @@ const menuTree: MenuNode[] = [
     children: [
       { key: '/transactions/list', label: '\u4ea4\u6613\u8bb0\u5f55', permissions: ['transactions:view'] },
       { key: '/transactions/internal', label: '\u5185\u90e8\u8f6c\u8d26', permissions: ['internal_transfers:view'] },
-      { key: '/transactions/withdraw', label: '\u53d1\u8d77\u63d0\u73b0', permissions: ['withdrawals:view'] },
+      { key: '/transactions/withdraw', label: '提现管理', permissions: ['withdrawals:view'] },
     ],
   },
   {
@@ -213,7 +236,9 @@ export function MainLayout() {
   }, [setSidebarCollapsed, setSidebarMobile])
 
   const getSelectedKeys = () => {
-    const pathname = location.pathname
+    const pathname = location.pathname === '/collection/tasks'
+      ? '/collection/configs'
+      : location.pathname
     if (visibleMenuItems.some((item) => item?.key === pathname)) {
       return [pathname]
     }
@@ -232,7 +257,9 @@ export function MainLayout() {
   }
 
   const getOpenKeys = () => {
-    const pathname = location.pathname
+    const pathname = location.pathname === '/collection/tasks'
+      ? '/collection/configs'
+      : location.pathname
     const openKeys: string[] = []
 
     for (const item of visibleMenuItems) {
@@ -291,10 +318,21 @@ export function MainLayout() {
       }}
       className={sidebar.mobile ? 'fixed left-0 top-0 bottom-0 z-50' : ''}
     >
-      <div className="h-16 flex items-center justify-center border-b border-gray-200">
-        <div className="text-xl font-bold text-blue-600">
-          {sidebar.collapsed ? 'TP' : '\u79df\u6237\u95e8\u6237'}
-        </div>
+      <div className="h-16 flex items-center justify-center gap-2 border-b border-gray-200 px-3">
+        {/* 企业 Logo 占位：可配置 VITE_APP_LOGO 替换为实际 logo 路径 */}
+        <Avatar
+          size={sidebar.collapsed ? 32 : 40}
+          src={import.meta.env.VITE_APP_LOGO}
+          icon={<BankOutlined />}
+          style={{
+            flexShrink: 0,
+            background: token.colorPrimaryBg,
+            color: token.colorPrimary,
+          }}
+        />
+        {!sidebar.collapsed && (
+          <span className="text-lg font-bold text-blue-600 truncate">UStarPay</span>
+        )}
       </div>
 
       <Menu

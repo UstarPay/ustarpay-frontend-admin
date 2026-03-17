@@ -24,7 +24,7 @@ const PageHeaderCard: React.FC<PageHeaderCardProps> = ({
   actions,
   className = '',
   showLogo = true,
-  logoText = 'NH Wallet',
+  logoText = 'UStarPay',
   gradientColors = ['#667eea', '#764ba2', '#f093fb', '#f5576c']
 }) => {
   // 生成渐变背景

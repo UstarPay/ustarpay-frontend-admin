@@ -82,7 +82,7 @@
 
 1. **页面加载** → 获取钱包统计和列表数据
 2. **搜索筛选** → 更新查询参数，重新获取数据
-3. **创建钱包** → 调用API，成功后刷新列表
+3. **查看钱包** → 查询余额与地址归属信息
 4. **编辑钱包** → 打开编辑模态框，提交后更新
 5. **删除钱包** → 确认后调用删除API
 
@@ -90,7 +90,6 @@
 
 - `walletService.getWallets()` - 获取钱包列表
 - `walletService.getTenantWalletOverview()` - 获取钱包统计
-- `walletService.createWallet()` - 创建钱包
 - `walletService.deleteWallet()` - 删除钱包
 
 ### 样式设计

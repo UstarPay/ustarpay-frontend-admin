@@ -15,7 +15,6 @@ import {
   Form,
   Tooltip,
   Modal,
-  Descriptions,
   InputNumber,
   message
 } from 'antd'
@@ -24,7 +23,11 @@ import {
   EyeOutlined,
   DownloadOutlined,
   CopyOutlined,
-  WalletOutlined
+  WalletOutlined,
+  PlusOutlined,
+  ThunderboltOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons'
 import { withdrawalService, currencyService } from '@/services'
 import type { Currency } from '@shared/types/currency'
@@ -36,7 +39,6 @@ const { Option } = Select
 const { RangePicker } = DatePicker
 const { TextArea } = Input
 
-// 状态 0-5 与文案、颜色
 const STATUS_MAP: Record<number, { text: string; color: string }> = {
   0: { text: '待审核', color: 'gold' },
   1: { text: '审核成功', color: 'blue' },
@@ -46,7 +48,6 @@ const STATUS_MAP: Record<number, { text: string; color: string }> = {
   5: { text: '已取消', color: 'default' }
 }
 
-// 链地址校验
 const CHAIN_ADDRESS_REGEX: Record<string, RegExp> = {
   ETH: /^0x[0-9a-fA-F]{40}$/,
   BSC: /^0x[0-9a-fA-F]{40}$/,
@@ -57,12 +58,13 @@ const CHAIN_ADDRESS_REGEX: Record<string, RegExp> = {
 function validateAddress(chainCode: string, address: string): string | null {
   if (!address?.trim()) return '请输入提现地址'
   const code = chainCode?.toUpperCase() || ''
-  const re = CHAIN_ADDRESS_REGEX[code] || CHAIN_ADDRESS_REGEX['ETH']
+  const re = CHAIN_ADDRESS_REGEX[code] || CHAIN_ADDRESS_REGEX.ETH
   return re.test(address.trim()) ? null : `当前链(${chainCode})地址格式不正确`
 }
 
 interface WithdrawalRecord {
   id: string
+  userId?: string
   chainCode: string
   symbol: string
   address: string
@@ -77,6 +79,9 @@ interface WithdrawalRecord {
   blockFee?: string
   note?: string
   businessId?: string
+  applicantUserName?: string
+  applicantEmail?: string
+  applicantPhone?: string
   requestedAt: string
   processedAt?: string
   completedAt?: string
@@ -88,6 +93,7 @@ function normalizeRecord(raw: any): WithdrawalRecord {
   const txStatus = raw.transactionStatus ?? raw.transaction_status
   return {
     id: raw.id,
+    userId: raw.userId ?? raw.user_id,
     chainCode: raw.chainCode ?? raw.chain_code ?? '',
     symbol: raw.symbol ?? '',
     address: raw.address ?? '',
@@ -102,6 +108,9 @@ function normalizeRecord(raw: any): WithdrawalRecord {
     blockFee: raw.blockFee ?? raw.block_fee,
     note: raw.note ?? raw.memo,
     businessId: raw.businessId ?? raw.business_id,
+    applicantUserName: raw.applicantUserName ?? raw.applicant_user_name,
+    applicantEmail: raw.applicantEmail ?? raw.applicant_email,
+    applicantPhone: raw.applicantPhone ?? raw.applicant_phone,
     requestedAt: raw.requestedAt ?? raw.requested_at ?? raw.createdAt ?? raw.created_at ?? '',
     processedAt: raw.processedAt ?? raw.processed_at,
     completedAt: raw.completedAt ?? raw.completed_at,
@@ -112,6 +121,7 @@ function normalizeRecord(raw: any): WithdrawalRecord {
 
 const WithdrawalListPage: React.FC = () => {
   const [form] = Form.useForm()
+  const [reviewForm] = Form.useForm()
   const [chains, setChains] = useState<{ chainCode: string; label: string }[]>([])
   const [symbols, setSymbols] = useState<Currency[]>([])
   const [availableBalance, setAvailableBalance] = useState<string | null>(null)
@@ -127,14 +137,17 @@ const WithdrawalListPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null)
   const [searchText, setSearchText] = useState('')
   const [detailModalVisible, setDetailModalVisible] = useState(false)
+  const [applyModalVisible, setApplyModalVisible] = useState(false)
+  const [reviewModalVisible, setReviewModalVisible] = useState(false)
+  const [reviewLoading, setReviewLoading] = useState(false)
   const [detailRecord, setDetailRecord] = useState<WithdrawalRecord | null>(null)
+  const [reviewRecord, setReviewRecord] = useState<WithdrawalRecord | null>(null)
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 })
 
   const selectedChain = Form.useWatch('chain_code', form)
   const selectedSymbol = Form.useWatch('symbol', form)
   const amount = Form.useWatch('amount', form)
 
-  // 加载链选项（从活跃币种去重）
   const loadChains = useCallback(async () => {
     try {
       const res = await currencyService.getActiveCurrencies()
@@ -146,7 +159,11 @@ const WithdrawalListPage: React.FC = () => {
       })
       setChains(Array.from(map.entries()).map(([k]) => ({ chainCode: k, label: k })))
     } catch {
-      setChains([{ chainCode: 'ETH', label: 'Ethereum' }, { chainCode: 'BSC', label: 'BSC' }, { chainCode: 'TRX', label: 'TRON' }])
+      setChains([
+        { chainCode: 'ETH', label: 'Ethereum' },
+        { chainCode: 'BSC', label: 'BSC' },
+        { chainCode: 'TRX', label: 'TRON' }
+      ])
     }
   }, [])
 
@@ -154,7 +171,6 @@ const WithdrawalListPage: React.FC = () => {
     loadChains()
   }, [loadChains])
 
-  // 链变化时加载该链下的币种
   useEffect(() => {
     if (!selectedChain) {
       setSymbols([])
@@ -175,7 +191,6 @@ const WithdrawalListPage: React.FC = () => {
     return () => { cancelled = true }
   }, [selectedChain, form])
 
-  // 选择链+币种后拉取可用余额
   useEffect(() => {
     if (!selectedChain || !selectedSymbol) {
       setAvailableBalance(null)
@@ -196,7 +211,6 @@ const WithdrawalListPage: React.FC = () => {
     return () => { cancelled = true }
   }, [selectedChain, selectedSymbol])
 
-  // 金额/链/币种变化时估算手续费
   useEffect(() => {
     const amt = amount != null && amount > 0 ? String(amount) : ''
     if (!selectedChain || !selectedSymbol || !amt) {
@@ -259,6 +273,29 @@ const WithdrawalListPage: React.FC = () => {
     ? Math.max(0, Number(amount) - Number(withdrawFee)).toFixed(8).replace(/\.?0+$/, '')
     : '0'
 
+  const pendingCount = withdrawals.filter(item => item.status === 0).length
+  const processingCount = withdrawals.filter(item => item.status === 1 || (item.status === 3 && item.transactionStatus === 0)).length
+  const successAmount = withdrawals
+    .filter(item => item.status === 3 && item.transactionStatus !== 0)
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0)
+    .toFixed(2)
+
+  const resetWithdrawForm = () => {
+    form.resetFields()
+    setWithdrawFee('0')
+    setAvailableBalance(null)
+  }
+
+  const openApplyModal = () => {
+    resetWithdrawForm()
+    setApplyModalVisible(true)
+  }
+
+  const closeApplyModal = () => {
+    setApplyModalVisible(false)
+    resetWithdrawForm()
+  }
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
@@ -290,9 +327,7 @@ const WithdrawalListPage: React.FC = () => {
         memo: values.note ? String(values.note).slice(0, 255) : undefined
       })
       message.success('提交成功')
-      form.resetFields()
-      setWithdrawFee('0')
-      setAvailableBalance(null)
+      closeApplyModal()
       loadList()
     } catch (e: any) {
       const msg = e?.message || '提交失败'
@@ -319,6 +354,45 @@ const WithdrawalListPage: React.FC = () => {
     })
   }
 
+  const openReviewModal = (record: WithdrawalRecord) => {
+    setReviewRecord(record)
+    reviewForm.resetFields()
+    setReviewModalVisible(true)
+  }
+
+  const closeReviewModal = () => {
+    setReviewModalVisible(false)
+    setReviewRecord(null)
+    reviewForm.resetFields()
+  }
+
+  const submitReview = async (status: 1 | 2) => {
+    if (!reviewRecord) return
+    try {
+      if (status === 2) {
+        await reviewForm.validateFields()
+      }
+      const reason = reviewForm.getFieldValue('failure_reason')
+      setReviewLoading(true)
+      await withdrawalService.updateWithdrawalStatus(reviewRecord.id, {
+        status,
+        failure_reason: status === 2 ? reason : undefined
+      })
+      message.success(status === 1 ? '审核已通过' : '已驳回该提现申请')
+      closeReviewModal()
+      if (detailRecord?.id === reviewRecord.id) {
+        setDetailModalVisible(false)
+        setDetailRecord(null)
+      }
+      loadList()
+    } catch (e: any) {
+      if (e?.errorFields) return
+      message.error(e?.message || '审核失败')
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => message.success('已复制'))
   }
@@ -341,6 +415,18 @@ const WithdrawalListPage: React.FC = () => {
     }
   }
 
+  const renderAccountSummary = (record: WithdrawalRecord) => {
+    const primary = record.applicantUserName || record.applicantEmail || record.applicantPhone || record.userId || '-'
+    const secondary = [record.applicantEmail, record.applicantPhone].filter(Boolean).join(' / ')
+
+    return (
+      <div className="min-w-0">
+        <div className="truncate text-sm font-semibold text-slate-900">{primary}</div>
+        <div className="truncate text-xs text-slate-500">{secondary || '未绑定邮箱或手机号'}</div>
+      </div>
+    )
+  }
+
   const columns = [
     {
       title: '申请时间',
@@ -356,20 +442,10 @@ const WithdrawalListPage: React.FC = () => {
       render: (_: any, r: WithdrawalRecord) => `${r.chainCode}/${r.symbol}`
     },
     {
-      title: '来源地址',
-      dataIndex: 'fromAddress',
-      key: 'fromAddress',
-      ellipsis: true,
-      render: (v: string) => (
-        <Space>
-          <Tooltip title={v}>
-            <Text code style={{ fontSize: 12 }}>{v ? `${v.slice(0, 6)}...${v.slice(-4)}` : '-'}</Text>
-          </Tooltip>
-          {v && (
-            <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => handleCopy(v)} />
-          )}
-        </Space>
-      )
+      title: '申请人账户',
+      key: 'applicantAccount',
+      width: 220,
+      render: (_: any, record: WithdrawalRecord) => renderAccountSummary(record)
     },
     {
       title: '接收地址',
@@ -381,9 +457,7 @@ const WithdrawalListPage: React.FC = () => {
           <Tooltip title={v}>
             <Text code style={{ fontSize: 12 }}>{v ? `${v.slice(0, 6)}...${v.slice(-4)}` : '-'}</Text>
           </Tooltip>
-          {v && (
-            <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => handleCopy(v)} />
-          )}
+          {v && <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => handleCopy(v)} />}
         </Space>
       )
     },
@@ -430,7 +504,11 @@ const WithdrawalListPage: React.FC = () => {
         if (!v) return <Text type="secondary">--</Text>
         return (
           <Tooltip title={v}>
-            <Text code style={{ fontSize: 12, cursor: 'pointer' }} onClick={() => window.open(`https://etherscan.io/tx/${v}`, '_blank')}>
+            <Text
+              code
+              style={{ fontSize: 12, cursor: 'pointer' }}
+              onClick={() => window.open(`https://etherscan.io/tx/${v}`, '_blank')}
+            >
               {v.slice(0, 8)}...{v.slice(-6)}
             </Text>
           </Tooltip>
@@ -448,8 +526,8 @@ const WithdrawalListPage: React.FC = () => {
             详情
           </Button>
           {record.status === 0 && (
-            <Button type="link" size="small" danger onClick={() => handleCancelWithdrawal(record)}>
-              取消
+            <Button type="link" size="small" onClick={() => openReviewModal(record)}>
+              审核
             </Button>
           )}
         </Space>
@@ -460,49 +538,240 @@ const WithdrawalListPage: React.FC = () => {
   const balanceNum = availableBalance != null ? Number(availableBalance) : null
   const amountNum = amount != null && amount > 0 ? Number(amount) : 0
   const isOverBalance = balanceNum != null && amountNum > balanceNum
+  const balanceHint = selectedChain && selectedSymbol
+    ? `${availableBalance ?? '0'} ${selectedSymbol}`
+    : '请选择链和币种查看余额'
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>提现</Title>
+    <div className="min-h-full bg-[radial-gradient(circle_at_top_left,#dbeafe_0,#f8fafc_34%,#f8fafc_100%)] p-6">
+      <Card className="mb-6 overflow-hidden border-0 shadow-sm" bodyStyle={{ padding: 0 }}>
+        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_48%,#0ea5e9_100%)] px-6 py-7 text-white">
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-72 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.22),transparent_68%)]" />
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
+              <Text className="!mb-2 !block !text-xs !font-medium uppercase tracking-[0.24em] !text-sky-100">
+                Withdraw Center
+              </Text>
+              <Title level={2} style={{ color: '#fff', margin: 0 }}>发起提现与跟踪处理进度</Title>
+              <Text className="!mt-3 !block !text-sm !leading-6 !text-sky-100">
+                统一查看提现申请、记录列表、状态进度和链上信息，支持筛选、导出与详情查询。
+              </Text>
+            </div>
+            <div className="flex flex-col gap-3 lg:min-w-[320px]">
+              <Button
+                type="primary"
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={openApplyModal}
+                className="!h-12 !rounded-xl !border-0 !bg-white !px-5 !font-semibold !text-slate-900 shadow-lg shadow-slate-950/10 hover:!bg-slate-100"
+              >
+                提现申请
+              </Button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                  <div className="text-xs uppercase tracking-[0.2em] text-sky-100">当前可用余额</div>
+                  <div className="mt-2 text-xl font-semibold text-white">
+                    {balanceLoading ? '加载中...' : balanceHint}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/15 bg-slate-950/20 p-4 backdrop-blur">
+                  <div className="text-xs uppercase tracking-[0.2em] text-sky-100">列表记录数</div>
+                  <div className="mt-2 text-xl font-semibold text-white">{pagination.total}</div>
+                  <div className="mt-1 text-xs text-sky-100">当前筛选结果</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        <Card className="border-0 shadow-sm shadow-slate-200/60">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">待审核</div>
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{pendingCount}</div>
+              <div className="mt-2 text-sm text-slate-500">等待人工处理的申请</div>
+            </div>
+            <div className="rounded-2xl bg-amber-50 p-3 text-amber-500">
+              <ClockCircleOutlined className="text-xl" />
+            </div>
+          </div>
+        </Card>
+        <Card className="border-0 shadow-sm shadow-slate-200/60">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">处理中</div>
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{processingCount}</div>
+              <div className="mt-2 text-sm text-slate-500">已审核或等待区块确认</div>
+            </div>
+            <div className="rounded-2xl bg-sky-50 p-3 text-sky-500">
+              <ThunderboltOutlined className="text-xl" />
+            </div>
+          </div>
+        </Card>
+        <Card className="border-0 shadow-sm shadow-slate-200/60">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">已成功金额</div>
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{successAmount}</div>
+              <div className="mt-2 text-sm text-slate-500">当前列表中成功出账总额</div>
+            </div>
+            <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-500">
+              <CheckCircleOutlined className="text-xl" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <Title level={3} style={{ margin: 0 }}>提现工作台</Title>
+          <Text type="secondary">提交申请、筛选记录与查看链上处理状态</Text>
+        </div>
         <Space>
           <Button icon={<ReloadOutlined />} onClick={loadList} loading={loading}>刷新</Button>
           <Button icon={<DownloadOutlined />} onClick={handleExport} loading={loading}>导出</Button>
         </Space>
       </div>
 
-      {/* 业务规则提示 */}
-      <Alert
-        type="info"
-        showIcon
-        message="冷钱包地址不允许发起提现"
-        description="出资方地址（fromAddress）不可为冷钱包地址。使用开放 API 提现时，请使用租户钱包或热钱包作为出资方。"
-        className="mb-6"
-      />
+      <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="border-0 shadow-sm shadow-slate-200/60">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-900">筛选与搜索</div>
+              <div className="mt-1 text-xs text-slate-500">组合条件快速收敛待处理申请、链上确认单和历史记录</div>
+            </div>
+            <Tag color="blue" className="rounded-full px-3 py-1">实时查询</Tag>
+          </div>
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} sm={12} xl={8}>
+              <Search
+                placeholder="申请人 / 地址 / 交易哈希"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onSearch={() => setPagination(p => ({ ...p, page: 1 }))}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} sm={12} xl={5}>
+              <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+                <Option value="all">全部状态</Option>
+                <Option value="0">{STATUS_MAP[0]?.text}</Option>
+                <Option value="1">{STATUS_MAP[1]?.text}</Option>
+                <Option value="3">区块确认中</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} xl={4}>
+              <Select value={chainFilter} onChange={v => { setChainFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+                <Option value="all">全部链</Option>
+                {chains.map(c => <Option key={c.chainCode} value={c.chainCode}>{c.label}</Option>)}
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} xl={4}>
+              <Select value={symbolFilter} onChange={v => { setSymbolFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+                <Option value="all">全部币种</Option>
+                <Option value="USDT">USDT</Option>
+                <Option value="ETH">ETH</Option>
+                <Option value="BTC">BTC</Option>
+                <Option value="TRX">TRX</Option>
+              </Select>
+            </Col>
+            <Col xs={24} xl={7}>
+              <RangePicker
+                value={dateRange}
+                onChange={d => { setDateRange(d as [dayjs.Dayjs, dayjs.Dayjs]); setPagination(p => ({ ...p, page: 1 })) }}
+                style={{ width: '100%' }}
+              />
+            </Col>
+          </Row>
+        </Card>
 
-      {/* 余额概览 */}
-      <Card className="mb-6">
-        <Space>
-          <WalletOutlined style={{ fontSize: 24 }} />
-          <div>
-            <Text type="secondary">可用余额</Text>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>
-              {balanceLoading ? (
-                <Text type="secondary">加载中...</Text>
-              ) : selectedChain && selectedSymbol ? (
-                <Text style={{ color: isOverBalance ? '#ff4d4f' : undefined }}>
-                  {availableBalance ?? '0'} {selectedSymbol}
-                </Text>
-              ) : (
-                <Text type="secondary">请选择链和币种</Text>
-              )}
+        <Card className="border-0 shadow-sm shadow-slate-200/60">
+          <div className="text-sm font-semibold text-slate-900">提现规则</div>
+          <div className="mt-4 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">地址限制</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">冷钱包地址不可作为出资方</div>
+              <div className="mt-1 text-xs leading-5 text-slate-500">系统会自动选择可用热提钱包，不需要手工填写出资方地址。</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">费用预估</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">链和币种选定后自动估算手续费</div>
+              <div className="mt-1 text-xs leading-5 text-slate-500">输入金额后会同步更新预计到账金额，便于复核最终出账。</div>
             </div>
           </div>
-        </Space>
+        </Card>
+      </div>
+
+      <Card
+        title={(
+          <div>
+            <div className="text-base font-semibold text-slate-900">提现记录</div>
+            <div className="text-xs text-slate-500">共 {pagination.total} 条记录，支持查看申请人、手续费、哈希和处理结果</div>
+          </div>
+        )}
+        className="border-0 shadow-sm shadow-slate-200/60"
+      >
+        <Table
+          columns={columns}
+          dataSource={withdrawals}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1280 }}
+          rowClassName={() => 'hover:!bg-slate-50'}
+          pagination={{
+            current: pagination.page,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (t, range) => `第 ${range[0]}-${range[1]} 条，共 ${t} 条`,
+            onChange: (page, pageSize) => setPagination(prev => ({ ...prev, page, pageSize: pageSize || 10 }))
+          }}
+        />
       </Card>
 
-      {/* 提现申请表单 */}
-      <Card title="提现申请" className="mb-6">
+      <Modal
+        title="提现申请"
+        open={applyModalVisible}
+        onCancel={closeApplyModal}
+        onOk={() => form.submit()}
+        okText="提交申请"
+        confirmLoading={submitLoading}
+        width={860}
+        destroyOnClose
+      >
+        <div className="mb-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-slate-400">可用余额</div>
+            <div className="mt-2 flex items-center gap-2 text-base font-semibold text-slate-900">
+              <WalletOutlined className="text-sky-500" />
+              <span className={isOverBalance ? 'text-rose-600' : ''}>
+                {balanceLoading ? '加载中...' : balanceHint}
+              </span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-slate-400">预估手续费</div>
+            <div className="mt-2 text-base font-semibold text-slate-900">
+              {feeLoading ? '计算中...' : `${withdrawFee} ${selectedSymbol || ''}`}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-slate-400">预计到账</div>
+            <div className="mt-2 text-base font-semibold text-slate-900">{`${netAmount} ${selectedSymbol || ''}`}</div>
+          </div>
+        </div>
+
+        <Alert
+          type="info"
+          showIcon
+          className="mb-5 rounded-xl border border-sky-100"
+          message="系统会自动选择热提钱包"
+          description="出资方地址不需要手工填写。提交时会根据链、币种和系统配置自动匹配可用热钱包。"
+        />
+
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Row gutter={24}>
             <Col xs={24} sm={12} md={8}>
@@ -527,24 +796,6 @@ const WithdrawalListPage: React.FC = () => {
             </Col>
             <Col xs={24} sm={24} md={8}>
               <Form.Item
-                name="address"
-                label="提现地址"
-                rules={[
-                  { required: true, message: '请输入提现地址' },
-                  () => ({
-                    validator(_, value) {
-                      if (!value || !selectedChain) return Promise.resolve()
-                      const err = validateAddress(selectedChain, value)
-                      return err ? Promise.reject(new Error(err)) : Promise.resolve()
-                    }
-                  })
-                ]}
-              >
-                <Input placeholder="0x..." />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item
                 name="amount"
                 label="提现金额"
                 rules={[
@@ -558,104 +809,50 @@ const WithdrawalListPage: React.FC = () => {
                   })
                 ]}
               >
-                <InputNumber min={0} step={0.01} placeholder="0.00" style={{ width: '100%' }} />
+                <InputNumber min={0} step={0.01} placeholder="请输入提现金额" style={{ width: '100%' }} />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item label="手续费">
-                <Input readOnly value={feeLoading ? '计算中...' : `${withdrawFee} ${selectedSymbol || ''}`} />
+            <Col xs={24}>
+              <Form.Item
+                name="address"
+                label="提现地址"
+                rules={[
+                  { required: true, message: '请输入提现地址' },
+                  () => ({
+                    validator(_, value) {
+                      if (!value || !selectedChain) return Promise.resolve()
+                      const err = validateAddress(selectedChain, value)
+                      return err ? Promise.reject(new Error(err)) : Promise.resolve()
+                    }
+                  })
+                ]}
+              >
+                <Input placeholder="请输入链上提现地址" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item label="实际到账">
-                <Input readOnly value={`${netAmount} ${selectedSymbol || ''}`} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={24}>
+            <Col xs={24}>
               <Form.Item name="note" label="备注">
-                <TextArea rows={2} placeholder="可选" maxLength={255} showCount />
-              </Form.Item>
-            </Col>
-            <Col span={24}>
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={submitLoading}>提交申请</Button>
+                <TextArea rows={3} placeholder="可选，最多 255 字" maxLength={255} showCount />
               </Form.Item>
             </Col>
           </Row>
         </Form>
-      </Card>
+      </Modal>
 
-      {/* 筛选 */}
-      <Card className="mb-6">
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={6}>
-            <Search
-              placeholder="地址 / 交易哈希"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onSearch={() => setPagination(p => ({ ...p, page: 1 }))}
-              allowClear
-            />
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
-              <Option value="all">全部状态</Option>
-              <Option value="0">{STATUS_MAP[0]?.text}</Option>
-              <Option value="1">{STATUS_MAP[1]?.text}</Option>
-              <Option value="3">区块确认中</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select value={chainFilter} onChange={v => { setChainFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
-              <Option value="all">全部链</Option>
-              {chains.map(c => <Option key={c.chainCode} value={c.chainCode}>{c.label}</Option>)}
-            </Select>
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select value={symbolFilter} onChange={v => { setSymbolFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
-              <Option value="all">全部币种</Option>
-              <Option value="USDT">USDT</Option>
-              <Option value="ETH">ETH</Option>
-              <Option value="BTC">BTC</Option>
-              <Option value="TRX">TRX</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={6}>
-            <RangePicker
-              value={dateRange}
-              onChange={d => { setDateRange(d as [dayjs.Dayjs, dayjs.Dayjs]); setPagination(p => ({ ...p, page: 1 })) }}
-              style={{ width: '100%' }}
-            />
-          </Col>
-        </Row>
-      </Card>
-
-      {/* 提现记录列表 */}
-      <Card title={`提现记录（${pagination.total}）`}>
-        <Table
-          columns={columns}
-          dataSource={withdrawals}
-          rowKey="id"
-          loading={loading}
-          scroll={{ x: 1200 }}
-          pagination={{
-            current: pagination.page,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (t, range) => `第 ${range[0]}-${range[1]} 条，共 ${t} 条`,
-            onChange: (page, pageSize) => setPagination(prev => ({ ...prev, page, pageSize: pageSize || 10 }))
-          }}
-        />
-      </Card>
-
-      {/* 详情弹窗 */}
       <Modal
         title="提现详情"
         open={detailModalVisible}
         onCancel={() => { setDetailModalVisible(false); setDetailRecord(null) }}
         footer={[
+          detailRecord?.status === 0 ? (
+            <Button key="review" onClick={() => {
+              if (!detailRecord) return
+              setDetailModalVisible(false)
+              openReviewModal(detailRecord)
+            }}>
+              审核
+            </Button>
+          ) : null,
           detailRecord?.status === 0 ? (
             <Button key="cancel" danger onClick={() => { handleCancelWithdrawal(detailRecord); setDetailModalVisible(false) }}>
               取消申请
@@ -665,31 +862,233 @@ const WithdrawalListPage: React.FC = () => {
             关闭
           </Button>
         ]}
-        width={640}
+        width={760}
       >
         {detailRecord && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="申请时间">{dayjs(detailRecord.requestedAt).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>
-            <Descriptions.Item label="链/币种">{detailRecord.chainCode} / {detailRecord.symbol}</Descriptions.Item>
-            <Descriptions.Item label="来源地址">{detailRecord.fromAddress || '-'}</Descriptions.Item>
-            <Descriptions.Item label="接收地址">{detailRecord.address}</Descriptions.Item>
-            <Descriptions.Item label="金额">{detailRecord.amount} {detailRecord.symbol}</Descriptions.Item>
-            <Descriptions.Item label="手续费">{detailRecord.withdrawFee} {detailRecord.symbol}</Descriptions.Item>
-            <Descriptions.Item label="净得金额">{detailRecord.netAmount} {detailRecord.symbol}</Descriptions.Item>
-            <Descriptions.Item label="状态">
-              {detailRecord.status === 3 && detailRecord.transactionStatus === 0
-                ? '区块确认中'
-                : (STATUS_MAP[detailRecord.status]?.text ?? detailRecord.status)}
-            </Descriptions.Item>
-            {detailRecord.txHash && <Descriptions.Item label="交易哈希">{detailRecord.txHash}</Descriptions.Item>}
-            {detailRecord.failureReason && <Descriptions.Item label="失败原因">{detailRecord.failureReason}</Descriptions.Item>}
-            {detailRecord.blockFee != null && <Descriptions.Item label="区块手续费">{detailRecord.blockFee}</Descriptions.Item>}
-            {detailRecord.processedAt && <Descriptions.Item label="审核时间">{dayjs(detailRecord.processedAt).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>}
-            {detailRecord.completedAt && <Descriptions.Item label="完成时间">{dayjs(detailRecord.completedAt).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>}
-            {detailRecord.note && <Descriptions.Item label="备注">{detailRecord.note}</Descriptions.Item>}
-            {detailRecord.webhookSent != null && <Descriptions.Item label="Webhook 已发送">{detailRecord.webhookSent ? '是' : '否'}</Descriptions.Item>}
-            {detailRecord.webhookSentAt && <Descriptions.Item label="Webhook 发送时间">{dayjs(detailRecord.webhookSentAt).format('YYYY-MM-DD HH:mm:ss')}</Descriptions.Item>}
-          </Descriptions>
+          <div className="space-y-5">
+            <div className="overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#38bdf8_100%)] p-5 text-white">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.22em] text-sky-100">Withdrawal Detail</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight">
+                    {detailRecord.amount} {detailRecord.symbol}
+                  </div>
+                  <div className="mt-2 text-sm text-sky-100">
+                    申请时间 {dayjs(detailRecord.requestedAt).format('YYYY-MM-DD HH:mm:ss')}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                  {detailRecord.status === 3 && detailRecord.transactionStatus === 0
+                    ? <Tag color="processing" className="!m-0 rounded-full px-3 py-1">区块确认中</Tag>
+                    : <Tag color={STATUS_MAP[detailRecord.status]?.color || 'default'} className="!m-0 rounded-full px-3 py-1">{STATUS_MAP[detailRecord.status]?.text ?? detailRecord.status}</Tag>}
+                  <div className="mt-3 text-xs uppercase tracking-[0.18em] text-sky-100">链 / 币种</div>
+                  <div className="mt-1 text-sm font-medium text-white">{detailRecord.chainCode} / {detailRecord.symbol}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">提现金额</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{detailRecord.amount} {detailRecord.symbol}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">手续费</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{detailRecord.withdrawFee} {detailRecord.symbol}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">净得金额</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{detailRecord.netAmount} {detailRecord.symbol}</div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
+                <div className="text-sm font-semibold text-slate-900">申请人信息</div>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">申请人</div>
+                    <div className="mt-1 text-sm font-medium text-slate-900">{detailRecord.applicantUserName || detailRecord.userId || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">邮箱</div>
+                    <div className="mt-1 break-all text-sm text-slate-600">{detailRecord.applicantEmail || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">手机号</div>
+                    <div className="mt-1 text-sm text-slate-600">{detailRecord.applicantPhone || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">业务单号</div>
+                    <div className="mt-1 break-all text-sm text-slate-600">{detailRecord.businessId || '-'}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
+                <div className="text-sm font-semibold text-slate-900">地址与链上信息</div>
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">接收地址</div>
+                    <div className="mt-1 break-all rounded-xl bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700">{detailRecord.address}</div>
+                  </div>
+                  {detailRecord.txHash && (
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">交易哈希</div>
+                      <div className="mt-1 break-all rounded-xl bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700">{detailRecord.txHash}</div>
+                    </div>
+                  )}
+                  {detailRecord.fromAddress && (
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">出资地址</div>
+                      <div className="mt-1 break-all rounded-xl bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700">{detailRecord.fromAddress}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
+              <div className="text-sm font-semibold text-slate-900">处理进度</div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">审核时间</div>
+                  <div className="mt-1 text-sm text-slate-700">
+                    {detailRecord.processedAt ? dayjs(detailRecord.processedAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">完成时间</div>
+                  <div className="mt-1 text-sm text-slate-700">
+                    {detailRecord.completedAt ? dayjs(detailRecord.completedAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">区块手续费</div>
+                  <div className="mt-1 text-sm text-slate-700">{detailRecord.blockFee ?? '-'}</div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Webhook 发送</div>
+                  <div className="mt-1 text-sm text-slate-700">
+                    {detailRecord.webhookSent == null ? '-' : detailRecord.webhookSent ? '是' : '否'}
+                    {detailRecord.webhookSentAt ? ` · ${dayjs(detailRecord.webhookSentAt).format('YYYY-MM-DD HH:mm:ss')}` : ''}
+                  </div>
+                </div>
+              </div>
+              {(detailRecord.failureReason || detailRecord.note) && (
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  {detailRecord.failureReason && (
+                    <div className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
+                      <div className="text-xs uppercase tracking-[0.14em] text-rose-400">失败原因</div>
+                      <div className="mt-2 text-sm leading-6 text-rose-700">{detailRecord.failureReason}</div>
+                    </div>
+                  )}
+                  {detailRecord.note && (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">备注</div>
+                      <div className="mt-2 text-sm leading-6 text-slate-700">{detailRecord.note}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="审核提现申请"
+        open={reviewModalVisible}
+        onCancel={closeReviewModal}
+        footer={[
+          <Button key="close" onClick={closeReviewModal}>关闭</Button>,
+          <Button key="reject" danger loading={reviewLoading} onClick={() => submitReview(2)}>驳回</Button>,
+          <Button key="approve" type="primary" loading={reviewLoading} onClick={() => submitReview(1)}>审核通过</Button>
+        ]}
+        width={560}
+        destroyOnClose
+      >
+        {reviewRecord && (
+          <div className="space-y-5">
+            <div className="overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#111827_0%,#1d4ed8_62%,#38bdf8_100%)] p-5 text-white">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.22em] text-sky-100">Review Request</div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight">
+                    {reviewRecord.amount} {reviewRecord.symbol}
+                  </div>
+                  <div className="mt-2 text-sm text-sky-100">
+                    {reviewRecord.chainCode} / {reviewRecord.symbol} · {dayjs(reviewRecord.requestedAt).format('YYYY-MM-DD HH:mm:ss')}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                  <Tag color="gold" className="!m-0 rounded-full px-3 py-1">待审核</Tag>
+                  <div className="mt-3 text-xs uppercase tracking-[0.16em] text-sky-100">申请人</div>
+                  <div className="mt-1 text-sm font-medium text-white">{reviewRecord.applicantUserName || reviewRecord.userId || '-'}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">提现金额</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{reviewRecord.amount} {reviewRecord.symbol}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">手续费</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{reviewRecord.withdrawFee} {reviewRecord.symbol}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">预计净额</div>
+                <div className="mt-2 text-xl font-semibold text-slate-900">{reviewRecord.netAmount} {reviewRecord.symbol}</div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
+                <div className="text-sm font-semibold text-slate-900">提现地址</div>
+                <div className="mt-3 break-all rounded-2xl bg-slate-50 px-4 py-3 font-mono text-xs leading-6 text-slate-700">
+                  {reviewRecord.address}
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">业务单号</div>
+                    <div className="mt-1 break-all text-sm text-slate-700">{reviewRecord.businessId || '-'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">申请备注</div>
+                    <div className="mt-1 text-sm text-slate-700">{reviewRecord.note || '-'}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <div className="text-sm font-semibold text-slate-900">审核动作</div>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-slate-600">
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                    通过后，该申请会进入后续提现处理流程。
+                  </div>
+                  <div className="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+                    驳回时需填写原因，便于后续追踪和回查。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Form form={reviewForm} layout="vertical">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100">
+                <div className="mb-4 text-sm font-semibold text-slate-900">驳回说明</div>
+                <Form.Item
+                  name="failure_reason"
+                  label="驳回原因"
+                  rules={[{ required: true, message: '请输入驳回原因' }]}
+                  className="!mb-0"
+                >
+                  <TextArea rows={4} placeholder="请输入审核驳回原因" maxLength={255} showCount />
+                </Form.Item>
+              </div>
+            </Form>
+          </div>
         )}
       </Modal>
     </div>

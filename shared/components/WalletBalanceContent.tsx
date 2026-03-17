@@ -1,5 +1,12 @@
 import React from 'react'
-import { Table, Tag } from 'antd'
+import { Table, Tag, Typography } from 'antd'
+import {
+  BankOutlined,
+  CalendarOutlined,
+  CopyOutlined,
+  DeploymentUnitOutlined,
+  WalletOutlined
+} from '@ant-design/icons'
 import { WalletWithBalance } from '../types'
 
 interface WalletBalanceContentProps {
@@ -19,14 +26,6 @@ const formatBalance = (balance: string, currency: string) => {
   } else {
     return `${num.toFixed(6)} ${currency}`
   }
-}
-
-// 格式化USDT价值
-const formatUSDTValue = (value?: string) => {
-  if (!value) return '-'
-  const num = parseFloat(value)
-  if (isNaN(num)) return '-'
-  return `$${num.toFixed(2)}`
 }
 
 /**
@@ -61,6 +60,20 @@ const WalletBalanceContent: React.FC<WalletBalanceContentProps> = ({
       return []
     })
   }, [wallet?.balanceByChain])
+  const summary = React.useMemo(() => {
+    const chainCount = new Set(balanceData.map(item => item.chainCode)).size
+    const assetCount = balanceData.length
+    const totalAvailable = balanceData.reduce((sum, item) => {
+      const num = Number(item.balance)
+      return Number.isFinite(num) ? sum + num : sum
+    }, 0)
+
+    return {
+      chainCount,
+      assetCount,
+      totalAvailable
+    }
+  }, [balanceData])
 
   // 资产详情表格列定义
   const balanceColumns = [
@@ -70,7 +83,7 @@ const WalletBalanceContent: React.FC<WalletBalanceContentProps> = ({
       key: 'chainCode',
       width: 100,
       render: (chainCode: string) => (
-        <Tag color="purple">{chainCode}</Tag>
+        <Tag color="purple" className="rounded-full px-3 py-1 text-xs">{chainCode}</Tag>
       )
     },
     {
@@ -79,49 +92,17 @@ const WalletBalanceContent: React.FC<WalletBalanceContentProps> = ({
       key: 'currency',
       width: 100,
       render: (currency: string) => (
-        <Tag color="blue">{currency.toUpperCase()}</Tag>
+        <Tag color="blue" className="rounded-full px-3 py-1 text-xs">{currency.toUpperCase()}</Tag>
       )
     },
     {
-      title: '余额',
+      title: '链上余额',
       dataIndex: 'balance',
       key: 'balance',
       width: 150,
       render: (balance: string, record: any) => (
-        <span className="font-semibold text-green-600">
+        <span className="font-semibold text-emerald-600">
           {formatBalance(balance, record.currency)}
-        </span>
-      )
-    }, {
-      title: '冻结余额',
-      dataIndex: 'frozenBalance',
-      key: 'frozenBalance',
-      width: 150,
-      render: (frozenBalance: string, record: any) => (
-        <span className="font-semibold text-red-600">
-          {formatBalance(frozenBalance, record.currency)}
-        </span>
-      )
-    },
-    {
-      title: '区块高度',
-      dataIndex: 'lastBlockHeight',
-      key: 'lastBlockHeight',
-      width: 120,
-      render: (height: string) => (
-        <span className="text-gray-600 font-mono">
-          {height === '0' ? '-' : parseInt(height).toLocaleString()}
-        </span>
-      )
-    },
-    {
-      title: 'USD价值',
-      dataIndex: 'usdtValue',
-      key: 'usdtValue',
-      width: 100,
-      render: (value: string) => (
-        <span className="font-medium text-gray-700">
-          {formatUSDTValue(value)}
         </span>
       )
     },
@@ -146,49 +127,107 @@ const WalletBalanceContent: React.FC<WalletBalanceContentProps> = ({
   if (!wallet) {
     return (
       <div className={`text-center text-gray-500 py-8 ${className}`}>
-        请选择钱包查看资产详情
+        请选择钱包查看详情
       </div>
     )
   }
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* 钱包基本信息 */}
-      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <span className="text-gray-600">钱包地址：</span>
-          <span className="font-mono text-sm">{wallet.wallet?.address || '未生成'}</span>
-        </div>
-        <div>
-          <span className="text-gray-600">状态：</span>
-          <Tag color={wallet.wallet?.status === 1 ? 'green' : 'red'}>
-            {wallet.wallet?.status === 1 ? '正常' : '禁用'}
-          </Tag>
-        </div>
-        <div>
-          <span className="text-gray-600">描述：</span>
-          <span>{wallet.wallet?.description || '-'}</span>
-        </div>
-        <div>
-          <span className="text-gray-600">创建时间：</span>
-          <span>
-            {wallet.wallet?.createdAt 
-              ? new Date(wallet.wallet.createdAt).toLocaleString('zh-CN') 
-              : '-'
-            }
-          </span>
+      <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 p-5 text-white">
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-4">
+            <div>
+              <div className="text-xs uppercase tracking-[0.22em] text-cyan-100/80">地址信息</div>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                {wallet.wallet?.address ? (
+                  <Typography.Text
+                    copyable={{
+                      text: wallet.wallet.address,
+                      icon: [<CopyOutlined key="copy" />, <CopyOutlined key="copied" />],
+                      tooltips: ['复制地址', '已复制'],
+                    }}
+                    className="font-mono text-sm !text-white"
+                  >
+                    {wallet.wallet.address}
+                  </Typography.Text>
+                ) : (
+                  <span className="font-mono text-sm text-white/70">未生成</span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                <div className="flex items-center justify-between text-xs text-cyan-100/70">
+                  <span>支持网络</span>
+                  <DeploymentUnitOutlined />
+                </div>
+                <div className="mt-2 text-2xl font-semibold">{summary.chainCount}</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                <div className="flex items-center justify-between text-xs text-cyan-100/70">
+                  <span>资产项</span>
+                  <BankOutlined />
+                </div>
+                <div className="mt-2 text-2xl font-semibold">{summary.assetCount}</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                <div className="flex items-center justify-between text-xs text-cyan-100/70">
+                  <span>余额汇总</span>
+                  <WalletOutlined />
+                </div>
+                <div className="mt-2 text-2xl font-semibold">{summary.totalAvailable.toFixed(6)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            <div className="rounded-2xl bg-white px-4 py-4 text-slate-800 shadow-sm">
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">状态</div>
+              <div className="mt-2">
+                <Tag color={wallet.wallet?.status === 1 ? 'green' : 'red'} className="rounded-full px-3 py-1 text-xs font-medium">
+                  {wallet.wallet?.status === 1 ? '正常' : '禁用'}
+                </Tag>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-4 text-slate-800 shadow-sm">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+                <CalendarOutlined />
+                <span>创建时间</span>
+              </div>
+              <div className="mt-2 text-sm font-medium text-slate-700">
+                {wallet.wallet?.createdAt
+                  ? new Date(wallet.wallet.createdAt).toLocaleString('zh-CN')
+                  : '-'}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-4 text-slate-800 shadow-sm">
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">备注</div>
+              <div className="mt-2 text-sm leading-6 text-slate-600">
+                {wallet.wallet?.description || '暂无描述信息'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 资产详情表格 */}
-      <div>
-        <h4 className="text-lg font-medium mb-3">资产详情</h4>
+      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <h4 className="mb-1 text-lg font-semibold text-slate-900">资产明细</h4>
+            <div className="text-sm text-slate-500">按网络与币种查看链上可用余额</div>
+          </div>
+          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+            共 {balanceData.length} 项
+          </div>
+        </div>
         <Table
           columns={balanceColumns}
           dataSource={balanceData}
           rowKey={(record) => `${record.chainCode}-${record.currency}`}
           pagination={false}
-          size="small"
+          size="middle"
           scroll={{ x: 600 }}
         />
       </div>

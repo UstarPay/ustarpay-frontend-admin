@@ -131,18 +131,6 @@ const CurrencyEditModal: React.FC<CurrencyEditModalProps> = ({
         <Form.Item
           name="contractAddress"
           label="合约地址"
-          rules={[
-            {
-              validator: (_, value) => {
-                if (!value) return Promise.resolve()
-                // 简单的地址格式验证
-                if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
-                  return Promise.reject(new Error('请输入有效的合约地址'))
-                }
-                return Promise.resolve()
-              }
-            }
-          ]}
         >
           <Input placeholder="合约代币地址（原生币可留空）" />
         </Form.Item>

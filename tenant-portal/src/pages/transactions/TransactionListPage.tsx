@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Card, 
-  Row, 
-  Col, 
   Table, 
   Tag, 
   Button, 
@@ -11,7 +9,6 @@ import {
   Input,
   Select,
   DatePicker,
-  Statistic,
   Tooltip
 } from 'antd'
 import { 
@@ -327,152 +324,194 @@ const TransactionListPage: React.FC = () => {
   ]
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>交易记录</Title>
-        <Space>
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={loadTransactionData}
-            loading={loading}
-          >
-            刷新
-          </Button>
-          <Button 
-            icon={<DownloadOutlined />}
-            onClick={() => {
-              // 导出功能
-              console.log('导出交易记录')
-            }}
-          >
-            导出
-          </Button>
-        </Space>
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4f7fb_0%,#eef4f9_42%,#f8fafc_100%)] p-4 md:p-6">
+      <div className="mx-auto max-w-[1680px] space-y-6">
+        <section className="overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(135deg,#111827_0%,#16324f_42%,#0f766e_100%)] text-white shadow-[0_30px_80px_rgba(15,23,42,0.20)]">
+          <div className="relative px-6 py-7 md:px-8 md:py-8">
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-[38%] bg-[radial-gradient(circle_at_top_right,rgba(125,211,252,0.18),rgba(15,118,110,0))]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.04)_100%)]" />
+            <div className="relative flex flex-col gap-8">
+              <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-3xl">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-emerald-100">
+                    <TransactionOutlined />
+                    General Ledger
+                  </div>
+                  <Title level={1} className="!mb-2 !mt-4 !text-[40px] !font-semibold !tracking-tight !text-[#fffaf2]">
+                    交易记录
+                  </Title>
+                  <Text className="block max-w-2xl text-[15px] leading-7 !text-slate-300">
+                    统一查看充值、提现、转账、归集与内部转账明细，按状态、类型、币种和时间区间快速追踪资金流向。
+                  </Text>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
+                  <div className="rounded-[24px] border border-white/10 bg-white/10 px-5 py-5 backdrop-blur-sm">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-slate-300">账务总额</div>
+                    <div className="mt-3 text-[34px] font-semibold tracking-tight text-white">{stats.totalAmount}</div>
+                    <div className="mt-2 text-xs text-slate-300">累计交易金额（USD）</div>
+                  </div>
+                  <div className="rounded-[24px] border border-white/10 bg-black/15 px-5 py-5">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-slate-300">当期状态</div>
+                    <div className="mt-4 space-y-2">
+                      {[
+                        { label: '已完成', value: stats.completedCount, tone: 'text-emerald-200' },
+                        { label: '处理中', value: stats.pendingCount, tone: 'text-amber-200' },
+                        { label: '失败', value: stats.failedCount, tone: 'text-rose-200' }
+                      ].map(item => (
+                        <div key={item.label} className="flex items-center justify-between rounded-2xl bg-white/6 px-4 py-3">
+                          <span className="text-sm text-slate-200">{item.label}</span>
+                          <span className={`text-lg font-semibold ${item.tone}`}>{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                {[
+                  { label: '总交易数', value: stats.totalTransactions, helper: '累计笔数', tone: 'bg-white/8 text-white' },
+                  { label: '今日交易', value: stats.todayTransactions, helper: '当日新增', tone: 'bg-emerald-400/15 text-emerald-100' },
+                  { label: '处理中', value: stats.pendingCount, helper: '待确认 / 执行中', tone: 'bg-amber-400/15 text-amber-100' },
+                  { label: '已完成', value: stats.completedCount, helper: '已入账 / 已结算', tone: 'bg-sky-400/15 text-sky-100' },
+                  { label: '失败笔数', value: stats.failedCount, helper: '异常待排查', tone: 'bg-rose-400/15 text-rose-100' }
+                ].map(item => (
+                  <div key={item.label} className={`rounded-[22px] px-4 py-4 ${item.tone}`}>
+                    <div className="text-[11px] uppercase tracking-[0.22em] opacity-80">{item.label}</div>
+                    <div className="mt-3 break-all text-[28px] font-semibold leading-none">{item.value}</div>
+                    <div className="mt-2 text-xs opacity-80">{item.helper}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-[30px] border border-[#dce7f3] bg-[linear-gradient(135deg,#ffffff_0%,#f7fbff_52%,#eef6ff_100%)] shadow-[0_16px_38px_rgba(21,40,67,0.05)]">
+          <div className="border-b border-[#dde7f2] px-6 py-5 md:px-8">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Journal Filters</div>
+                <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">筛选面板</div>
+                <div className="mt-2 text-sm text-slate-500">
+                  已筛选结果 {filteredTransactions.length} 条，当前类型 {typeFilter === 'all' ? '全部类型' : getTypeText(typeFilter)}，当前状态 {statusFilter === 'all' ? '全部状态' : getStatusText(statusFilter)}。
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  onClick={loadTransactionData}
+                  loading={loading}
+                  className="!h-11 !rounded-full !border-0 !bg-[#16324f] !px-5 !shadow-none"
+                >
+                  刷新
+                </Button>
+                <Button
+                  icon={<DownloadOutlined />}
+                  onClick={() => {
+                    console.log('导出交易记录')
+                  }}
+                  className="!h-11 !rounded-full !border-[#d8e4f0] !bg-white !px-5 !text-slate-700"
+                >
+                  导出
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5 md:px-8">
+            <div className="grid gap-3 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr_1fr]">
+              <Search
+                placeholder="搜索交易ID、钱包名称或交易哈希"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+              />
+              <Select placeholder="交易类型" value={typeFilter} onChange={setTypeFilter} style={{ width: '100%' }}>
+                <Option value="all">全部类型</Option>
+                <Option value="deposit">充值</Option>
+                <Option value="withdraw">提现</Option>
+                <Option value="transfer">转账</Option>
+                <Option value="collect">归集</Option>
+                <Option value="internal">内部转账</Option>
+              </Select>
+              <Select placeholder="交易状态" value={statusFilter} onChange={setStatusFilter} style={{ width: '100%' }}>
+                <Option value="all">全部状态</Option>
+                <Option value="pending">处理中</Option>
+                <Option value="completed">已完成</Option>
+                <Option value="failed">失败</Option>
+                <Option value="cancelled">已取消</Option>
+              </Select>
+              <Select placeholder="币种" value={symbolFilter} onChange={setSymbolFilter} style={{ width: '100%' }}>
+                <Option value="all">全部币种</Option>
+                <Option value="BTC">Bitcoin</Option>
+                <Option value="ETH">Ethereum</Option>
+                <Option value="USDT">USDT</Option>
+                <Option value="USDC">USDC</Option>
+                <Option value="BNB">BNB</Option>
+              </Select>
+              <RangePicker
+                placeholder={['开始时间', '结束时间']}
+                value={dateRange}
+                onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <Card
+          bordered={false}
+          className="min-w-0 rounded-[30px] border border-[#d9e2ee] bg-white/94 shadow-[0_16px_38px_rgba(21,40,67,0.05)]"
+          bodyStyle={{ padding: 0 }}
+          title={
+            <div className="px-1 py-1">
+              <div className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Ledger Table</div>
+              <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">交易清单</div>
+            </div>
+          }
+          extra={
+            <div className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
+              {filteredTransactions.length} 条结果
+            </div>
+          }
+        >
+          <div className="border-b border-slate-100 px-6 py-4">
+            <div className="grid gap-3 md:grid-cols-4">
+              {[
+                { label: '搜索范围', value: 'ID / 钱包 / 哈希' },
+                { label: '时间窗口', value: dateRange ? '已选择区间' : '全部时间' },
+                { label: '状态分布', value: `完成 ${stats.completedCount} / 失败 ${stats.failedCount}` },
+                { label: '币种过滤', value: symbolFilter === 'all' ? '全部币种' : symbolFilter }
+              ].map(item => (
+                <div key={item.label} className="rounded-[18px] bg-slate-50 px-4 py-3">
+                  <div className="text-xs text-slate-400">{item.label}</div>
+                  <div className="mt-1 text-sm font-medium text-slate-800">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="px-6 pb-3 pt-4 text-sm text-slate-500">总账流水按时间顺序展示，支持在当前工作区内横向滚动查看完整列。</div>
+          <div className="w-full max-w-full overflow-x-auto">
+            <Table
+              style={{ minWidth: 1500 }}
+              columns={columns}
+              dataSource={filteredTransactions}
+              rowKey="id"
+              loading={loading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
+              }}
+              scroll={{ x: 1500 }}
+            />
+          </div>
+        </Card>
       </div>
-
-      {/* 统计卡片 */}
-      <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="总交易数"
-              value={stats.totalTransactions}
-              prefix={<TransactionOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="今日交易"
-              value={stats.todayTransactions}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="总金额"
-              value={stats.totalAmount}
-              valueStyle={{ color: '#722ed1' }}
-              suffix="USD"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="处理中"
-              value={stats.pendingCount}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 筛选器 */}
-      <Card className="mb-6">
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={6}>
-            <Search
-              placeholder="搜索交易ID、钱包名称或交易哈希"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              prefix={<SearchOutlined />}
-            />
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select
-              placeholder="交易类型"
-              value={typeFilter}
-              onChange={setTypeFilter}
-              style={{ width: '100%' }}
-            >
-              <Option value="all">全部类型</Option>
-              <Option value="deposit">充值</Option>
-              <Option value="withdraw">提现</Option>
-              <Option value="transfer">转账</Option>
-              <Option value="collect">归集</Option>
-              <Option value="internal">内部转账</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select
-              placeholder="交易状态"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              style={{ width: '100%' }}
-            >
-              <Option value="all">全部状态</Option>
-              <Option value="pending">处理中</Option>
-              <Option value="completed">已完成</Option>
-              <Option value="failed">失败</Option>
-              <Option value="cancelled">已取消</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={4}>
-            <Select
-              placeholder="币种"
-              value={symbolFilter}
-              onChange={setSymbolFilter}
-              style={{ width: '100%' }}
-            >
-              <Option value="all">全部币种</Option>
-              <Option value="BTC">Bitcoin</Option>
-              <Option value="ETH">Ethereum</Option>
-              <Option value="USDT">USDT</Option>
-              <Option value="USDC">USDC</Option>
-              <Option value="BNB">BNB</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={6}>
-            <RangePicker
-              placeholder={['开始时间', '结束时间']}
-              value={dateRange}
-              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
-              style={{ width: '100%' }}
-            />
-          </Col>
-        </Row>
-      </Card>
-
-      {/* 交易列表 */}
-      <Card title={`交易记录 (${filteredTransactions.length})`}>
-        <Table
-          columns={columns}
-          dataSource={filteredTransactions}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
-          }}
-          scroll={{ x: 1500 }}
-        />
-      </Card>
     </div>
   )
 }

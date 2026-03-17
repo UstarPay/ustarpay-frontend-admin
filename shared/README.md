@@ -215,7 +215,7 @@ import { EmptyState } from '@nh/shared'
   title="暂无数据"
   description="还没有创建任何钱包"
   action={{
-    text: "创建钱包",
+    text: "刷新列表",
     onClick: () => navigate('/wallets/create')
   }}
 />
