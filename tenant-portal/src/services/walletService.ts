@@ -10,6 +10,23 @@ import type {
 } from '@shared/types'
 import { api } from './api'
 
+interface MonitorConfigListResponse {
+  items: any[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  novuConfigured?: boolean
+}
+
+interface GasTaskListResponse {
+  items: any[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
 // 钱包相关的 API 服务
 export const walletService = {
   // 获取钱包列表
@@ -123,7 +140,7 @@ export const walletService = {
     page?: number
     pageSize?: number
   }) => {
-    return api.getPaginated<any>('/monitor-configs', params)
+    return api.get<MonitorConfigListResponse>('/monitor-configs', params)
   },
 
   getMonitorConfigEditData: async (configId?: string) => {
@@ -178,6 +195,42 @@ export const walletService = {
   // 更新钱包
   updateWallet: async (walletId: string, data: Partial<{ status: number }>) => {
     return api.put<Wallet>(`/wallets/${walletId}`, data)
+  },
+
+  getGasTasks: async (params?: {
+    page?: number
+    pageSize?: number
+    walletId?: string
+    status?: string
+    currency?: string
+    taskType?: string
+    priority?: string
+    dateRange?: string[]
+  }) => {
+    return api.get<GasTaskListResponse>('/gas-tasks', params)
+  },
+
+  getGasTaskStats: async () => {
+    return api.get<any>('/gas-tasks/stats')
+  },
+
+  searchGasTasks: async (params: {
+    walletId?: string
+    status?: string
+    currency?: string
+    taskType?: string
+    priority?: string
+    dateRange?: string[]
+  }) => {
+    return api.get<GasTaskListResponse>('/gas-tasks/search', params)
+  },
+
+  createGasTask: async (data: Record<string, any>) => {
+    return api.post<any>('/gas-tasks', data)
+  },
+
+  deleteGasTask: async (taskId: string) => {
+    return api.delete<void>(`/gas-tasks/${taskId}`)
   },
 
 }

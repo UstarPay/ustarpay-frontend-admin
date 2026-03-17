@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { 
+import {
   Card, 
   Row, 
   Col, 
@@ -68,8 +68,46 @@ const TenantInfoPage: React.FC = () => {
   const loadTenantInfo = async () => {
     try {
       setLoading(true)
-      const data = await tenantService.getTenantInfo()
-      setTenantInfo(data.data)
+      const [tenantRes, subscriptionRes, configRes, kycRes] = await Promise.all([
+        tenantService.getTenantInfo(),
+        tenantService.getSubscription(),
+        tenantService.getTenantConfig(),
+        tenantService.getKycInfo()
+      ])
+
+      const tenant = tenantRes.data
+      const subscription = subscriptionRes.data
+      const config = configRes.data
+      const kyc = kycRes.data
+
+      setTenantInfo({
+        id: tenant.id,
+        name: tenant.name,
+        email: tenant.email,
+        status: tenant.overallStatus === 'active' ? 'active' : tenant.overallStatus === 'suspended' ? 'suspended' : 'inactive',
+        plan: {
+          name: subscription.plan.name,
+          level: subscription.plan.level,
+          features: subscription.plan.features,
+          limits: subscription.plan.limits
+        },
+        subscription: {
+          startDate: subscription.subscription.startDate,
+          endDate: subscription.subscription.endDate,
+          autoRenew: subscription.subscription.autoRenew,
+          status: subscription.subscription.status
+        },
+        config: {
+          ipWhitelist: config.ipWhitelist || [],
+          webhookUrl: config.webhookUrl,
+          notificationEmail: config.notificationEmail
+        },
+        kyc: {
+          status: kyc.status,
+          submittedAt: kyc.submittedAt,
+          approvedAt: kyc.approvedAt
+        }
+      })
     } catch (error) {
       console.error('加载租户信息失败:', error)
     } finally {

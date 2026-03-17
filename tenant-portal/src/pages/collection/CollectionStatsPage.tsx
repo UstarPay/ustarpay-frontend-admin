@@ -236,7 +236,7 @@ const CollectionStatsPage: React.FC = () => {
             <Card className="text-center">
               <Statistic
                 title="运行中"
-                value={taskStats?.data?.runningTasks || 0}
+                value={taskStats?.data?.runningTasks ?? taskStats?.data?.executingTasks ?? 0}
                 prefix={<SyncOutlined style={{ color: '#faad14' }} />}
                 valueStyle={{ color: '#faad14' }}
               />

@@ -103,7 +103,7 @@ const GasTaskPage: React.FC = () => {
         walletService.getGasTaskStats()
       ])
       
-      setTasks((tasksData.items || []).map((task: any) => ({
+      setTasks((tasksData.data?.items || []).map((task: any) => ({
         id: task.id,
         name: task.name,
         description: task.description,
@@ -163,7 +163,7 @@ const GasTaskPage: React.FC = () => {
       }
       
       const response = await walletService.searchGasTasks(params)
-      setTasks((response.items || []).map((task: any) => ({
+      setTasks((response.data?.items || []).map((task: any) => ({
         id: task.id,
         name: task.name,
         description: task.description,

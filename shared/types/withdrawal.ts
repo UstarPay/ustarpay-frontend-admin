@@ -5,20 +5,29 @@ export interface Withdrawal extends BaseEntity {
   tenantId: string
   txHash?: string
   address: string
+  fromAddress?: string
   chainCode: string
   symbol: string
   amount: string
+  withdrawFee?: string
+  netAmount?: string
   blockFee: string
   businessId: string
   confirmations: number
   requiredConfirmations: number
   status: WithdrawalStatus
+  transactionStatus?: number | null
   failureReason?: string
   webhookSent: boolean
   webhookSentAt?: string
   requestedAt: string
   processedAt?: string
   completedAt?: string
+  applicantUserName?: string
+  applicantEmail?: string
+  applicantPhone?: string
+  isFrozenPending?: boolean
+  isBroadcastProcessing?: boolean
   createdBy?: string
   updatedBy?: string
   memo?: string
@@ -34,6 +43,7 @@ export enum WithdrawalStatus {
   COMPLETED = 3,        // 交易成功
   FAILED = 4,          // 交易失败
   CANCELLED = 5,       // 已取消
+  BROADCASTING = 6,    // 广播处理中
 }
 
 // 提现状态标签映射
@@ -44,6 +54,7 @@ export const WITHDRAWAL_STATUS_LABELS = {
   [WithdrawalStatus.COMPLETED]: '交易成功',
   [WithdrawalStatus.FAILED]: '交易失败',
   [WithdrawalStatus.CANCELLED]: '已取消',
+  [WithdrawalStatus.BROADCASTING]: '广播处理中',
 }
 
 // 提现状态颜色映射
@@ -54,6 +65,7 @@ export const WITHDRAWAL_STATUS_COLORS = {
   [WithdrawalStatus.COMPLETED]: 'green',
   [WithdrawalStatus.FAILED]: 'red',
   [WithdrawalStatus.CANCELLED]: 'gray',
+  [WithdrawalStatus.BROADCASTING]: 'processing',
 }
 
 // 提现申请类型
@@ -62,7 +74,7 @@ export interface WithdrawalRequest {
   chainCode: string
   symbol: string
   amount: string
-  businessId: string
+  businessId?: string
   memo?: string
   priority?: 'low' | 'normal' | 'high'
 }

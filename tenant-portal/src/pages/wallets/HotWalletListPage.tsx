@@ -96,7 +96,9 @@ const HotWalletListPage: React.FC = () => {
       totalUsdtValue: '0',
       totalAddresses: wallets.length,
       todayTransactions: 0,
-      monthlyTransactions: 0
+      monthlyTransactions: 0,
+      symbols: Object.keys(balanceByCoin),
+      chainCodes: Array.from(new Set(wallets.flatMap(item => item.wallet?.chainCodes || [])))
     }
   }, [walletResponse?.data?.total, wallets])
 

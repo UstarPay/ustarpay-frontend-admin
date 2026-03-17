@@ -155,7 +155,7 @@ const CollectionConfigForm: React.FC<CollectionConfigFormProps> = ({
   })
 
   const updateConfigMutation = useMutation({
-    mutationFn: ({ id, config }: { id: number; config: UpdateCollectionConfigRequest }) => 
+    mutationFn: ({ id, config }: { id: string; config: UpdateCollectionConfigRequest }) =>
       collectionService.updateConfig(id, config),
     onSuccess: () => {
       message.success('归集配置更新成功')

@@ -171,8 +171,10 @@ export interface CollectionTaskStats {
   totalTasks: number;
   pendingTasks: number;    // 待执行
   executingTasks: number; // 执行中
+  runningTasks?: number; // 兼容旧页面字段
   completedTasks: number;
   failedTasks: number;
+  frozenTasks?: number; // 兼容旧页面字段
   totalAmount?: Record<string, string>;
   totalFees?: string;
   averageExecutionTime?: number;

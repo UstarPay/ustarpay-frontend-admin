@@ -7,6 +7,7 @@ export interface Wallet extends BaseEntity {
   description?: string
   address: string
   status: WalletStatus
+  settings?: Partial<WalletSettings>
   createdBy?: string
   updatedBy?: string
   deletedBy?: string
@@ -27,9 +28,12 @@ export interface ColdWallet extends Wallet {
 
 export interface WalletQueryParams extends ListParams {
   chainCodes?: string[]
+  chainCode?: string
   symbols?: string[]
+  symbol?: string
   address?: string
   name?: string
+  includeBalance?: boolean
   userId?: string
   userEmail?: string
   userPhone?: string

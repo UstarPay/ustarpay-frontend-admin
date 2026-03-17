@@ -45,7 +45,8 @@ const STATUS_MAP: Record<number, { text: string; color: string }> = {
   2: { text: '审核失败', color: 'red' },
   3: { text: '交易成功', color: 'green' },
   4: { text: '交易失败', color: 'red' },
-  5: { text: '已取消', color: 'default' }
+  5: { text: '已取消', color: 'default' },
+  6: { text: '广播处理中', color: 'processing' }
 }
 
 const CHAIN_ADDRESS_REGEX: Record<string, RegExp> = {
@@ -82,6 +83,8 @@ interface WithdrawalRecord {
   applicantUserName?: string
   applicantEmail?: string
   applicantPhone?: string
+  isFrozenPending?: boolean
+  isBroadcastProcessing?: boolean
   requestedAt: string
   processedAt?: string
   completedAt?: string
@@ -111,6 +114,8 @@ function normalizeRecord(raw: any): WithdrawalRecord {
     applicantUserName: raw.applicantUserName ?? raw.applicant_user_name,
     applicantEmail: raw.applicantEmail ?? raw.applicant_email,
     applicantPhone: raw.applicantPhone ?? raw.applicant_phone,
+    isFrozenPending: raw.isFrozenPending ?? raw.is_frozen_pending,
+    isBroadcastProcessing: raw.isBroadcastProcessing ?? raw.is_broadcast_processing,
     requestedAt: raw.requestedAt ?? raw.requested_at ?? raw.createdAt ?? raw.created_at ?? '',
     processedAt: raw.processedAt ?? raw.processed_at,
     completedAt: raw.completedAt ?? raw.completed_at,
@@ -240,7 +245,6 @@ const WithdrawalListPage: React.FC = () => {
       const params: any = {
         page: pagination.page,
         pageSize: pagination.pageSize,
-        statuses: '0,1,3',
         include_transaction_status: 'true'
       }
       if (statusFilter !== 'all') params.status = statusFilter
@@ -274,7 +278,8 @@ const WithdrawalListPage: React.FC = () => {
     : '0'
 
   const pendingCount = withdrawals.filter(item => item.status === 0).length
-  const processingCount = withdrawals.filter(item => item.status === 1 || (item.status === 3 && item.transactionStatus === 0)).length
+  const processingCount = withdrawals.filter(item => item.status === 1 || item.status === 6 || (item.status === 3 && item.transactionStatus === 0)).length
+  const frozenPendingCount = withdrawals.filter(item => item.isFrozenPending || item.status === 0).length
   const successAmount = withdrawals
     .filter(item => item.status === 3 && item.transactionStatus !== 0)
     .reduce((sum, item) => sum + Number(item.amount || 0), 0)
@@ -317,13 +322,11 @@ const WithdrawalListPage: React.FC = () => {
         return
       }
       setSubmitLoading(true)
-      const businessId = `wd-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
       await withdrawalService.createWithdrawal({
         address,
         chainCode,
         symbol: values.symbol,
         amount: String(amt),
-        businessId,
         memo: values.note ? String(values.note).slice(0, 255) : undefined
       })
       message.success('提交成功')
@@ -335,23 +338,6 @@ const WithdrawalListPage: React.FC = () => {
     } finally {
       setSubmitLoading(false)
     }
-  }
-
-  const handleCancelWithdrawal = (record: WithdrawalRecord) => {
-    if (record.status !== 0) return
-    Modal.confirm({
-      title: '确认取消',
-      content: '确定要取消该提现申请吗？',
-      onOk: async () => {
-        try {
-          await withdrawalService.cancelWithdrawal(record.id)
-          message.success('已取消')
-          loadList()
-        } catch (e: any) {
-          message.error(e?.message || '取消失败')
-        }
-      }
-    })
   }
 
   const openReviewModal = (record: WithdrawalRecord) => {
@@ -488,6 +474,12 @@ const WithdrawalListPage: React.FC = () => {
       key: 'status',
       width: 120,
       render: (status: number, record: WithdrawalRecord) => {
+        if (record.isFrozenPending) {
+          return <Tag color="gold">待审核</Tag>
+        }
+        if (record.isBroadcastProcessing || status === 6) {
+          return <Tag color="processing">广播处理中</Tag>
+        }
         if (status === 3 && record.transactionStatus === 0) {
           return <Tag color="processing">区块确认中</Tag>
         }
@@ -592,6 +584,7 @@ const WithdrawalListPage: React.FC = () => {
               <div className="text-xs uppercase tracking-[0.18em] text-slate-400">待审核</div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{pendingCount}</div>
               <div className="mt-2 text-sm text-slate-500">等待人工处理的申请</div>
+              <div className="mt-2 text-xs text-amber-600">其中冻结中 {frozenPendingCount} 笔</div>
             </div>
             <div className="rounded-2xl bg-amber-50 p-3 text-amber-500">
               <ClockCircleOutlined className="text-xl" />
@@ -603,7 +596,7 @@ const WithdrawalListPage: React.FC = () => {
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-slate-400">处理中</div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{processingCount}</div>
-              <div className="mt-2 text-sm text-slate-500">已审核或等待区块确认</div>
+              <div className="mt-2 text-sm text-slate-500">已审核、广播中或等待区块确认</div>
             </div>
             <div className="rounded-2xl bg-sky-50 p-3 text-sky-500">
               <ThunderboltOutlined className="text-xl" />
@@ -659,6 +652,7 @@ const WithdrawalListPage: React.FC = () => {
                 <Option value="all">全部状态</Option>
                 <Option value="0">{STATUS_MAP[0]?.text}</Option>
                 <Option value="1">{STATUS_MAP[1]?.text}</Option>
+                <Option value="6">{STATUS_MAP[6]?.text}</Option>
                 <Option value="3">区块确认中</Option>
               </Select>
             </Col>
@@ -844,20 +838,6 @@ const WithdrawalListPage: React.FC = () => {
         open={detailModalVisible}
         onCancel={() => { setDetailModalVisible(false); setDetailRecord(null) }}
         footer={[
-          detailRecord?.status === 0 ? (
-            <Button key="review" onClick={() => {
-              if (!detailRecord) return
-              setDetailModalVisible(false)
-              openReviewModal(detailRecord)
-            }}>
-              审核
-            </Button>
-          ) : null,
-          detailRecord?.status === 0 ? (
-            <Button key="cancel" danger onClick={() => { handleCancelWithdrawal(detailRecord); setDetailModalVisible(false) }}>
-              取消申请
-            </Button>
-          ) : null,
           <Button key="close" type="primary" onClick={() => { setDetailModalVisible(false); setDetailRecord(null) }}>
             关闭
           </Button>
@@ -878,7 +858,11 @@ const WithdrawalListPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
-                  {detailRecord.status === 3 && detailRecord.transactionStatus === 0
+                  {detailRecord.isFrozenPending
+                    ? <Tag color="gold" className="!m-0 rounded-full px-3 py-1">待审核</Tag>
+                    : detailRecord.isBroadcastProcessing || detailRecord.status === 6
+                    ? <Tag color="processing" className="!m-0 rounded-full px-3 py-1">广播处理中</Tag>
+                    : detailRecord.status === 3 && detailRecord.transactionStatus === 0
                     ? <Tag color="processing" className="!m-0 rounded-full px-3 py-1">区块确认中</Tag>
                     : <Tag color={STATUS_MAP[detailRecord.status]?.color || 'default'} className="!m-0 rounded-full px-3 py-1">{STATUS_MAP[detailRecord.status]?.text ?? detailRecord.status}</Tag>}
                   <div className="mt-3 text-xs uppercase tracking-[0.18em] text-sky-100">链 / 币种</div>

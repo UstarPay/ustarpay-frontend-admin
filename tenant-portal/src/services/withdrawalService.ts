@@ -11,6 +11,9 @@ interface WithdrawalStats {
   totalWithdrawals: number
   totalAmount: string
   pendingWithdrawals: number
+  frozenPendingWithdrawals: number
+  frozenPendingAmount: string
+  processingWithdrawals: number
   completedWithdrawals: number
   failedWithdrawals: number
   cancelledWithdrawals: number

@@ -107,7 +107,7 @@ const WebhookLogPage: React.FC = () => {
         logService.getWebhookLogStats()
       ])
       
-      setLogs((logsData.items || []).map((log: any) => ({
+      setLogs((logsData.data?.items || []).map((log: any) => ({
         id: log.id,
         webhookId: log.webhookId,
         webhookName: log.webhookName || 'Webhook ' + log.webhookId.slice(0, 8),
@@ -163,7 +163,7 @@ const WebhookLogPage: React.FC = () => {
       }
       
       const response = await logService.searchWebhookLogs(params)
-      setLogs((response.items || []).map((log: any) => ({
+      setLogs((response.data?.items || []).map((log: any) => ({
         id: log.id,
         webhookId: log.webhookId,
         webhookName: log.webhookName || 'Webhook ' + log.webhookId.slice(0, 8),

@@ -12,7 +12,8 @@ import type {
   CollectionSchedulerStatsResponse,
   ManualCollectionResponse,
   CollectionHistoryRecord,
-  TenantCollectionConfig
+  TenantCollectionConfig,
+  TenantCollectionTask
 } from '@shared/types'
 
 const BASE_URL = '/collection'

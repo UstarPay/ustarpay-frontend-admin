@@ -194,7 +194,7 @@ const TransactionListPage: React.FC = () => {
                          transaction.walletName.toLowerCase().includes(searchText.toLowerCase()) ||
                          (transaction.txHash && transaction.txHash.toLowerCase().includes(searchText.toLowerCase()))
     const matchesType = typeFilter === 'all' || transaction.type === typeFilter ||
-      (typeFilter === 'collect' && (transaction.type === 'collect' || transaction.type === 'collection'))
+      (typeFilter === 'collection' && transaction.type === 'collection')
     const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter
     const matchesSymbol = symbolFilter === 'all' || transaction.symbol === symbolFilter
     const matchesDate = !dateRange || (

@@ -106,7 +106,7 @@ const ApiLogPage: React.FC = () => {
         logService.getApiLogStats()
       ])
       
-      setLogs((logsData.items || []).map((log: any) => ({
+      setLogs((logsData.data?.items || []).map((log: any) => ({
         id: log.id,
         requestId: log.requestId,
         method: log.method,
@@ -165,7 +165,7 @@ const ApiLogPage: React.FC = () => {
       }
       
       const response = await logService.searchApiLogs(params)
-      setLogs((response.items || []).map((log: any) => ({
+      setLogs((response.data?.items || []).map((log: any) => ({
         id: log.id,
         requestId: log.requestId,
         method: log.method,

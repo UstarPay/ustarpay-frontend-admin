@@ -123,8 +123,9 @@ const BalanceMonitorPage: React.FC = () => {
       ])
       
       setAlerts(alertsData?.data?.items || [])
-      setNovuConfigured(configsData?.data?.novuConfigured ?? false)
-      const items = configsData?.data?.items || []
+      const configList = configsData?.data
+      setNovuConfigured(configList?.novuConfigured ?? false)
+      const items = configList?.items || []
       const configsList: MonitorConfig[] = items.map((i: any) => ({
         id: i.id,
         name: i.name || '余额告警接收人',
@@ -139,7 +140,7 @@ const BalanceMonitorPage: React.FC = () => {
         alertId: i.alertId,
         workflowIdentifier: i.workflowIdentifier,
         workflowMapping: i.workflowMapping || (i.alertId && i.workflowIdentifier ? { [i.alertId]: i.workflowIdentifier } : {}),
-        novuConfigured: configsData?.data?.novuConfigured ?? false,
+        novuConfigured: configList?.novuConfigured ?? false,
       }))
       setConfigs(configsList)
       setStats(statsData?.data ?? null)
