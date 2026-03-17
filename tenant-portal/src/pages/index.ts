@@ -14,7 +14,7 @@ export * from './users'
 export * from './rbac'
 
 // 鏃ュ織绠＄悊椤甸潰
-export * from './logs'
+export * from './logs/index'
 
 // 瀹夊叏璁剧疆椤甸潰
 export * from './security'
