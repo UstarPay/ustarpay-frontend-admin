@@ -494,7 +494,6 @@ const TransactionListPage: React.FC = () => {
               ))}
             </div>
           </div>
-          <div className="px-6 pb-3 pt-4 text-sm text-slate-500">总账流水按时间顺序展示，支持在当前工作区内横向滚动查看完整列。</div>
           <div className="w-full max-w-full overflow-x-auto">
             <Table
               style={{ minWidth: 1500 }}
