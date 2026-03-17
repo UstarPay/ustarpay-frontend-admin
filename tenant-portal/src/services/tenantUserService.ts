@@ -22,6 +22,10 @@ export interface TenantAppUserKyc {
   businessId: string
   status: number
   rejectReason?: string
+  failureReason?: string
+  submittedAt: string
+  approvedAt?: string
+  rejectedAt?: string
   createdAt: string
   updatedAt: string
   firstName?: string
@@ -29,6 +33,9 @@ export interface TenantAppUserKyc {
   nationality?: string
   phone?: string
   addressCountry?: string
+  operatorId?: string
+  operatorUsername?: string
+  operatorDisplayName?: string
 }
 
 export interface TenantUserListParams {
@@ -44,6 +51,21 @@ export interface TenantUserKycListParams {
   pageSize?: number
   search?: string
   status?: string
+  userName?: string
+  businessId?: string
+  email?: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+  nationality?: string
+  addressCountry?: string
+  operator?: string
+  submittedFrom?: string
+  submittedTo?: string
+  approvedFrom?: string
+  approvedTo?: string
+  rejectedFrom?: string
+  rejectedTo?: string
 }
 
 export interface TenantUserSavePayload {
@@ -93,6 +115,11 @@ export interface TenantUserKycSavePayload {
   rejectReason?: string
 }
 
+export interface TenantUserKycReviewPayload {
+  action: 'approve' | 'reject'
+  rejectReason?: string
+}
+
 export const tenantUserService = {
   getUsers: (params?: TenantUserListParams) => api.get('/app-users', params),
   getUser: (id: string) => api.get(`/app-users/${id}`),
@@ -104,6 +131,7 @@ export const tenantUserService = {
   getKyc: (id: string) => api.get(`/app-users/kyc/${id}`),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),
   updateKyc: (id: string, payload: Partial<TenantUserKycSavePayload>) => api.put(`/app-users/kyc/${id}`, payload),
+  reviewKyc: (id: string, payload: TenantUserKycReviewPayload) => api.post(`/app-users/kyc/${id}/review`, payload),
   deleteKyc: (id: string) => api.delete(`/app-users/kyc/${id}`),
 }
 

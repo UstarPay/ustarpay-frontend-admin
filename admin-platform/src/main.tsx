@@ -10,17 +10,16 @@ import 'dayjs/locale/zh-cn'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import relativeTime from 'dayjs/plugin/relativeTime'
-
 import App from './App'
 import { queryClient } from './services/queryClient'
 import './index.css'
-
+const routerBaseName =
+  (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/'
 // 配置 dayjs
 dayjs.locale('zh-cn')
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(relativeTime)
-
 // Ant Design 主题配置
 const antdTheme = {
   token: {
@@ -47,7 +46,6 @@ const antdTheme = {
     },
   },
 }
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
@@ -58,6 +56,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           componentSize="middle"
         >
           <BrowserRouter
+            basename={routerBaseName}
             future={{
               v7_startTransition: true,
               v7_relativeSplatPath: true,

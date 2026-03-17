@@ -1,257 +1,279 @@
 import { api } from './api'
 import { useAuthStore } from '@/stores/authStore'
-import type { 
-  Tenant, 
-  LoginForm, 
-  RegisterForm, 
-  PasswordResetForm,
+import type {
+  LoginForm,
   PasswordChangeForm,
+  PasswordResetForm,
+  Tenant,
   TwoFactorSetupResponse,
-  TwoFactorVerifyForm 
+  TwoFactorVerifyForm,
+  User,
 } from '@shared/types'
 
-// 认证相关的 API 服务
+interface AuthUser extends User {
+  displayName?: string
+  permissions?: string[]
+  refreshToken?: string
+  refresh_token?: string
+  roles?: string[]
+  username?: string
+}
+
+interface AuthStatePayload {
+  displayName?: string
+  email?: string
+  permissions?: string[]
+  refreshToken?: string
+  refresh_token?: string
+  roles?: string[]
+  token?: string
+  user?: AuthUser
+  username?: string
+  tenantId?: string
+}
+
+type AuthProfilePayload = AuthStatePayload | AuthUser
+type TenantLoginForm = LoginForm & { email?: string }
+
+const authRequestConfig = { prefix: api.authPrefix }
+
 export class AuthService {
-  // 用户登录
-  async login(credentials: LoginForm) {
-    credentials.userType = 'tenant'
-    const response = await api.post('/login', credentials, { prefix: api.authPrefix })
-    
-    if (response.success && response.data) {
-      // 存储用户信息和 token
-      const { setUser, setTokens, setPermissions, setRoles, setTenant } = useAuthStore.getState()
-      
-      setUser(response.data)
-      setTokens(response.data.token, response.data.refreshToken)
-      
-      // 存储租户信息
-      if (response.data.tenantId) {
-        setTenant(response.data.tenantId, response.data.displayName || response.data.username)
-      }
-      
-      setPermissions(response.data.permissions || [])
-      setRoles(response.data.roles || [])
+  private getUserFromPayload(payload: AuthProfilePayload | null | undefined): AuthUser | undefined {
+    if (!payload || typeof payload !== 'object') {
+      return undefined
     }
-    
+
+    if ('user' in payload && payload.user) {
+      return payload.user
+    }
+
+    if ('id' in payload) {
+      return payload as AuthUser
+    }
+
+    return undefined
+  }
+
+  private syncAuthState(payload: AuthProfilePayload | null | undefined) {
+    if (!payload) {
+      return
+    }
+
+    const { setPermissions, setRoles, setTenant, setTokens, setUser } = useAuthStore.getState()
+    const user = this.getUserFromPayload(payload)
+    const token = 'token' in payload ? payload.token : undefined
+    const refreshToken =
+      ('refresh_token' in payload ? payload.refresh_token : undefined) ||
+      ('refreshToken' in payload ? payload.refreshToken : undefined)
+    const permissions =
+      ('permissions' in payload ? payload.permissions : undefined) || user?.permissions || []
+    const roles = ('roles' in payload ? payload.roles : undefined) || user?.roles || []
+
+    if (user) {
+      setUser(user)
+
+      if (user.tenantId) {
+        setTenant(
+          user.tenantId,
+          user.name || user.displayName || user.fullName || user.username || user.userName || user.email
+        )
+      }
+    } else if ('tenantId' in payload && payload.tenantId) {
+      setTenant(
+        payload.tenantId,
+        payload.displayName || payload.username || payload.email || payload.tenantId
+      )
+    }
+
+    if (token) {
+      setTokens(token, refreshToken)
+    }
+
+    setPermissions(permissions)
+    setRoles(roles)
+  }
+
+  async login(credentials: TenantLoginForm) {
+    const response = await api.post<AuthStatePayload>(
+      '/login',
+      {
+        ...credentials,
+        userType: 'tenant',
+      },
+      authRequestConfig
+    )
+
+    if (response.success && response.data) {
+      this.syncAuthState(response.data)
+    }
+
     return response
   }
 
-  // // 用户注册（如果支持）
-  // async register(userData: RegisterForm) {
-  //   const response = await api.post('/auth/register', userData)
-  //   return response
-  // }
-
-  // 用户登出
   async logout() {
     try {
-      await api.post('/auth/logout')
+      await api.post('/auth/logout', undefined, authRequestConfig)
     } catch (error) {
-      // 即使服务器端登出失败，也要清除本地状态
       console.warn('Server logout failed:', error)
     } finally {
-      // 清除本地认证状态
       const { clearAuth } = useAuthStore.getState()
       clearAuth()
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
     }
   }
 
-  // 刷新令牌
   async refreshToken() {
     const { refreshToken } = useAuthStore.getState()
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }
 
     try {
-      const response = await api.post('/auth/refresh', { refreshToken })
-      
+      const response = await api.post<AuthStatePayload>(
+        '/refresh',
+        { refresh_token: refreshToken },
+        authRequestConfig
+      )
+
       if (response.success && response.data) {
-        const { token, refreshToken: newRefreshToken } = response.data
-        const { setTokens } = useAuthStore.getState()
-        setTokens(token, newRefreshToken)
+        this.syncAuthState(response.data)
       }
-      
+
       return response
     } catch (error) {
-      // 刷新失败，清除认证状态
       const { clearAuth } = useAuthStore.getState()
       clearAuth()
       throw error
     }
   }
 
-  // 获取当前用户信息
   async getCurrentUser() {
-    const response = await api.get<Tenant>('/me')
-    
+    const response = await api.get<AuthProfilePayload>('/auth/profile', undefined, authRequestConfig)
+
     if (response.success && response.data) {
-      const { setTenant } = useAuthStore.getState()
-      
-      if (response.data.id) {
-        setTenant(response.data.id, response.data.name)
-      }
+      this.syncAuthState(response.data)
     }
-    
+
     return response
   }
 
-  // 获取用户权限
   async getUserPermissions() {
-    const response = await api.get<{ permissions: string[], roles: string[] }>('/auth/permissions')
-    
+    const response = await api.get<AuthProfilePayload>('/auth/profile', undefined, authRequestConfig)
+
     if (response.success && response.data) {
-      const { setPermissions, setRoles } = useAuthStore.getState()
-      setPermissions(response.data.permissions || [])
-      setRoles(response.data.roles || [])
+      this.syncAuthState(response.data)
     }
-    
+
     return response
   }
 
-  // 发送密码重置邮件
   async sendPasswordResetEmail(email: string) {
-    const response = await api.post('/auth/password/reset-request', { email })
-    return response
+    return api.post('/auth/password/reset-request', { email }, authRequestConfig)
   }
 
-  // 重置密码
   async resetPassword(data: PasswordResetForm) {
-    const response = await api.post('/auth/password/reset', data)
-    return response
+    return api.post('/auth/password/reset', data, authRequestConfig)
   }
 
-  // 修改密码
   async changePassword(data: PasswordChangeForm) {
-    const response = await api.post('/auth/password/change', data)
-    return response
+    return api.post('/auth/password/change', data, authRequestConfig)
   }
 
-  // 启用两步验证
   async setupTwoFactor() {
-    const response = await api.post<TwoFactorSetupResponse>('/auth/2fa/setup')
-    return response
+    return api.post<TwoFactorSetupResponse>('/auth/2fa/setup', undefined, authRequestConfig)
   }
 
-  // 验证两步验证
   async verifyTwoFactor(data: TwoFactorVerifyForm) {
-    const response = await api.post('/auth/2fa/verify', data)
-    return response
+    return api.post('/auth/2fa/verify', data, authRequestConfig)
   }
 
-  // 禁用两步验证
   async disableTwoFactor(password: string) {
-    const response = await api.post('/auth/2fa/disable', { password })
-    return response
+    return api.post('/auth/2fa/disable', { password }, authRequestConfig)
   }
 
-  // 获取备用代码
   async getBackupCodes() {
-    const response = await api.get<{ codes: string[] }>('/auth/2fa/backup-codes')
-    return response
+    return api.get<{ codes: string[] }>('/auth/2fa/backup-codes', undefined, authRequestConfig)
   }
 
-  // 生成新的备用代码
   async generateBackupCodes() {
-    const response = await api.post<{ codes: string[] }>('/auth/2fa/backup-codes/regenerate')
-    return response
+    return api.post<{ codes: string[] }>(
+      '/auth/2fa/backup-codes/regenerate',
+      undefined,
+      authRequestConfig
+    )
   }
 
-  // 验证会话
   async verifySession() {
     try {
-      const response = await api.get('/auth/verify')
+      const response = await api.get('/auth/profile', undefined, authRequestConfig)
       return response.success
     } catch {
       return false
     }
   }
 
-  // 获取登录历史
   async getLoginHistory(params?: {
     page?: number
     pageSize?: number
     startDate?: string
     endDate?: string
   }) {
-    const response = await api.getPaginated('/auth/login-history', params)
-    return response
+    return api.getPaginated('/auth/login-history', params, authRequestConfig)
   }
 
-  // 获取活动会话
   async getActiveSessions() {
-    const response = await api.get('/auth/sessions')
-    return response
+    return api.get('/auth/sessions', undefined, authRequestConfig)
   }
 
-  // 终止指定会话
   async terminateSession(sessionId: string) {
-    const response = await api.delete(`/auth/sessions/${sessionId}`)
-    return response
+    return api.delete(`/auth/sessions/${sessionId}`, authRequestConfig)
   }
 
-  // 终止所有其他会话
   async terminateOtherSessions() {
-    const response = await api.post('/auth/sessions/terminate-others')
-    return response
+    return api.post('/auth/sessions/terminate-others', undefined, authRequestConfig)
   }
 
-  // 更新用户资料
   async updateProfile(data: Partial<Tenant>) {
-    const response = await api.put<Tenant>('/auth/profile', data)
-    
+    const response = await api.put<Tenant>('/auth/profile', data, authRequestConfig)
+
     if (response.success && response.data) {
       const { setTenant } = useAuthStore.getState()
       setTenant(response.data.id, response.data.name)
     }
-    
+
     return response
   }
 
-  // 更新用户偏好设置
   async updatePreferences(preferences: Record<string, any>) {
-    const response = await api.put('/auth/preferences', preferences)
-    return response
+    return api.put('/auth/preferences', preferences, authRequestConfig)
   }
 
-  // 检查邮箱是否可用
   async checkEmailAvailability(email: string) {
-    const response = await api.post('/auth/check-email', { email })
-    return response
+    return api.post('/auth/check-email', { email }, authRequestConfig)
   }
 
-  // 检查用户名是否可用
   async checkUsernameAvailability(username: string) {
-    const response = await api.post('/auth/check-username', { username })
-    return response
+    return api.post('/auth/check-username', { username }, authRequestConfig)
   }
 
-  // 发送邮箱验证码
   async sendEmailVerification() {
-    const response = await api.post('/auth/email/send-verification')
-    return response
+    return api.post('/auth/email/send-verification', undefined, authRequestConfig)
   }
 
-  // 验证邮箱
   async verifyEmail(code: string) {
-    const response = await api.post('/auth/email/verify', { code })
-    return response
+    return api.post('/auth/email/verify', { code }, authRequestConfig)
   }
 
-  // 获取安全设置
   async getSecuritySettings() {
-    const response = await api.get('/auth/security/settings')
-    return response
+    return api.get('/auth/security/settings', undefined, authRequestConfig)
   }
 
-  // 获取登录会话
   async getLoginSessions() {
-    const response = await api.get('/auth/sessions')
-    return response
+    return api.get('/auth/sessions', undefined, authRequestConfig)
   }
 
-  // 获取安全日志
   async getSecurityLogs(params?: {
     page?: number
     pageSize?: number
@@ -259,31 +281,22 @@ export class AuthService {
     startDate?: string
     endDate?: string
   }) {
-    const response = await api.getPaginated('/auth/security/logs', params)
-    return response
+    return api.getPaginated('/auth/security/logs', params, authRequestConfig)
   }
 
-  // 启用两步验证
   async enable2FA() {
-    const response = await api.post('/auth/2fa/enable')
-    return response
+    return api.post('/auth/2fa/enable', undefined, authRequestConfig)
   }
 
-  // 禁用两步验证
   async disable2FA() {
-    const response = await api.post('/auth/2fa/disable')
-    return response
+    return api.post('/auth/2fa/disable', undefined, authRequestConfig)
   }
 
-  // 验证两步验证设置
   async verify2FASetup(code: string, secret: string) {
-    const response = await api.post('/auth/2fa/verify-setup', { code, secret })
-    return response
+    return api.post('/auth/2fa/verify-setup', { code, secret }, authRequestConfig)
   }
 }
 
-// 创建认证服务实例
 export const authService = new AuthService()
 
-// 导出默认实例
 export default authService
