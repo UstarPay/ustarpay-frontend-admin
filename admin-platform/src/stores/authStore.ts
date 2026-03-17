@@ -3,6 +3,14 @@ import { persist } from 'zustand/middleware'
 import type { Permission } from '@shared/types'
 import type { User } from '@shared/types/user'
 
+function getPermissionCode(permission: any) {
+  if (typeof permission === 'string') {
+    return permission
+  }
+
+  return permission?.code || permission?.permission_code || permission?.permissionCode || ''
+}
+
 export interface AuthState {
   // 状态
   user: User | null
@@ -77,14 +85,20 @@ export const useAuthStore = create<AuthState>()(
       // 检查单个权限
       hasPermission: (permissionCode) => {
         const { permissions } = get()
-        return permissions.some(p => p.code === permissionCode || p.code === '*')
+        return permissions.some((p) => {
+          const code = getPermissionCode(p as any)
+          return code === permissionCode || code === '*'
+        })
       },
 
       // 检查是否有任一权限
       hasAnyPermission: (permissionCodes) => {
         const { permissions } = get()
         return permissionCodes.some(code => 
-          permissions.some(p => p.code === code || p.code === '*')
+          permissions.some((p) => {
+            const permissionCode = getPermissionCode(p as any)
+            return permissionCode === code || permissionCode === '*'
+          })
         )
       },
 
@@ -92,7 +106,10 @@ export const useAuthStore = create<AuthState>()(
       hasAllPermissions: (permissionCodes) => {
         const { permissions } = get()
         return permissionCodes.every(code => 
-          permissions.some(p => p.code === code || p.code === '*')
+          permissions.some((p) => {
+            const permissionCode = getPermissionCode(p as any)
+            return permissionCode === code || permissionCode === '*'
+          })
         )
       },
     }),
