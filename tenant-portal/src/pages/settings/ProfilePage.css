@@ -1,34 +1,56 @@
 /* ProfilePage 自定义样式 - 专业金融平台配色 */
+.profile-hero-card {
+  border: 1px solid rgba(30, 64, 175, 0.1) !important;
+  box-shadow: 0 24px 70px rgba(30, 64, 175, 0.18) !important;
+}
+
+.profile-hero-panel {
+  background: linear-gradient(130deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 64, 175, 0.95) 38%, rgba(8, 47, 73, 0.94) 100%);
+}
+
+.profile-tabs-card .ant-card-body {
+  padding: 24px !important;
+}
+
 .settings-tabs .ant-tabs-tab {
-  padding: 12px 24px;
-  font-weight: 500;
+  padding: 12px 20px;
+  font-weight: 600;
   transition: all 0.3s ease;
-  color: #595959;
+  color: #475569;
+  border-radius: 999px;
 }
 
 .settings-tabs .ant-tabs-tab:hover {
-  background: rgba(24, 144, 255, 0.08);
-  border-radius: 6px 6px 0 0;
-  color: #1890ff;
+  background: rgba(219, 234, 254, 0.95);
+  color: #1d4ed8;
 }
 
 .settings-tabs .ant-tabs-tab-active {
-  background: #1890ff;
-  border-radius: 6px 6px 0 0;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 55%, #38bdf8 100%);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
 }
 
 .settings-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
   color: white !important;
 }
 
+.settings-tabs .ant-tabs-ink-bar {
+  display: none !important;
+}
+
+.settings-tabs .ant-tabs-nav::before {
+  border-bottom: 1px solid rgba(147, 197, 253, 0.35) !important;
+}
+
 .custom-descriptions .ant-descriptions-item-label {
   font-weight: 600;
-  color: #262626;
+  color: #0f172a;
+  background: #eff6ff !important;
 }
 
 .custom-descriptions .ant-descriptions-item-content {
-  color: #595959;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.75) !important;
 }
 
 /* 卡片悬停效果 */
@@ -43,28 +65,29 @@
 
 /* 按钮样式优化 - 专业蓝色 */
 .primary-button {
-  background: #1890ff;
+  background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 55%, #38bdf8 100%);
   border: none;
-  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
   transition: all 0.3s ease;
 }
 
 .primary-button:hover {
-  background: #40a9ff;
+  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 45%, #0ea5e9 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 16px 28px rgba(37, 99, 235, 0.28);
 }
 
 /* 输入框样式 */
 .rounded-input {
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
+  border-radius: 14px;
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  background: rgba(255, 255, 255, 0.92);
   transition: all 0.3s ease;
 }
 
 .rounded-input:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 /* 标签页图标样式 */
@@ -92,22 +115,22 @@
 
 /* 代码块样式 */
 .code-block {
-  background: #fafafa;
-  border: 1px solid #e8e8e8;
-  border-radius: 4px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
   padding: 6px 10px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   word-break: break-all;
-  color: #595959;
+  color: #1e3a8a;
 }
 
 /* 专业状态颜色 */
 .status-success {
-  color: #52c41a;
+  color: #2563eb;
 }
 
 .status-warning {
-  color: #faad14;
+  color: #0ea5e9;
 }
 
 .status-error {
@@ -115,7 +138,7 @@
 }
 
 .status-info {
-  color: #1890ff;
+  color: #2563eb;
 }
 
 /* 卡片背景 - 更柔和的色调 */
@@ -141,9 +164,9 @@
 
 /* 极简统计卡片样式 */
 .stats-card-minimal {
-  border: 1px solid #f0f0f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(147, 197, 253, 0.45) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 16px 36px rgba(30, 64, 175, 0.08) !important;
   transition: all 0.3s ease !important;
   position: relative !important;
   overflow: hidden !important;
@@ -151,9 +174,9 @@
 }
 
 .stats-card-minimal:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 20px 40px rgba(30, 64, 175, 0.12) !important;
   transform: translateY(-2px) !important;
-  border-color: #d9d9d9 !important;
+  border-color: rgba(96, 165, 250, 0.8) !important;
 }
 
 .stats-card-minimal .ant-card-body {

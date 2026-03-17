@@ -193,24 +193,20 @@ const DashboardPage: React.FC = () => {
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-120px] top-[-120px] h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle,_rgba(15,118,110,0.18),_rgba(15,118,110,0))]" />
         <div className="absolute right-[-80px] top-[40px] h-[280px] w-[280px] rounded-full bg-[radial-gradient(circle,_rgba(30,64,175,0.18),_rgba(30,64,175,0))]" />
-        <div className="absolute bottom-[-140px] left-[24%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(245,158,11,0.14),_rgba(245,158,11,0))]" />
+        <div className="absolute bottom-[-140px] left-[24%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(56,189,248,0.14),_rgba(56,189,248,0))]" />
       </div>
 
       <div className="relative space-y-6 p-4 md:p-6">
-        <section className="overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(135deg,#0f172a_0%,#102a43_36%,#134e4a_100%)] px-6 py-7 text-white shadow-[0_30px_80px_rgba(15,23,42,0.22)] md:px-8 md:py-9">
-          <div className="grid gap-8 lg:grid-cols-2">
+        <section className="overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_36%,#0ea5e9_100%)] px-5 py-5 text-white shadow-[0_30px_80px_rgba(29,78,216,0.22)] md:px-6 md:py-6">
+          <div className="grid gap-5 lg:grid-cols-2">
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-emerald-100">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-sky-100">
                 Tenant Command Center
               </div>
-              <Title level={1} className="!mb-3 !mt-4 !text-[34px] !font-semibold !tracking-tight !text-white md:!text-[42px]">
+              <Title level={1} className="!mb-2 !mt-3 !text-[28px] !font-semibold !tracking-tight !text-white md:!text-[34px]">
                 资产运营总览
               </Title>
-              <Text className="block max-w-2xl text-sm leading-7 !text-slate-200 md:text-[15px]">
-                把租户资产、交易、风控和系统运行状态收拢到一张控制面板里。重点指标前置，告警与动作直达，减少切页排查成本。
-              </Text>
-
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-wrap gap-3">
                 <Button
                   type="primary"
                   size="large"
@@ -223,50 +219,50 @@ const DashboardPage: React.FC = () => {
                 </Button>
               </div>
 
-              <div className="mt-8 grid gap-3 md:grid-cols-3">
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
                 {heroIndicators.map(item => (
                   <div
                     key={item.label}
-                    className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4 backdrop-blur-sm"
+                    className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur-sm"
                   >
                     <div className="flex items-center justify-between text-slate-200">
                       <span className="text-xs uppercase tracking-[0.18em]">{item.label}</span>
                       <span className="text-base">{item.icon}</span>
                     </div>
-                    <div className="mt-3 text-[28px] font-semibold leading-none text-white">{item.value}</div>
-                    <div className="mt-2 text-xs text-slate-300">{item.helper}</div>
+                    <div className="mt-2 text-[22px] font-semibold leading-none text-white">{item.value}</div>
+                    <div className="mt-1 text-xs text-slate-300">{item.helper}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid gap-4 self-end">
-              <div className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md">
-                <div className="text-xs uppercase tracking-[0.24em] text-emerald-100/80">Realtime Snapshot</div>
-                <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="grid gap-3 self-end">
+              <div className="rounded-[28px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+                <div className="text-xs uppercase tracking-[0.24em] text-sky-100/80">Realtime Snapshot</div>
+                <div className="mt-3 grid grid-cols-2 gap-3">
                   {[
                     { label: '总交易数', value: totalTransactions },
                     { label: '总交易量', value: totalVolume },
                     { label: '监控规则', value: balanceMonitorStats?.totalMonitors ?? 0 },
                     { label: '系统状态', value: systemStatus?.overall ?? 'unknown' }
                   ].map(item => (
-                    <div key={item.label} className="rounded-2xl bg-black/15 px-4 py-4">
+                    <div key={item.label} className="rounded-2xl bg-black/15 px-4 py-3">
                       <div className="text-xs text-slate-300">{item.label}</div>
-                      <div className="mt-2 break-all text-xl font-semibold text-white">{item.value}</div>
+                      <div className="mt-1 break-all text-lg font-semibold text-white">{item.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-emerald-200/40 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(236,253,245,0.82))] p-5 text-slate-900">
-                <div className="text-xs uppercase tracking-[0.26em] text-emerald-700/70">Tenant Profile</div>
-                <div className="mt-3 text-2xl font-semibold tracking-tight">{stats.tenant.name || '未命名租户'}</div>
-                <div className="mt-2 text-sm text-slate-600">{stats.tenant.email || '暂无邮箱信息'}</div>
-                <div className="mt-5 flex flex-wrap gap-2">
+              <div className="rounded-[28px] border border-sky-200/40 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(239,246,255,0.82))] p-4 text-slate-900">
+                <div className="text-xs uppercase tracking-[0.26em] text-sky-700/70">Tenant Profile</div>
+                <div className="mt-2 text-xl font-semibold tracking-tight">{stats.tenant.name || '未命名租户'}</div>
+                <div className="mt-1 text-sm text-slate-600">{stats.tenant.email || '暂无邮箱信息'}</div>
+                <div className="mt-4 flex flex-wrap gap-2">
                   <div className="rounded-full bg-slate-900 px-3 py-1 text-xs text-white">
                     状态 {stats.tenant.status === 1 ? '正常' : '异常'}
                   </div>
-                  <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-900">
+                  <div className="rounded-full bg-cyan-100 px-3 py-1 text-xs text-cyan-900">
                     订阅 {stats.tenant.computedStatus || '未知'}
                   </div>
                   <div className="rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-900">

@@ -418,20 +418,20 @@ const WalletListPage: React.FC = () => {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_0.9fr]">
         <Card
           bordered={false}
-          className="overflow-hidden rounded-[30px] border border-[#d4e5e1] shadow-sm"
+          className="overflow-hidden rounded-[30px] border border-[rgba(30,64,175,0.10)] shadow-[0_24px_70px_rgba(30,64,175,0.18)]"
           bodyStyle={{ padding: 0 }}
         >
-          <div className="bg-[linear-gradient(135deg,#0f172a_0%,#0f766e_48%,#0ea5e9_100%)] px-6 py-6 text-white">
+          <div className="bg-[linear-gradient(130deg,rgba(15,23,42,0.96)_0%,rgba(30,64,175,0.95)_38%,rgba(8,47,73,0.94)_100%)] px-6 py-6 text-white">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.32em] text-cyan-100/80">User Wallet Registry</div>
+                <div className="text-[11px] uppercase tracking-[0.32em] text-[#dbeafe]">User Wallet Registry</div>
                 <div className="mt-3 text-3xl font-semibold tracking-tight">数字钱包列表</div>
-                <div className="mt-3 max-w-2xl text-sm text-cyan-50/85">
+                <div className="mt-3 max-w-2xl text-sm text-[#eff6ff]/90">
                   面向用户资产检索和地址排查，快速查看钱包归属、网络覆盖、币种支持与余额记录沉淀情况。
                 </div>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-                <SafetyCertificateOutlined className="text-2xl text-cyan-100" />
+                <SafetyCertificateOutlined className="text-2xl text-[#dbeafe]" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -441,8 +441,11 @@ const WalletListPage: React.FC = () => {
                 { label: '支持网络', value: totalChains, icon: <EnvironmentOutlined /> },
                 { label: '余额记录', value: totalBalanceRecords, icon: <FilterOutlined /> },
               ].map(item => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
-                  <div className="flex items-center justify-between text-cyan-50/80">
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.20)_0%,rgba(219,234,254,0.14)_100%)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                >
+                  <div className="flex items-center justify-between text-[#dbeafe]">
                     <span className="text-xs">{item.label}</span>
                     <span className="text-sm">{item.icon}</span>
                   </div>
@@ -453,7 +456,10 @@ const WalletListPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card bordered={false} className="rounded-2xl shadow-sm">
+        <Card
+          bordered={false}
+          className="rounded-2xl border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_62%,#dbeafe_100%)] shadow-sm"
+        >
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium text-slate-500">筛选状态</div>
@@ -461,7 +467,7 @@ const WalletListPage: React.FC = () => {
                 {activeFilterTags.length > 0 ? `已启用 ${activeFilterTags.length} 项条件` : '当前展示全部钱包'}
               </div>
             </div>
-            <div className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
+            <div className="rounded-full bg-[#dbeafe] px-3 py-1 text-xs font-medium text-sky-700">
               实时视图
             </div>
           </div>
@@ -471,7 +477,7 @@ const WalletListPage: React.FC = () => {
                 {tag}
               </Tag>
             )) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-sky-200 bg-[#eff6ff] px-4 py-3 text-sm text-slate-500">
                 当前未启用筛选条件
               </div>
             )}
@@ -481,7 +487,7 @@ const WalletListPage: React.FC = () => {
               <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">热门网络</div>
               <div className="flex flex-wrap gap-2">
                 {topChains.length > 0 ? topChains.map(([chain, count]) => (
-                  <span key={chain} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  <span key={chain} className="rounded-full bg-[#ecfeff] px-3 py-1 text-xs font-medium text-cyan-700">
                     {chain} · {count}
                   </span>
                 )) : (
@@ -493,7 +499,7 @@ const WalletListPage: React.FC = () => {
               <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">热门币种</div>
               <div className="flex flex-wrap gap-2">
                 {topSymbols.length > 0 ? topSymbols.map(([symbol, count]) => (
-                  <span key={symbol} className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
+                  <span key={symbol} className="rounded-full bg-[#eff6ff] px-3 py-1 text-xs font-medium text-sky-700">
                     {symbol.toUpperCase()} · {count}
                   </span>
                 )) : (
@@ -507,7 +513,7 @@ const WalletListPage: React.FC = () => {
 
       <Card
         bordered={false}
-        className="rounded-[28px] border border-slate-200 bg-white shadow-sm"
+        className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_58%,#dbeafe_100%)] shadow-sm"
         bodyStyle={{ padding: 24 }}
       >
         <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr] xl:items-end">
@@ -520,13 +526,13 @@ const WalletListPage: React.FC = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-[20px] border border-sky-100 bg-[#eff6ff] px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-slate-400">热门网络</div>
               <div className="mt-2 text-sm font-semibold text-slate-900">
                 {topChains.length > 0 ? topChains.map(([chain]) => chain).join(' / ') : '暂无'}
               </div>
             </div>
-            <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-[20px] border border-sky-100 bg-[#eff6ff] px-4 py-3">
               <div className="text-xs uppercase tracking-[0.16em] text-slate-400">热门币种</div>
               <div className="mt-2 text-sm font-semibold text-slate-900">
                 {topSymbols.length > 0 ? topSymbols.map(([symbol]) => symbol.toUpperCase()).join(' / ') : '暂无'}
@@ -540,6 +546,8 @@ const WalletListPage: React.FC = () => {
           columns={walletColumns}
           searchFields={searchFields}
           title="数字钱包列表"
+          searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
+          tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
           loading={walletsLoading}
           scroll={{ x: 1400 }}
           showPagination

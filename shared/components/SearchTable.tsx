@@ -106,6 +106,10 @@ export interface SearchTableProps {
   loading?: boolean
   /** 自定义类名 */
   className?: string
+  /** 搜索区域卡片自定义类名 */
+  searchCardClassName?: string
+  /** 表格区域卡片自定义类名 */
+  tableCardClassName?: string
   /** 搜索回调 */
   onSearch?: (values: SearchFormValues) => void
   /** 表单值变化回调（用于级联等场景） */
@@ -138,6 +142,8 @@ const SearchTable: React.FC<SearchTableProps> = ({
   rowSelection,
   loading = false,
   className = '',
+  searchCardClassName = '',
+  tableCardClassName = '',
   onSearch,
   onFormChange,
   onRefresh,
@@ -367,7 +373,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
     }
 
     return (
-      <Card className="mb-4" size="small">
+      <Card className={`mb-4 ${searchCardClassName}`.trim()} size="small">
         <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
           {visibleFields.map(field => (
             <div
@@ -433,7 +439,7 @@ const SearchTable: React.FC<SearchTableProps> = ({
       {renderSearchArea()}
 
       {/* 表格 */}
-      <Card>
+      <Card className={tableCardClassName}>
         <Table
           columns={tableColumns}
           dataSource={paginatedData}

@@ -195,15 +195,15 @@ const FundAccountListPage: React.FC = () => {
         <aside className="space-y-5">
           <Card
             bordered={false}
-            className="overflow-hidden rounded-[28px] border border-amber-200/60 bg-gradient-to-b from-[#1f1a17] to-[#3f2f26] text-white shadow-[0_18px_40px_rgba(60,34,20,0.18)]"
+            className="overflow-hidden rounded-[28px] border border-[rgba(30,64,175,0.10)] bg-[linear-gradient(130deg,rgba(15,23,42,0.96)_0%,rgba(30,64,175,0.95)_38%,rgba(8,47,73,0.94)_100%)] text-white shadow-[0_24px_70px_rgba(30,64,175,0.18)]"
             bodyStyle={{ padding: 28 }}
           >
-            <div className="text-[11px] uppercase tracking-[0.28em] text-amber-200/70">资金账户</div>
+            <div className="text-[11px] uppercase tracking-[0.28em] text-[#dbeafe]">资金账户</div>
             <div className="mt-4 whitespace-nowrap text-3xl font-semibold leading-tight">
               资金账户列表
             </div>
             <div className="mt-8 rounded-[24px] border border-white/10 bg-white/10 p-4">
-              <div className="flex items-center justify-between text-amber-100/80">
+              <div className="flex items-center justify-between text-[#dbeafe]">
                 <span className="text-xs">最后更新时间</span>
                 <FieldTimeOutlined />
               </div>
@@ -213,20 +213,20 @@ const FundAccountListPage: React.FC = () => {
             </div>
           </Card>
 
-          <Card bordered={false} className="rounded-[24px] border border-stone-200 bg-[#fcfaf6] shadow-sm">
-            <div className="text-xs uppercase tracking-[0.22em] text-stone-400">核心指标</div>
+          <Card bordered={false} className="rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_60%,#dbeafe_100%)] shadow-sm">
+            <div className="text-xs uppercase tracking-[0.22em] text-slate-400">核心指标</div>
             <div className="mt-4 space-y-3">
               {[
-                { label: '账户总数', value: stats.totalAccounts, icon: <BankOutlined className="text-stone-500" /> },
+                { label: '账户总数', value: stats.totalAccounts, icon: <BankOutlined className="text-slate-500" /> },
                 { label: '正常账户', value: stats.activeAccounts, icon: <SafetyCertificateOutlined className="text-emerald-600" /> },
                 { label: '覆盖币种', value: stats.totalSymbols, icon: <FilterOutlined className="text-sky-600" /> },
               ].map(item => (
-                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3">
+                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_72%,#dbeafe_100%)] px-4 py-3">
                   <div>
-                    <div className="text-xs text-stone-400">{item.label}</div>
-                    <div className="mt-1 text-2xl font-semibold text-stone-900">{item.value}</div>
+                    <div className="text-xs text-slate-400">{item.label}</div>
+                    <div className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</div>
                   </div>
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-100">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eff6ff]">
                     {item.icon}
                   </div>
                 </div>
@@ -238,22 +238,22 @@ const FundAccountListPage: React.FC = () => {
         <section className="space-y-5">
           <Card
             bordered={false}
-            className="rounded-[28px] border border-stone-200 bg-[linear-gradient(135deg,#fffaf0_0%,#f6efe3_52%,#f8f5ef_100%)] shadow-sm"
+            className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_58%,#dbeafe_100%)] shadow-sm"
             bodyStyle={{ padding: 28 }}
           >
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl">
-                <div className="text-sm font-medium text-stone-500">统计摘要</div>
-                <div className="mt-2 text-3xl font-semibold tracking-tight text-stone-900">
+                <div className="text-sm font-medium text-slate-500">统计摘要</div>
+                <div className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
                   全量可用余额 {formatAmount(stats.totalAvailable)}
                 </div>
-                <div className="mt-3 text-sm leading-6 text-stone-600">
+                <div className="mt-3 text-sm leading-6 text-slate-600">
                   全量冻结余额 {formatAmount(stats.totalFrozen)}
                 </div>
               </div>
               <div className="grid min-w-[260px] gap-3 sm:grid-cols-2 lg:w-[320px] lg:grid-cols-1">
-                <div className="rounded-[22px] border border-stone-200 bg-white px-4 py-4">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-stone-400">
+                <div className="rounded-[22px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_72%,#dbeafe_100%)] px-4 py-4">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-400">
                     <span>可用资金</span>
                     <RiseOutlined className="text-emerald-600" />
                   </div>
@@ -261,12 +261,12 @@ const FundAccountListPage: React.FC = () => {
                     {formatAmount(stats.totalAvailable)}
                   </div>
                 </div>
-                <div className="rounded-[22px] border border-stone-200 bg-white px-4 py-4">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-stone-400">
+                <div className="rounded-[22px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_72%,#dbeafe_100%)] px-4 py-4">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-slate-400">
                     <span>冻结资金</span>
-                    <WalletOutlined className="text-amber-600" />
+                    <WalletOutlined className="text-cyan-600" />
                   </div>
-                  <div className="mt-3 text-2xl font-semibold text-amber-600">
+                  <div className="mt-3 text-2xl font-semibold text-cyan-600">
                     {formatAmount(stats.totalFrozen)}
                   </div>
                 </div>
@@ -275,25 +275,25 @@ const FundAccountListPage: React.FC = () => {
 
             <div className="mt-6 flex flex-wrap items-center gap-2">
               {activeFilterTags.length > 0 ? activeFilterTags.map(tag => (
-                <Tag key={tag} color="gold" className="rounded-full px-3 py-1 text-xs">
+                <Tag key={tag} color="processing" className="rounded-full px-3 py-1 text-xs">
                   {tag}
                 </Tag>
               )) : (
-                <span className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-500">
+                <span className="rounded-full border border-sky-100 bg-[#eff6ff] px-4 py-2 text-xs font-medium text-slate-500">
                   全部数据
                 </span>
               )}
             </div>
           </Card>
 
-          <Card bordered={false} className="rounded-[28px] border border-stone-200 bg-white shadow-sm" bodyStyle={{ padding: 24 }}>
+          <Card bordered={false} className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_58%,#dbeafe_100%)] shadow-sm" bodyStyle={{ padding: 24 }}>
             <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <div className="text-xs uppercase tracking-[0.22em] text-stone-400">查询条件</div>
-                <div className="mt-2 text-2xl font-semibold text-stone-900">资金账户列表</div>
-                <div className="mt-1 text-sm text-stone-500">按用户、币种和状态查询账户数据。</div>
+                <div className="text-xs uppercase tracking-[0.22em] text-slate-400">查询条件</div>
+                <div className="mt-2 text-2xl font-semibold text-slate-900">资金账户列表</div>
+                <div className="mt-1 text-sm text-slate-500">按用户、币种和状态查询账户数据。</div>
               </div>
-              <div className="rounded-full bg-stone-100 px-4 py-2 text-sm font-medium text-stone-600">
+              <div className="rounded-full bg-[#dbeafe] px-4 py-2 text-sm font-medium text-sky-700">
                 当前返回 {accounts.length} 条
               </div>
             </div>
@@ -303,6 +303,8 @@ const FundAccountListPage: React.FC = () => {
           columns={columns}
           searchFields={searchFields}
           title="资金账户列表"
+          searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
+          tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
           loading={isLoading}
           scroll={{ x: 1100 }}
           showPagination

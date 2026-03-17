@@ -268,23 +268,23 @@ const CollectionTaskPage: React.FC = () => {
     <div className="space-y-6 p-6">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[30px] border border-[#dbe8f6] bg-[linear-gradient(135deg,#f8fbff_0%,#edf5ff_46%,#ffffff_100%)] shadow-[0_18px_46px_rgba(37,99,235,0.08)]"
+        className="overflow-hidden rounded-[30px] border border-[rgba(30,64,175,0.10)] bg-[linear-gradient(130deg,rgba(15,23,42,0.96)_0%,rgba(30,64,175,0.95)_38%,rgba(8,47,73,0.94)_100%)] shadow-[0_24px_70px_rgba(30,64,175,0.18)]"
         bodyStyle={{ padding: 0 }}
       >
         <div className="relative overflow-hidden px-6 py-5 lg:px-8">
-          <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#2563eb_0%,#0ea5e9_45%,#93c5fd_100%)]" />
+          <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)]" />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.15fr_0.85fr] xl:items-center">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.34em] text-sky-700/70">Collection Task Monitor</div>
-              <div className="mt-2 text-[30px] font-semibold tracking-tight text-slate-900">归集任务监控</div>
-              <div className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              <div className="text-[11px] uppercase tracking-[0.34em] text-[#dbeafe]">Collection Task Monitor</div>
+              <div className="mt-2 text-[30px] font-semibold tracking-tight text-white">归集任务监控</div>
+              <div className="mt-2 max-w-2xl text-sm leading-6 text-[#eff6ff]/90">
                 用于查看归集任务的执行状态、时间进度、完成情况和失败反馈。
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/collection/configs')} className="h-10 rounded-full px-5">
+                <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/collection/configs')} className="h-10 rounded-full border-white/20 bg-white/10 px-5 text-[#eff6ff] shadow-none hover:!border-sky-300 hover:!bg-white/15 hover:!text-white">
                   返回归集配置
                 </Button>
-                <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-10 rounded-full px-5">
+                <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-10 rounded-full border-white/20 bg-white/10 px-5 text-[#eff6ff] shadow-none hover:!border-sky-300 hover:!bg-white/15 hover:!text-white">
                   刷新任务
                 </Button>
               </div>
@@ -292,20 +292,20 @@ const CollectionTaskPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-2">
               {[
-                { label: '总任务数', value: taskStats?.data?.totalTasks || 0, helper: '当前筛选范围', tone: 'bg-sky-50', icon: <PlayCircleOutlined className="text-sky-600" /> },
-                { label: '已完成', value: taskStats?.data?.completedTasks || 0, helper: '完成归集', tone: 'bg-emerald-50', icon: <CheckCircleOutlined className="text-emerald-600" /> },
-                { label: '待执行', value: (taskStats?.data?.pendingTasks ?? 0) + (taskStats?.data?.executingTasks ?? 0), helper: '含执行中', tone: 'bg-amber-50', icon: <SyncOutlined className="text-amber-500" /> },
-                { label: '成功率', value: `${successRate}%`, helper: '完成/失败比值', tone: 'bg-violet-50', icon: <CheckCircleOutlined className="text-violet-600" /> }
+                { label: '总任务数', value: taskStats?.data?.totalTasks || 0, helper: '当前筛选范围', icon: <PlayCircleOutlined className="text-[#dbeafe]" /> },
+                { label: '已完成', value: taskStats?.data?.completedTasks || 0, helper: '完成归集', icon: <CheckCircleOutlined className="text-[#dbeafe]" /> },
+                { label: '待执行', value: (taskStats?.data?.pendingTasks ?? 0) + (taskStats?.data?.executingTasks ?? 0), helper: '含执行中', icon: <SyncOutlined className="text-[#dbeafe]" /> },
+                { label: '成功率', value: `${successRate}%`, helper: '完成/失败比值', icon: <CheckCircleOutlined className="text-[#dbeafe]" /> }
               ].map(item => (
-                <div key={item.label} className={`rounded-[20px] border border-slate-200 ${item.tone} px-4 py-3`}>
+                <div key={item.label} className="rounded-[20px] border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.20)_0%,rgba(219,234,254,0.14)_100%)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-xs uppercase tracking-[0.16em] text-slate-400">{item.label}</div>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-sm">
+                    <div className="text-xs uppercase tracking-[0.16em] text-[#dbeafe]">{item.label}</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10">
                       {item.icon}
                     </div>
                   </div>
-                  <div className="mt-2 break-all text-xl font-semibold text-slate-900">{item.value}</div>
-                  <div className="mt-1 text-[11px] text-slate-500">{item.helper}</div>
+                  <div className="mt-2 break-all text-xl font-semibold text-white">{item.value}</div>
+                  <div className="mt-1 text-[11px] text-[#dbeafe]">{item.helper}</div>
                 </div>
               ))}
             </div>
@@ -315,7 +315,7 @@ const CollectionTaskPage: React.FC = () => {
 
       <Card
         bordered={false}
-        className="rounded-[28px] border border-slate-200 bg-white shadow-sm"
+        className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_58%,#dbeafe_100%)] shadow-sm"
         bodyStyle={{ padding: 24 }}
       >
         <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -328,9 +328,9 @@ const CollectionTaskPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-3 gap-3 xl:w-[360px]">
             {[
-              { label: '失败任务', value: taskStats?.data?.failedTasks || 0, tone: 'bg-rose-50 text-rose-700' },
-              { label: '执行中', value: taskStats?.data?.executingTasks || 0, tone: 'bg-amber-50 text-amber-700' },
-              { label: '已中止/失效', value: taskStats?.data?.frozenTasks || 0, tone: 'bg-slate-100 text-slate-700' }
+              { label: '失败任务', value: taskStats?.data?.failedTasks || 0, tone: 'bg-[#eff6ff] text-sky-700 border border-sky-100' },
+              { label: '执行中', value: taskStats?.data?.executingTasks || 0, tone: 'bg-[#ecfeff] text-cyan-700 border border-cyan-100' },
+              { label: '已中止/失效', value: taskStats?.data?.frozenTasks || 0, tone: 'bg-[#dbeafe] text-sky-700 border border-sky-100' }
             ].map(item => (
               <div key={item.label} className={`rounded-2xl px-3 py-3 ${item.tone}`}>
                 <div className="text-[11px]">{item.label}</div>
@@ -375,7 +375,7 @@ const CollectionTaskPage: React.FC = () => {
           <Button onClick={resetFilters}>重置</Button>
         </div>
 
-        <div className="mb-4 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+        <div className="mb-4 rounded-[18px] border border-sky-100 bg-[#eff6ff] px-4 py-3 text-xs text-slate-500">
           结果区仅保留任务列表，统计与筛选已压缩到上方，便于直接进入排查。
         </div>
 

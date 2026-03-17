@@ -222,51 +222,51 @@ const CardFundAccountListPage: React.FC = () => {
     <div className="space-y-6 pb-2">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[30px] border border-[#dde4ea] bg-[linear-gradient(135deg,#fafbfc_0%,#f3f6f9_48%,#ffffff_100%)] shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
+        className="overflow-hidden rounded-[30px] border border-[rgba(30,64,175,0.10)] bg-[linear-gradient(130deg,rgba(15,23,42,0.96)_0%,rgba(30,64,175,0.95)_38%,rgba(8,47,73,0.94)_100%)] shadow-[0_24px_70px_rgba(30,64,175,0.18)]"
         bodyStyle={{ padding: 0 }}
       >
         <div className="relative overflow-hidden px-6 py-6">
-          <div className="absolute right-[-40px] top-[-32px] h-32 w-32 rounded-full bg-slate-200/70 blur-3xl" />
-          <div className="absolute bottom-[-48px] left-[32%] h-32 w-32 rounded-full bg-sky-100/60 blur-3xl" />
+          <div className="absolute right-[-40px] top-[-32px] h-32 w-32 rounded-full bg-sky-400/25 blur-3xl" />
+          <div className="absolute bottom-[-48px] left-[32%] h-32 w-32 rounded-full bg-cyan-300/20 blur-3xl" />
           <div className="relative space-y-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="max-w-3xl">
-                <div className="text-[11px] uppercase tracking-[0.34em] text-slate-400">Card Capital Console</div>
-                <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                <div className="text-[11px] uppercase tracking-[0.34em] text-[#dbeafe]">Card Capital Console</div>
+                <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
                   卡账户列表
                 </div>
-                <div className="mt-3 text-sm leading-6 text-slate-600">
+                <div className="mt-3 text-sm leading-6 text-[#eff6ff]/90">
                   聚焦用户卡额度、活跃度与异常状态分布。
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 xl:min-w-[320px]">
-                <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3">
-                  <div className="flex items-center justify-between text-slate-500">
+                <div className="rounded-[20px] border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.20)_0%,rgba(219,234,254,0.14)_100%)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+                  <div className="flex items-center justify-between text-[#dbeafe]">
                     <span className="text-xs uppercase tracking-[0.18em]">总额度</span>
-                    <WalletOutlined className="text-emerald-600" />
+                    <WalletOutlined className="text-[#dbeafe]" />
                   </div>
-                  <div className="mt-2 text-2xl font-semibold text-slate-900">{formatAmount(stats.totalBalance)}</div>
-                  <div className="text-xs text-slate-400">USD</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">{formatAmount(stats.totalBalance)}</div>
+                  <div className="text-xs text-[#dbeafe]">USD</div>
                 </div>
-                <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3">
-                  <div className="flex items-center justify-between text-slate-500">
+                <div className="rounded-[20px] border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.20)_0%,rgba(219,234,254,0.14)_100%)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+                  <div className="flex items-center justify-between text-[#dbeafe]">
                     <span className="text-xs uppercase tracking-[0.18em]">正常占比</span>
-                    <CheckCircleOutlined className="text-emerald-600" />
+                    <CheckCircleOutlined className="text-[#dbeafe]" />
                   </div>
-                  <div className="mt-2 text-2xl font-semibold text-slate-900">{activeRate}%</div>
-                  <div className="text-xs text-slate-400">{stats.activeAccounts} / {stats.totalAccounts}</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">{activeRate}%</div>
+                  <div className="text-xs text-[#dbeafe]">{stats.activeAccounts} / {stats.totalAccounts}</div>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4">
+              <div className="rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_72%,#dbeafe_100%)] px-5 py-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.18em] text-slate-400">卡类型结构</div>
                     <div className="mt-1 text-xl font-semibold text-slate-900">{virtualRate}% 虚拟卡</div>
                   </div>
-                  <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                  <div className="rounded-full bg-[#dbeafe] px-3 py-1 text-xs font-medium text-sky-700">
                     最近刷新 {latestUpdatedAt ? new Date(latestUpdatedAt).toLocaleDateString('zh-CN') : '暂无'}
                   </div>
                 </div>
@@ -288,24 +288,24 @@ const CardFundAccountListPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4">
+              <div className="rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_72%,#dbeafe_100%)] px-5 py-4">
                 <div className="text-xs uppercase tracking-[0.18em] text-slate-400">运营关注</div>
                 <div className="mt-3 grid grid-cols-3 gap-2">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <div className="rounded-2xl border border-sky-100 bg-[#eff6ff] px-3 py-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-400">待激活</span>
                       <ClockCircleOutlined className="text-sky-600" />
                     </div>
                     <div className="mt-1 text-xl font-semibold text-slate-900">{pendingAccounts}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <div className="rounded-2xl border border-cyan-100 bg-[#ecfeff] px-3 py-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-400">异常/冻结</span>
                       <ExclamationCircleOutlined className="text-rose-600" />
                     </div>
                     <div className="mt-1 text-xl font-semibold text-slate-900">{exceptionAccounts}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <div className="rounded-2xl border border-sky-100 bg-[#eff6ff] px-3 py-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-400">覆盖用户</span>
                       <UserOutlined className="text-slate-600" />
@@ -322,7 +322,7 @@ const CardFundAccountListPage: React.FC = () => {
       {activeFilterTags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {activeFilterTags.map(tag => (
-            <Tag key={tag} color="magenta" className="rounded-full px-3 py-1 text-xs">
+            <Tag key={tag} color="processing" className="rounded-full px-3 py-1 text-xs">
               {tag}
             </Tag>
           ))}
@@ -338,6 +338,8 @@ const CardFundAccountListPage: React.FC = () => {
         dataSource={accounts}
         loading={isLoading}
         className="rounded-[28px]"
+        searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
+        tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
         serverSidePagination
         pagination={pagination}
         onTableChange={(nextPagination) => {

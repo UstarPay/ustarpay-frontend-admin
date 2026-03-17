@@ -26,10 +26,10 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
     <Card
       className="stats-card-minimal"
       style={{
-        background: '#fff',
-        border: '1px solid #f0f0f0',
-        borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        background: 'linear-gradient(180deg,#ffffff 0%,#eff6ff 72%,#dbeafe 100%)',
+        border: '1px solid rgba(147, 197, 253, 0.45)',
+        borderRadius: '22px',
+        boxShadow: '0 16px 36px rgba(30, 64, 175, 0.08)',
         overflow: 'hidden',
         transition: 'all 0.3s ease',
         position: 'relative'
@@ -53,9 +53,9 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
         <div>
           <div style={{ 
             fontSize: '14px', 
-            color: '#8c8c8c', 
+            color: '#64748b', 
             marginBottom: '8px',
-            fontWeight: 400 
+            fontWeight: 500 
           }}>
             {title}
           </div>
@@ -67,14 +67,14 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
             <span style={{ 
               fontSize: '32px', 
               fontWeight: 600, 
-              color: '#262626',
+              color: '#0f172a',
               lineHeight: 1
             }}>
               {mainValue}
             </span>
             <span style={{ 
               fontSize: '16px', 
-              color: '#8c8c8c',
+              color: '#475569',
               fontWeight: 400
             }}>
               {subValue}
@@ -85,7 +85,7 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
           width: '40px', 
           height: '40px', 
           backgroundColor: backgroundColor, 
-          borderRadius: '8px',
+          borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
@@ -106,9 +106,9 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
           (tenantInfo.hasPassword ? 1 : 0) + (tenantInfo.hasSecondaryPassword ? 1 : 0) + (tenantInfo.has2FA ? 1 : 0),
           '/3',
           <SafetyOutlined />,
-          '#f6ffed',
-          '#52c41a',
-          '#52c41a'
+          '#ecfeff',
+          '#0891b2',
+          'linear-gradient(90deg,#1e3a8a 0%,#2563eb 100%)'
         )}
       </Col>
       
@@ -118,9 +118,9 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
           tenantInfo.allowedIps?.length || 0,
           '个',
           <SafetyCertificateOutlined />,
-          '#e6f7ff',
-          '#1890ff',
-          '#1890ff'
+          '#eff6ff',
+          '#2563eb',
+          'linear-gradient(90deg,#2563eb 0%,#38bdf8 100%)'
         )}
       </Col>
       
@@ -130,9 +130,9 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
           tenantInfo.webhookUrl ? '✓' : '✗',
           tenantInfo.webhookUrl ? '已配置' : '未配置',
           <InfoCircleOutlined />,
-          tenantInfo.webhookUrl ? '#f6ffed' : '#fffbe6',
-          tenantInfo.webhookUrl ? '#52c41a' : '#faad14',
-          tenantInfo.webhookUrl ? '#52c41a' : '#faad14'
+          tenantInfo.webhookUrl ? '#eff6ff' : '#e0f2fe',
+          tenantInfo.webhookUrl ? '#2563eb' : '#0284c7',
+          tenantInfo.webhookUrl ? 'linear-gradient(90deg,#1d4ed8 0%,#38bdf8 100%)' : 'linear-gradient(90deg,#0f766e 0%,#0ea5e9 100%)'
         )}
       </Col>
       
@@ -142,9 +142,9 @@ const ProfileStatsCards: React.FC<ProfileStatsCardsProps> = ({
           getStatusColor(tenantInfo.status) === 'success' ? '✓' : '✗',
           getStatusText(tenantInfo.status),
           <CrownOutlined />,
-          getStatusColor(tenantInfo.status) === 'success' ? '#f6ffed' : '#fff2f0',
-          getStatusColor(tenantInfo.status) === 'success' ? '#52c41a' : '#ff4d4f',
-          getStatusColor(tenantInfo.status) === 'success' ? '#52c41a' : '#ff4d4f'
+          getStatusColor(tenantInfo.status) === 'success' ? '#dbeafe' : '#e0f2fe',
+          getStatusColor(tenantInfo.status) === 'success' ? '#1d4ed8' : '#0284c7',
+          getStatusColor(tenantInfo.status) === 'success' ? 'linear-gradient(90deg,#1e40af 0%,#38bdf8 100%)' : 'linear-gradient(90deg,#0f766e 0%,#06b6d4 100%)'
         )}
       </Col>
     </Row>

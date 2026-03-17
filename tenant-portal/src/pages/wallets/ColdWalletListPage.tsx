@@ -393,43 +393,43 @@ const ColdWalletListPage: React.FC = () => {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
         <Card
           bordered={false}
-          className="overflow-hidden rounded-[30px] border border-[#d7d0c5] bg-[linear-gradient(180deg,#faf7f2_0%,#f0e9de_100%)] shadow-[0_22px_44px_rgba(71,57,40,0.1)]"
+          className="overflow-hidden rounded-[30px] border border-sky-100 bg-[linear-gradient(180deg,#eef8ff_0%,#dbeafe_100%)] shadow-[0_22px_44px_rgba(14,116,144,0.1)]"
           bodyStyle={{ padding: 0 }}
         >
           <div className="relative h-full overflow-hidden px-6 py-6">
-            <div className="absolute inset-x-0 top-0 h-[5px] bg-[linear-gradient(90deg,#6b7280_0%,#b8a58d_50%,#6b7280_100%)]" />
-            <div className="text-[11px] uppercase tracking-[0.34em] text-stone-500">Cold Vault Registry</div>
-            <div className="mt-3 text-3xl font-semibold tracking-tight text-stone-900">冷钱包列表</div>
-            <div className="mt-3 text-sm leading-6 text-stone-600">
+            <div className="absolute inset-x-0 top-0 h-[5px] bg-[linear-gradient(90deg,#0f172a_0%,#1d4ed8_50%,#38bdf8_100%)]" />
+            <div className="text-[11px] uppercase tracking-[0.34em] text-sky-700/70">Cold Vault Registry</div>
+            <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">冷钱包列表</div>
+            <div className="mt-3 text-sm leading-6 text-slate-600">
               查看托管范围、状态与余额快照。
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-stone-300 bg-[linear-gradient(180deg,#fffdfa_0%,#f4ede3_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="mt-5 rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#dbeafe_100%)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.24em] text-stone-400">Vault Seal</div>
-                  <div className="mt-1 text-2xl font-semibold text-stone-900">{activeRate}%</div>
+                  <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Vault Seal</div>
+                  <div className="mt-1 text-2xl font-semibold text-slate-900">{activeRate}%</div>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white/80">
-                  <LockOutlined className="text-lg text-stone-700" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-sky-100 bg-white/80">
+                  <LockOutlined className="text-lg text-sky-700" />
                 </div>
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
-                <div className="h-full rounded-full bg-[linear-gradient(90deg,#57534e_0%,#292524_100%)]" style={{ width: `${activeRate}%` }} />
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-sky-100">
+                <div className="h-full rounded-full bg-[linear-gradient(90deg,#0f172a_0%,#1d4ed8_100%)]" style={{ width: `${activeRate}%` }} />
               </div>
-              <div className="mt-2 text-xs text-stone-500">
+              <div className="mt-2 text-xs text-slate-500">
                 {activeWallets} / {totalWallets} 钱包处于活跃状态
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-[18px] border border-stone-300/90 bg-white/60 px-4 py-3">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">库区编号</div>
-                <div className="mt-1 text-base font-semibold text-stone-900">VAULT-01</div>
+              <div className="rounded-[18px] border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(239,246,255,0.88)_100%)] px-4 py-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">库区编号</div>
+                <div className="mt-1 text-base font-semibold text-slate-900">VAULT-01</div>
               </div>
-              <div className="rounded-[18px] border border-stone-300/90 bg-white/60 px-4 py-3">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-stone-400">最近创建</div>
-                <div className="mt-1 truncate text-sm font-medium text-stone-800">
+              <div className="rounded-[18px] border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(239,246,255,0.88)_100%)] px-4 py-3">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">最近创建</div>
+                <div className="mt-1 truncate text-sm font-medium text-slate-800">
                   {latestCreatedAt ? new Date(latestCreatedAt).toLocaleDateString('zh-CN') : '暂无数据'}
                 </div>
               </div>
@@ -440,7 +440,7 @@ const ColdWalletListPage: React.FC = () => {
                 icon={<ReloadOutlined />}
                 onClick={() => refetch()}
                 loading={isLoading}
-                className="h-10 rounded-full border-stone-400 bg-white/80 px-5 text-stone-700 shadow-none hover:!border-stone-500"
+                className="h-10 rounded-full border-sky-100 bg-white/80 px-5 text-slate-700 shadow-none hover:!border-sky-300"
               >
                 刷新列表
               </Button>
@@ -448,7 +448,7 @@ const ColdWalletListPage: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={handleCreate}
-                className="h-10 rounded-full border-0 bg-[linear-gradient(180deg,#44403c_0%,#1c1917_100%)] px-5 shadow-none hover:!bg-stone-900"
+                className="h-10 rounded-full border-0 bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#0ea5e9_100%)] px-5 shadow-none hover:!bg-sky-700"
               >
                 新建冷钱包
               </Button>
@@ -458,7 +458,7 @@ const ColdWalletListPage: React.FC = () => {
 
         <Card
           bordered={false}
-          className="overflow-hidden rounded-[30px] border border-[#d9e0e6] bg-[linear-gradient(180deg,#fdfefe_0%,#f3f6f8_100%)] shadow-[0_22px_48px_rgba(15,23,42,0.06)]"
+          className="overflow-hidden rounded-[30px] border border-sky-100 bg-[linear-gradient(180deg,#eef8ff_0%,#dbeafe_100%)] shadow-[0_22px_48px_rgba(14,116,144,0.06)]"
           bodyStyle={{ padding: 0 }}
         >
           <div className="relative overflow-hidden px-6 py-6">
@@ -466,7 +466,7 @@ const ColdWalletListPage: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
               <div>
                 <div className="text-xs font-medium tracking-[0.18em] text-slate-400">资产保管概览</div>
-                <div className="mt-3 rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+                <div className="mt-3 rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_100%)] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Balance Snapshot</div>
@@ -498,7 +498,7 @@ const ColdWalletListPage: React.FC = () => {
 
               <div className="space-y-3">
                 <div className="text-xs font-medium tracking-[0.18em] text-slate-400">托管台账</div>
-                <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f5f7fa_100%)] px-5 py-4">
+                <div className="rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eef8ff_100%)] px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">风险缓冲</div>
@@ -508,7 +508,7 @@ const ColdWalletListPage: React.FC = () => {
                   </div>
                   <div className="mt-1 text-xs leading-5 text-slate-500">冻结钱包维持在独立隔离状态。</div>
                 </div>
-                <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f5f7fa_100%)] px-5 py-4">
+                <div className="rounded-[24px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eef8ff_100%)] px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">交易监测</div>

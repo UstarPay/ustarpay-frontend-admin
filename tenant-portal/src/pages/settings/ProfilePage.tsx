@@ -4,14 +4,14 @@ import {
   Button, 
   Tabs, 
   Typography,
-  message,
-  theme
+  message
 } from 'antd'
 import { 
   UserOutlined, 
   LockOutlined, 
   SafetyCertificateOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  IdcardOutlined
 } from '@ant-design/icons'
 import { tenantService } from '@/services/tenantService'
 import type { TenantInfo } from '@/services/tenantService'
@@ -27,7 +27,6 @@ import './ProfilePage.css'
 
 const { Title, Text } = Typography
 const { TabPane } = Tabs
-const { useToken } = theme
 
 interface ProfileFormData {
   name: string
@@ -50,7 +49,6 @@ interface SecondaryPasswordFormData {
 }
 
 export default function ProfilePage() {
-  const { token } = useToken()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')  // 当前活跃的标签页
   const [profileData, setProfileData] = useState<ProfileFormData>({
@@ -152,11 +150,11 @@ export default function ProfilePage() {
     try {
       setLoading(true)
       await tenantService.updateTenantInfo(profileData)
-      message.success('个人信息更新成功')
+      message.success('账户资料更新成功')
       await loadTenantInfo() // 重新加载信息
     } catch (error) {
-      console.error('更新个人信息失败:', error)
-      message.error('更新个人信息失败')
+      console.error('更新账户资料失败:', error)
+      message.error('更新账户资料失败')
     } finally {
       setLoading(false)
     }
@@ -242,21 +240,53 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-6">
-      {/* 页面头部 */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Title level={2} style={{ margin: 0, color: token.colorText }}>个人设置</Title>
-          <Text type="secondary">管理您的个人信息、密码和安全设置</Text>
+    <div className="profile-page space-y-6 p-6">
+      <Card
+        bordered={false}
+        className="profile-hero-card overflow-hidden rounded-[30px]"
+        bodyStyle={{ padding: 0 }}
+      >
+        <div className="profile-hero-panel px-6 py-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-end">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.34em] text-[#dbeafe]">Tenant Settings Console</div>
+              <Title level={2} style={{ margin: '10px 0 0', color: '#ffffff' }}>账户资料</Title>
+              <Text className="mt-3 block max-w-2xl text-sm leading-6 !text-[#eff6ff]">
+                管理账户资料、安全凭证与账户访问策略，集中维护当前工作区的基础配置。
+              </Text>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={loadTenantInfo}
+                  loading={loading}
+                  className="h-10 rounded-full border-white/20 bg-white/10 px-5 text-[#eff6ff] shadow-none hover:!border-sky-300 hover:!bg-white/15 hover:!text-white"
+                >
+                  刷新信息
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: '当前标签', value: activeTab === 'profile' ? '资料' : activeTab === 'password' ? '密码' : activeTab === 'secondary-password' ? '二级密码' : '双因素', icon: <IdcardOutlined /> },
+                { label: '账户状态', value: tenantInfo ? getStatusText(tenantInfo.status) : '--', icon: <SafetyCertificateOutlined /> },
+                { label: '登录次数', value: tenantInfo ? `${tenantInfo.loginCount} 次` : '--', icon: <UserOutlined /> },
+                { label: '套餐方案', value: tenantInfo?.planName || '未设置', icon: <LockOutlined /> }
+              ].map(item => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.20)_0%,rgba(219,234,254,0.14)_100%)] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                >
+                  <div className="flex items-center justify-between text-[#dbeafe]">
+                    <span className="text-xs uppercase tracking-[0.16em]">{item.label}</span>
+                    <span className="text-sm">{item.icon}</span>
+                  </div>
+                  <div className="mt-2 text-lg font-semibold text-white">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={loadTenantInfo}
-          loading={loading}
-        >
-          刷新信息
-        </Button>
-      </div>
+      </Card>
 
       {/* 用户信息概览卡片 */}
       {tenantInfo && (
@@ -278,11 +308,12 @@ export default function ProfilePage() {
 
       {/* 主要内容区域 */}
       <Card 
+        bordered={false}
+        className="profile-tabs-card rounded-[28px]"
         style={{
-          background: token.colorBgContainer,
-          border: `1px solid ${token.colorBorderSecondary}`,
-          borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+          background: 'linear-gradient(180deg,#ffffff 0%,#eff6ff 58%,#dbeafe 100%)',
+          border: '1px solid rgba(147, 197, 253, 0.5)',
+          boxShadow: '0 18px 46px rgba(30, 64, 175, 0.08)'
         }}
       >
         <Tabs 
@@ -298,7 +329,7 @@ export default function ProfilePage() {
             tab={
               <span className="flex items-center space-x-2">
                 <UserOutlined className="status-info" />
-                <span>个人信息</span>
+                <span>账户资料</span>
               </span>
             } 
             key="profile"

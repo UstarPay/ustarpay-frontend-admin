@@ -326,42 +326,42 @@ const TransactionListPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f4f7fb_0%,#eef4f9_42%,#f8fafc_100%)] p-4 md:p-6">
       <div className="mx-auto max-w-[1680px] space-y-6">
-        <section className="overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(135deg,#111827_0%,#16324f_42%,#0f766e_100%)] text-white shadow-[0_30px_80px_rgba(15,23,42,0.20)]">
-          <div className="relative px-6 py-7 md:px-8 md:py-8">
+        <section className="overflow-hidden rounded-[34px] border border-sky-100/70 bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_48%,#0ea5e9_100%)] text-white shadow-[0_30px_80px_rgba(29,78,216,0.20)]">
+          <div className="relative px-6 py-5 md:px-8 md:py-6">
             <div className="pointer-events-none absolute inset-y-0 right-0 w-[38%] bg-[radial-gradient(circle_at_top_right,rgba(125,211,252,0.18),rgba(15,118,110,0))]" />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.04)_100%)]" />
-            <div className="relative flex flex-col gap-8">
-              <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+            <div className="relative flex flex-col gap-5">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div className="max-w-3xl">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-emerald-100">
                     <TransactionOutlined />
                     General Ledger
                   </div>
-                  <Title level={1} className="!mb-2 !mt-4 !text-[40px] !font-semibold !tracking-tight !text-[#fffaf2]">
+                  <Title level={1} className="!mb-2 !mt-3 !text-[32px] !font-semibold !tracking-tight !text-[#fffaf2]">
                     交易记录
                   </Title>
-                  <Text className="block max-w-2xl text-[15px] leading-7 !text-slate-300">
+                  <Text className="block max-w-2xl text-[14px] leading-6 !text-slate-300">
                     统一查看充值、提现、转账、归集与内部转账明细，按状态、类型、币种和时间区间快速追踪资金流向。
                   </Text>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-                  <div className="rounded-[24px] border border-white/10 bg-white/10 px-5 py-5 backdrop-blur-sm">
+                  <div className="rounded-[24px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-slate-300">账务总额</div>
-                    <div className="mt-3 text-[34px] font-semibold tracking-tight text-white">{stats.totalAmount}</div>
-                    <div className="mt-2 text-xs text-slate-300">累计交易金额（USD）</div>
+                    <div className="mt-2 text-[26px] font-semibold tracking-tight text-white">{stats.totalAmount}</div>
+                    <div className="mt-1 text-xs text-slate-300">累计交易金额（USD）</div>
                   </div>
-                  <div className="rounded-[24px] border border-white/10 bg-black/15 px-5 py-5">
+                  <div className="rounded-[24px] border border-white/10 bg-black/15 px-4 py-4">
                     <div className="text-[11px] uppercase tracking-[0.24em] text-slate-300">当期状态</div>
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-3 space-y-2">
                       {[
                         { label: '已完成', value: stats.completedCount, tone: 'text-emerald-200' },
                         { label: '处理中', value: stats.pendingCount, tone: 'text-amber-200' },
                         { label: '失败', value: stats.failedCount, tone: 'text-rose-200' }
                       ].map(item => (
-                        <div key={item.label} className="flex items-center justify-between rounded-2xl bg-white/6 px-4 py-3">
+                        <div key={item.label} className="flex items-center justify-between rounded-2xl bg-white/6 px-4 py-2">
                           <span className="text-sm text-slate-200">{item.label}</span>
-                          <span className={`text-lg font-semibold ${item.tone}`}>{item.value}</span>
+                          <span className={`text-base font-semibold ${item.tone}`}>{item.value}</span>
                         </div>
                       ))}
                     </div>
@@ -377,10 +377,10 @@ const TransactionListPage: React.FC = () => {
                   { label: '已完成', value: stats.completedCount, helper: '已入账 / 已结算', tone: 'bg-sky-400/15 text-sky-100' },
                   { label: '失败笔数', value: stats.failedCount, helper: '异常待排查', tone: 'bg-rose-400/15 text-rose-100' }
                 ].map(item => (
-                  <div key={item.label} className={`rounded-[22px] px-4 py-4 ${item.tone}`}>
+                  <div key={item.label} className={`rounded-[22px] px-4 py-3 ${item.tone}`}>
                     <div className="text-[11px] uppercase tracking-[0.22em] opacity-80">{item.label}</div>
-                    <div className="mt-3 break-all text-[28px] font-semibold leading-none">{item.value}</div>
-                    <div className="mt-2 text-xs opacity-80">{item.helper}</div>
+                    <div className="mt-2 break-all text-[22px] font-semibold leading-none">{item.value}</div>
+                    <div className="mt-1 text-xs opacity-80">{item.helper}</div>
                   </div>
                 ))}
               </div>

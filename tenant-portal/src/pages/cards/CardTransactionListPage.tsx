@@ -148,7 +148,7 @@ const CardTransactionListPage: React.FC = () => {
     <div className="space-y-6">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#1f2937_0%,#0f172a_58%,#111827_100%)] text-white shadow-[0_28px_64px_rgba(15,23,42,0.28)]"
+        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_58%,#0ea5e9_100%)] text-white shadow-[0_28px_64px_rgba(29,78,216,0.28)]"
         bodyStyle={{ padding: 0 }}
       >
         <div className="relative overflow-hidden px-6 py-6 lg:px-8">
@@ -157,11 +157,8 @@ const CardTransactionListPage: React.FC = () => {
             <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
               <div className="text-[11px] uppercase tracking-[0.32em] text-sky-200/70">Card Transaction Ledger</div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-white">卡交易记录</div>
-              <div className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
-                这页偏审计视角，核心是盯住状态、批次量级和高频商户，而不是资产余额。
-              </div>
               <div className="mt-6 space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+                <div className="rounded-2xl border border-white/10 bg-white/12 px-4 py-4">
                   <div className="text-xs uppercase tracking-[0.16em] text-slate-400">批次观察</div>
                   <div className="mt-2 flex items-end gap-3">
                     <div className="text-4xl font-semibold text-white">{transactions.length}</div>
@@ -192,8 +189,8 @@ const CardTransactionListPage: React.FC = () => {
                   label: '待处理',
                   value: pendingCount,
                   helper: '仍在处理中',
-                  icon: <ClockCircleOutlined className="text-amber-500" />,
-                  tone: 'bg-amber-50'
+                  icon: <ClockCircleOutlined className="text-cyan-500" />,
+                  tone: 'bg-cyan-50'
                 },
                 {
                   label: '已结算金额',
@@ -206,11 +203,11 @@ const CardTransactionListPage: React.FC = () => {
                   label: '高频商户',
                   value: topMerchant ? `${topMerchant[0]}` : '暂无',
                   helper: topMerchant ? `${topMerchant[1]} 笔交易` : '无分布数据',
-                  icon: <ShopOutlined className="text-violet-600" />,
-                  tone: 'bg-violet-50'
+                  icon: <ShopOutlined className="text-sky-600" />,
+                  tone: 'bg-sky-50'
                 }
               ].map(item => (
-                <div key={item.label} className={`rounded-[22px] border border-white/10 ${item.tone} px-4 py-4`}>
+                <div key={item.label} className={`rounded-[22px] border border-sky-100 ${item.tone} px-4 py-4`}>
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-500">{item.label}</div>
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 shadow-sm">
@@ -228,7 +225,7 @@ const CardTransactionListPage: React.FC = () => {
 
       <Card
         bordered={false}
-        className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-sm"
+        className="rounded-[30px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5fbff_100%)] shadow-sm"
         bodyStyle={{ padding: 24 }}
       >
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -243,7 +240,7 @@ const CardTransactionListPage: React.FC = () => {
               onSearch={(val) => setSearchParams((p) => ({ ...p, page: 1, search: val || '' }))}
               className="w-full sm:w-[320px]"
             />
-            <div className="rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-slate-100">
+            <div className="rounded-full bg-sky-100 px-4 py-2 text-xs font-medium text-sky-800">
               <SyncOutlined className="mr-1" />
               流水状态实时读取
             </div>

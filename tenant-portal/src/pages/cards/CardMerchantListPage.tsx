@@ -281,23 +281,20 @@ const CardMerchantListPage: React.FC = () => {
     <div className="space-y-6">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[32px] border-0 bg-[#0f172a] text-white shadow-[0_28px_70px_rgba(15,23,42,0.34)]"
+        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_58%,#0ea5e9_100%)] text-white shadow-[0_28px_70px_rgba(29,78,216,0.34)]"
         bodyStyle={{ padding: 0 }}
       >
         <div className="relative overflow-hidden px-6 py-6 lg:px-8">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_32%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.18),transparent_32%)]" />
           <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-[0.36em] text-emerald-200/80">Merchant Control Tower</div>
+            <div className="rounded-[28px] border border-white/10 bg-white/12 p-6 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-[0.36em] text-sky-200/80">Merchant Control Tower</div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-white">卡商列表</div>
-              <div className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
-                这里更偏接入治理中心，重点是凭证维护、状态可用性和接入档案，而不是环境分布统计。
-              </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-10 rounded-full border-white/15 bg-white/10 px-5 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white">
                   刷新卡商
                 </Button>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} className="h-10 rounded-full bg-emerald-500 px-5 shadow-none hover:!bg-emerald-400">
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} className="h-10 rounded-full bg-sky-500 px-5 shadow-none hover:!bg-sky-400">
                   创建卡商
                 </Button>
               </div>
@@ -310,7 +307,7 @@ const CardMerchantListPage: React.FC = () => {
                 { label: '停用卡商', value: inactiveCount, helper: '需人工处理', icon: <DeleteOutlined className="text-rose-300" /> },
                 { label: '最近接入', value: latestCreatedAt ? new Date(latestCreatedAt).toLocaleDateString('zh-CN') : '暂无', helper: '最近创建时间', icon: <CreditCardOutlined className="text-violet-300" /> },
               ].map(item => (
-                <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm xl:min-h-[128px]">
+                <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/12 px-4 py-4 backdrop-blur-sm xl:min-h-[128px]">
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-xs uppercase tracking-[0.16em] text-slate-400">{item.label}</div>
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
@@ -326,7 +323,7 @@ const CardMerchantListPage: React.FC = () => {
         </div>
       </Card>
 
-      <Card bordered={false} className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-sm" bodyStyle={{ padding: 24 }}>
+      <Card bordered={false} className="rounded-[30px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5fbff_100%)] shadow-sm" bodyStyle={{ padding: 24 }}>
         <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:items-center">
           <div>
             <div className="text-sm font-medium text-slate-500">配置清单</div>
@@ -337,9 +334,9 @@ const CardMerchantListPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
-              { label: '总卡商数', value: total, tone: 'bg-slate-100 text-slate-700' },
-              { label: '启用占比', value: total > 0 ? `${Math.round((activeCount / total) * 100)}%` : '0%', tone: 'bg-emerald-50 text-emerald-700' },
-              { label: '停用占比', value: total > 0 ? `${Math.round((inactiveCount / total) * 100)}%` : '0%', tone: 'bg-rose-50 text-rose-700' }
+              { label: '总卡商数', value: total, tone: 'bg-sky-50 text-sky-700' },
+              { label: '启用占比', value: total > 0 ? `${Math.round((activeCount / total) * 100)}%` : '0%', tone: 'bg-cyan-50 text-cyan-700' },
+              { label: '停用占比', value: total > 0 ? `${Math.round((inactiveCount / total) * 100)}%` : '0%', tone: 'bg-blue-50 text-blue-700' }
             ].map(item => (
               <div key={item.label} className={`rounded-2xl px-4 py-3 ${item.tone}`}>
                 <div className="text-xs">{item.label}</div>

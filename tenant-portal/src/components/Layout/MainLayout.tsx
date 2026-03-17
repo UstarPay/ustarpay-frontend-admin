@@ -160,7 +160,7 @@ const menuTree: MenuNode[] = [
     label: '\u7cfb\u7edf\u8bbe\u7f6e',
     permissions: ['tenant:view'],
     children: [
-      { key: '/settings/profile', label: '\u4e2a\u4eba\u8d44\u6599', permissions: ['tenant:view'] },
+      { key: '/settings/profile', label: '\u8d26\u6237\u8d44\u6599', permissions: ['tenant:view'] },
     ],
   },
   {

@@ -32,13 +32,19 @@ const ProfileInfoForm: React.FC<ProfileInfoFormProps> = ({
     <div className="space-y-6">
       {/* 基本信息表单 */}
       <Card 
-        title="基本信息" 
+        title="账户资料" 
         className="border-0 shadow-sm card-bg-white"
+        style={{
+          borderRadius: '24px',
+          background: 'linear-gradient(180deg,#ffffff 0%,#eff6ff 68%,#dbeafe 100%)',
+          border: '1px solid rgba(147, 197, 253, 0.45)',
+          boxShadow: '0 16px 36px rgba(30, 64, 175, 0.08)'
+        }}
         headStyle={{ 
-          borderBottom: '1px solid #f0f0f0',
+          borderBottom: '1px solid rgba(147, 197, 253, 0.35)',
           fontSize: '16px',
           fontWeight: 'bold',
-          color: '#262626'
+          color: '#0f172a'
         }}
       >
         <Row gutter={[24, 16]}>
@@ -133,7 +139,7 @@ const ProfileInfoForm: React.FC<ProfileInfoFormProps> = ({
             loading={loading}
             className="primary-button px-8"
           >
-            更新个人信息
+            更新账户资料
           </Button>
         </div>
       </Card>
@@ -143,11 +149,17 @@ const ProfileInfoForm: React.FC<ProfileInfoFormProps> = ({
         <Card 
           title="账户详情" 
           className="border-0 shadow-sm card-bg-white"
+          style={{
+            borderRadius: '24px',
+            background: 'linear-gradient(180deg,#ffffff 0%,#eff6ff 68%,#dbeafe 100%)',
+            border: '1px solid rgba(147, 197, 253, 0.45)',
+            boxShadow: '0 16px 36px rgba(30, 64, 175, 0.08)'
+          }}
           headStyle={{ 
-            borderBottom: '1px solid #f0f0f0',
+            borderBottom: '1px solid rgba(147, 197, 253, 0.35)',
             fontSize: '16px',
             fontWeight: 'bold',
-            color: '#262626'
+            color: '#0f172a'
           }}
         >
           <Descriptions 

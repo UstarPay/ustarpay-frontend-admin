@@ -102,23 +102,23 @@ const pageShellStyle: React.CSSProperties = {
   minHeight: '100%',
   padding: 24,
   background:
-    'radial-gradient(circle at top left, rgba(14, 116, 144, 0.14), transparent 28%), radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 24%), linear-gradient(180deg, #f7fbfc 0%, #eef4f7 100%)',
+    'radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 28%), radial-gradient(circle at top right, rgba(34, 197, 94, 0.10), transparent 24%), linear-gradient(180deg, #f7fbff 0%, #eff6ff 100%)',
 }
 
 const heroCardStyle: React.CSSProperties = {
   borderRadius: 28,
-  border: '1px solid rgba(15, 23, 42, 0.08)',
+  border: '1px solid rgba(30, 64, 175, 0.08)',
   background:
-    'linear-gradient(135deg, rgba(7, 89, 133, 0.96) 0%, rgba(12, 74, 110, 0.94) 42%, rgba(23, 37, 84, 0.92) 100%)',
-  boxShadow: '0 24px 60px rgba(15, 23, 42, 0.12)',
+    'linear-gradient(130deg, rgba(15, 23, 42, 0.96) 0%, rgba(30, 64, 175, 0.95) 38%, rgba(8, 47, 73, 0.94) 100%)',
+  boxShadow: '0 24px 60px rgba(30, 64, 175, 0.12)',
   overflow: 'hidden',
 }
 
 const glassCardStyle: React.CSSProperties = {
   borderRadius: 24,
-  border: '1px solid rgba(148, 163, 184, 0.18)',
+  border: '1px solid rgba(96, 165, 250, 0.18)',
   background: 'rgba(255, 255, 255, 0.8)',
-  boxShadow: '0 18px 40px rgba(15, 23, 42, 0.06)',
+  boxShadow: '0 18px 40px rgba(30, 64, 175, 0.06)',
   backdropFilter: 'blur(10px)',
 }
 
@@ -127,7 +127,7 @@ const panelTitleStyle: React.CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
-  color: '#64748b',
+  color: '#1d4ed8',
   marginBottom: 16,
 }
 
@@ -231,21 +231,21 @@ const DepositHistoryPage: React.FC = () => {
       label: '今日入账',
       value: stats ? `${stats.todayDeposits} 笔` : '--',
       subtext: stats ? `${formatStatAmount(stats.todayAmount)} 今日累计` : '等待统计',
-      accent: '#f59e0b',
+      accent: '#38bdf8',
       icon: <ThunderboltOutlined />,
     },
     {
       label: '已确认占比',
       value: confirmationRate,
       subtext: stats ? `${stats.confirmedCount} / ${stats.totalDeposits}` : '等待统计',
-      accent: '#10b981',
+      accent: '#86efac',
       icon: <CheckCircleOutlined />,
     },
     {
       label: '待确认占比',
       value: pendingRatio,
       subtext: stats ? `${stats.pendingCount} 笔在链上处理中` : '等待统计',
-      accent: '#38bdf8',
+      accent: '#93c5fd',
       icon: <ClockCircleOutlined />,
     },
   ]
@@ -266,7 +266,7 @@ const DepositHistoryPage: React.FC = () => {
             </Tag>
             <Tag
               bordered={false}
-              style={{ borderRadius: 999, paddingInline: 10, background: '#ecfccb', color: '#3f6212' }}
+              style={{ borderRadius: 999, paddingInline: 10, background: '#dcfce7', color: '#166534' }}
             >
               {record.symbol || '-'}
             </Tag>
@@ -292,8 +292,8 @@ const DepositHistoryPage: React.FC = () => {
         <div
           style={{
             borderRadius: 16,
-            border: '1px dashed rgba(14, 116, 144, 0.25)',
-            background: 'linear-gradient(180deg, rgba(240, 249, 255, 0.95), rgba(248, 250, 252, 0.9))',
+            border: '1px dashed rgba(96, 165, 250, 0.25)',
+            background: 'linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(248, 250, 252, 0.9))',
             padding: 12,
           }}
         >
@@ -355,7 +355,7 @@ const DepositHistoryPage: React.FC = () => {
       width: 210,
       render: (_: any, record: DepositRecord) => (
         <div className="py-1">
-          <div style={{ borderLeft: '2px solid #cbd5e1', paddingLeft: 12 }}>
+          <div style={{ borderLeft: '2px solid #bfdbfe', paddingLeft: 12 }}>
             <div className="mb-3">
               <Text type="secondary" style={{ fontSize: 11 }}>
                 创建时间
@@ -387,8 +387,8 @@ const DepositHistoryPage: React.FC = () => {
             height: 36,
             borderRadius: 999,
             paddingInline: 14,
-            background: 'rgba(14, 116, 144, 0.08)',
-            color: '#0f766e',
+            background: 'rgba(59, 130, 246, 0.10)',
+            color: '#1d4ed8',
           }}
         >
           详情
@@ -409,12 +409,12 @@ const DepositHistoryPage: React.FC = () => {
           style={{
             padding: 28,
             background:
-              'radial-gradient(circle at 20% 20%, rgba(125, 211, 252, 0.22), transparent 22%), radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.18), transparent 18%)',
+              'radial-gradient(circle at 20% 20%, rgba(125, 211, 252, 0.22), transparent 22%), radial-gradient(circle at 85% 15%, rgba(96, 165, 250, 0.18), transparent 18%)',
           }}
         >
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} xl={10}>
-              <div style={{ color: '#e2e8f0' }}>
+              <div style={{ color: '#dbeafe' }}>
                 <div
                   style={{
                     display: 'inline-flex',
@@ -436,12 +436,12 @@ const DepositHistoryPage: React.FC = () => {
                       boxShadow: '0 0 18px rgba(34, 197, 94, 0.8)',
                     }}
                   />
-                  <Text style={{ color: '#e2e8f0', marginBottom: 0 }}>Deposit Oversight</Text>
+                  <Text style={{ color: '#dbeafe', marginBottom: 0 }}>Deposit Oversight</Text>
                 </div>
-                <Title level={2} style={{ color: '#f8fafc', marginBottom: 12 }}>
+                <Title level={2} style={{ color: '#eff6ff', marginBottom: 12 }}>
                   充值记录
                 </Title>
-                <Text style={{ color: 'rgba(226, 232, 240, 0.82)', fontSize: 14, lineHeight: 1.8 }}>
+                <Text style={{ color: 'rgba(219, 234, 254, 0.82)', fontSize: 14, lineHeight: 1.8 }}>
                   集中查看入金记录，支持按状态、币种和时间范围快速筛选，便于核对到账状态、追踪交易信息与处理进度。
                 </Text>
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -453,9 +453,9 @@ const DepositHistoryPage: React.FC = () => {
                       height: 42,
                       borderRadius: 999,
                       paddingInline: 18,
-                      borderColor: 'rgba(226, 232, 240, 0.18)',
+                      borderColor: 'rgba(219, 234, 254, 0.18)',
                       background: 'rgba(255, 255, 255, 0.08)',
-                      color: '#f8fafc',
+                      color: '#eff6ff',
                     }}
                   >
                     刷新数据
@@ -467,8 +467,8 @@ const DepositHistoryPage: React.FC = () => {
                       borderRadius: 999,
                       paddingInline: 18,
                       borderColor: 'transparent',
-                      background: '#f59e0b',
-                      color: '#111827',
+                      background: '#bfdbfe',
+                      color: '#1e3a8a',
                       fontWeight: 600,
                     }}
                   >
@@ -489,14 +489,14 @@ const DepositHistoryPage: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.1)',
                     }}
                   >
-                    <Text style={{ color: 'rgba(226, 232, 240, 0.72)', fontSize: 12 }}>总入金量</Text>
+                    <Text style={{ color: 'rgba(219, 234, 254, 0.72)', fontSize: 12 }}>总入金量</Text>
                     <div className="mt-2">
-                      <Title level={1} style={{ color: '#f8fafc', margin: 0, fontSize: 26, lineHeight: 1.1 }}>
+                      <Title level={1} style={{ color: '#eff6ff', margin: 0, fontSize: 26, lineHeight: 1.1 }}>
                         {stats?.totalDeposits ?? '--'}
                       </Title>
                     </div>
                     <div className="mt-1">
-                      <Text style={{ color: '#bae6fd', fontSize: 12 }}>
+                      <Text style={{ color: '#93c5fd', fontSize: 12 }}>
                         {stats ? `${formatStatAmount(stats.totalAmount)} 累计到账` : '等待统计返回'}
                       </Text>
                     </div>
@@ -516,12 +516,12 @@ const DepositHistoryPage: React.FC = () => {
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <Text style={{ color: 'rgba(226, 232, 240, 0.72)', fontSize: 12 }}>{item.label}</Text>
+                            <Text style={{ color: 'rgba(219, 234, 254, 0.72)', fontSize: 12 }}>{item.label}</Text>
                             <div style={{ marginTop: 2 }}>
-                              <Text style={{ color: '#f8fafc', fontSize: 19, fontWeight: 700, lineHeight: 1.2 }}>{item.value}</Text>
+                              <Text style={{ color: '#eff6ff', fontSize: 19, fontWeight: 700, lineHeight: 1.2 }}>{item.value}</Text>
                             </div>
                             <div style={{ marginTop: 2 }}>
-                              <Text style={{ color: 'rgba(226, 232, 240, 0.68)', fontSize: 11 }}>{item.subtext}</Text>
+                              <Text style={{ color: 'rgba(219, 234, 254, 0.68)', fontSize: 11 }}>{item.subtext}</Text>
                             </div>
                           </div>
                           <div
@@ -594,7 +594,7 @@ const DepositHistoryPage: React.FC = () => {
             <div style={panelTitleStyle}>Status Summary</div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
               {[
-                { label: '待确认', value: stats?.pendingCount ?? 0, tone: '#0ea5e9', bg: '#e0f2fe' },
+                { label: '待确认', value: stats?.pendingCount ?? 0, tone: '#1d4ed8', bg: '#eff6ff' },
                 { label: '已确认', value: stats?.confirmedCount ?? 0, tone: '#16a34a', bg: '#dcfce7' },
                 { label: '失败', value: stats?.failedCount ?? 0, tone: '#dc2626', bg: '#fee2e2' },
               ].map((item) => (
@@ -622,9 +622,9 @@ const DepositHistoryPage: React.FC = () => {
             <div
               style={{
                 padding: '20px 22px 14px',
-                borderBottom: '1px solid rgba(148, 163, 184, 0.14)',
+                borderBottom: '1px solid rgba(96, 165, 250, 0.14)',
                 background:
-                  'linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 250, 252, 0.72))',
+                  'linear-gradient(180deg, rgba(239, 246, 255, 0.84), rgba(248, 250, 252, 0.72))',
               }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -642,8 +642,8 @@ const DepositHistoryPage: React.FC = () => {
                     style={{
                       borderRadius: 999,
                       padding: '8px 14px',
-                      background: '#f1f5f9',
-                      color: '#334155',
+                      background: '#eff6ff',
+                      color: '#1d4ed8',
                       fontSize: 12,
                     }}
                   >

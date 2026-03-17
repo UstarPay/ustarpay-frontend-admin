@@ -353,36 +353,24 @@ const HotWalletListPage: React.FC = () => {
     <div className="space-y-6 pb-2">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[30px] border border-[#c9d9dc] bg-[linear-gradient(180deg,#f6fbfb_0%,#edf6f6_100%)] shadow-[0_20px_48px_rgba(34,78,88,0.10)]"
+        className="overflow-hidden rounded-[30px] border border-[rgba(30,64,175,0.10)] bg-[linear-gradient(130deg,rgba(15,23,42,0.96)_0%,rgba(30,64,175,0.95)_38%,rgba(8,47,73,0.94)_100%)] shadow-[0_24px_70px_rgba(30,64,175,0.18)]"
         bodyStyle={{ padding: 0 }}
       >
-        <div className="relative overflow-hidden px-6 py-6">
-          <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f766e_0%,#14b8a6_45%,#7dd3fc_100%)]" />
-          <div className="absolute right-6 top-6 hidden h-20 w-20 rounded-[24px] border border-teal-200/80 bg-white/70 lg:flex lg:items-center lg:justify-center">
-            <div className="grid grid-cols-3 gap-2">
-              {new Array(9).fill(null).map((_, index) => (
-                <span
-                  key={index}
-                  className={`h-3 w-3 rounded-sm ${index % 3 === 0 ? 'bg-teal-500' : index % 2 === 0 ? 'bg-sky-400' : 'bg-slate-300'}`}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="relative flex flex-col gap-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-3xl">
-                <div className="text-[11px] uppercase tracking-[0.34em] text-teal-700/70">Hot Wallet Network</div>
-                <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">热钱包列表</div>
-                <div className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                  查看热钱包状态、用途分工与余额快照。
-                </div>
+        <div className="relative overflow-hidden px-6 py-6 lg:px-8">
+          <div className="absolute right-[-36px] top-[-30px] h-36 w-36 rounded-full bg-sky-400/20 blur-3xl" />
+          <div className="absolute bottom-[-42px] left-[30%] h-32 w-32 rounded-full bg-cyan-300/18 blur-3xl" />
+          <div className="relative grid gap-6 xl:grid-cols-[0.92fr_1.08fr] xl:items-start">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-[#dbeafe]">
+                Hot Wallet Network
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="mt-4 text-3xl font-semibold tracking-tight text-white">热钱包列表</div>
+              <div className="mt-4 flex flex-wrap gap-3">
                 <Button
                   icon={<ReloadOutlined />}
                   onClick={() => refetch()}
                   loading={isLoading}
-                  className="h-10 rounded-full border-slate-300 bg-white px-5 text-slate-700 shadow-none hover:!border-teal-400 hover:!color-[#0f766e]"
+                  className="h-10 rounded-full border-white/20 bg-white/10 px-5 text-[#eff6ff] shadow-none hover:!border-sky-300 hover:!bg-white/15 hover:!text-white"
                 >
                   刷新列表
                 </Button>
@@ -390,76 +378,77 @@ const HotWalletListPage: React.FC = () => {
                   type="primary"
                   icon={<PlusOutlined />}
                   onClick={handleCreate}
-                  className="h-10 rounded-full border-0 bg-[#0f766e] px-5 shadow-none hover:!bg-[#115e59]"
+                  className="h-10 rounded-full border-0 bg-[#2563eb] px-5 shadow-none hover:!bg-[#1d4ed8]"
                 >
                   新建热钱包
                 </Button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_0.95fr]">
-              <div className="rounded-[26px] border border-[#cfe3e2] bg-white px-5 py-4">
+              <div className="mt-5 rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">节点健康度</div>
-                    <div className="mt-1 text-2xl font-semibold text-slate-900">{activeRate}%</div>
+                    <div className="text-xs uppercase tracking-[0.18em] text-[#dbeafe]">节点健康度</div>
+                    <div className="mt-1 text-[26px] font-semibold leading-none text-white">{activeRate}%</div>
                   </div>
-                  <SafetyCertificateOutlined className="text-2xl text-teal-600" />
+                  <SafetyCertificateOutlined className="text-2xl text-[#dbeafe]" />
                 </div>
                 <div className="mt-3">
-                  <Progress percent={activeRate} showInfo={false} strokeColor="#0f766e" trailColor="#dbeceb" />
+                  <Progress percent={activeRate} showInfo={false} strokeColor="#60a5fa" trailColor="rgba(219,234,254,0.24)" />
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-[#dbeafe]">
                   {stats.activeWallets} / {stats.totalWallets} 钱包当前处于活跃状态
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-400">地址覆盖</div>
-                    <div className="mt-1 text-xl font-semibold text-slate-900">{stats.totalAddresses}</div>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5">
+                    <div className="text-xs text-[#dbeafe]">地址覆盖</div>
+                    <div className="mt-1 text-lg font-semibold text-white">{stats.totalAddresses}</div>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                    <div className="flex items-center justify-between text-xs text-slate-400">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5">
+                    <div className="flex items-center justify-between text-xs text-[#dbeafe]">
                       <span>Gas 节点</span>
-                      <ThunderboltOutlined className="text-amber-500" />
+                      <ThunderboltOutlined className="text-amber-300" />
                     </div>
-                    <div className="mt-1 text-xl font-semibold text-slate-900">{gasWalletCount}</div>
+                    <div className="mt-1 text-lg font-semibold text-white">{gasWalletCount}</div>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                    <div className="flex items-center justify-between text-xs text-slate-400">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5">
+                    <div className="flex items-center justify-between text-xs text-[#dbeafe]">
                       <span>提现节点</span>
-                      <RocketOutlined className="text-sky-500" />
+                      <RocketOutlined className="text-sky-300" />
                     </div>
-                    <div className="mt-1 text-xl font-semibold text-slate-900">{withdrawalWalletCount}</div>
+                    <div className="mt-1 text-lg font-semibold text-white">{withdrawalWalletCount}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[26px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+              <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-[22px] border border-white/10 bg-[rgba(30,64,175,0.24)] px-4 py-4">
+                  <div className="text-xs uppercase tracking-[0.18em] text-[#dbeafe]">总余额聚合</div>
+                  <div className="mt-2 break-all text-xl font-semibold leading-snug text-white">
+                    {stats.totalBalance || '0'}
+                  </div>
+                  <div className="mt-2 text-xs text-[#93c5fd]">实时汇总当前热钱包余额结构</div>
+                </div>
+
+                <div className="grid gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                    <div className="flex items-center justify-between text-[#dbeafe]">
+                      <span className="text-xs uppercase tracking-[0.16em]">今日交易</span>
+                      <WalletOutlined className="text-base" />
+                    </div>
+                    <div className="mt-1 text-xl font-semibold text-white">{stats.todayTransactions}</div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                    <div className="text-xs uppercase tracking-[0.16em] text-[#dbeafe]">月度交易</div>
+                    <div className="mt-1 text-xl font-semibold text-white">{stats.monthlyTransactions}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[26px] border border-[#cfe3e2] bg-[linear-gradient(180deg,#ffffff_0%,#f4fbfb_100%)] px-5 py-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">运行快照</div>
-                <div className="mt-3 space-y-3">
-                  <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                    <div>
-                      <div className="text-xs text-slate-400">总余额聚合</div>
-                      <div className="mt-1 text-base font-semibold text-slate-900 break-all">{stats.totalBalance || '0'}</div>
-                    </div>
-                    <WalletOutlined className="mt-1 text-lg text-teal-600" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      <div className="text-xs text-slate-400">今日交易</div>
-                      <div className="mt-1 text-xl font-semibold text-slate-900">{stats.todayTransactions}</div>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      <div className="text-xs text-slate-400">月度交易</div>
-                      <div className="mt-1 text-xl font-semibold text-slate-900">{stats.monthlyTransactions}</div>
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-dashed border-teal-300 bg-teal-50 px-4 py-3">
-                    <div className="text-xs text-teal-700/70">最近创建</div>
-                    <div className="mt-1 text-sm font-medium text-slate-900">
-                      {latestCreatedAt ? new Date(latestCreatedAt).toLocaleString('zh-CN') : '暂无数据'}
-                    </div>
-                  </div>
+              <div className="mt-3 rounded-2xl border border-dashed border-white/20 bg-white/10 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.16em] text-[#dbeafe]">最近创建</div>
+                <div className="mt-1 text-sm font-medium text-white">
+                  {latestCreatedAt ? new Date(latestCreatedAt).toLocaleString('zh-CN') : '暂无数据'}
                 </div>
               </div>
             </div>
@@ -472,6 +461,8 @@ const HotWalletListPage: React.FC = () => {
         columns={columns}
         searchFields={searchFields}
         title="热钱包列表"
+        searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
+        tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
         loading={isLoading}
         scroll={{ x: 1450 }}
         showPagination
