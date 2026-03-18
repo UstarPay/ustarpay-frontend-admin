@@ -55,6 +55,9 @@ export interface CardMerchant {
   signature_masked: string
   api_host: string
   sub_account_id: string
+  default_product_code: string
+  default_card_material: number
+  default_currency: string
   environment: 'prod' | 'sandbox'
   status: number
   created_at: string
@@ -70,6 +73,9 @@ export interface CreateCardMerchantRequest {
   signature_key: string
   api_host: string
   sub_account_id: string
+  default_product_code?: string
+  default_card_material?: number
+  default_currency?: string
   environment?: 'prod' | 'sandbox'
   webhook_secret?: string
   notes?: string | null
@@ -106,6 +112,9 @@ export interface UpdateCardMerchantRequest {
   signature_key?: string
   api_host?: string
   sub_account_id?: string
+  default_product_code?: string
+  default_card_material?: number
+  default_currency?: string
   environment?: 'prod' | 'sandbox'
   status?: number
   webhook_secret?: string | null

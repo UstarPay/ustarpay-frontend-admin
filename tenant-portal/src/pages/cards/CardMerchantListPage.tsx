@@ -100,6 +100,9 @@ const CardMerchantListPage: React.FC = () => {
         api_key: editingMerchant.api_key,
         api_host: editingMerchant.api_host,
         sub_account_id: editingMerchant.sub_account_id,
+        default_product_code: editingMerchant.default_product_code,
+        default_card_material: editingMerchant.default_card_material,
+        default_currency: editingMerchant.default_currency,
         environment: editingMerchant.environment,
         status: editingMerchant.status,
         notes: editingMerchant.notes
@@ -120,6 +123,9 @@ const CardMerchantListPage: React.FC = () => {
             api_key: values.api_key,
             api_host: values.api_host,
             sub_account_id: values.sub_account_id,
+            default_product_code: values.default_product_code,
+            default_card_material: values.default_card_material,
+            default_currency: values.default_currency,
             environment: values.environment,
             status: values.status,
             notes: values.notes || null
@@ -133,6 +139,9 @@ const CardMerchantListPage: React.FC = () => {
           signature_key: values.signature_key,
           api_host: values.api_host,
           sub_account_id: values.sub_account_id,
+          default_product_code: values.default_product_code,
+          default_card_material: values.default_card_material,
+          default_currency: values.default_currency,
           environment: values.environment || 'sandbox',
           webhook_secret: values.webhook_secret || undefined,
           notes: values.notes || null
@@ -219,6 +228,31 @@ const CardMerchantListPage: React.FC = () => {
       dataIndex: 'sub_account_id',
       width: 120,
       render: (_: any, record: CardMerchant) => record.sub_account_id || '-'
+    },
+    {
+      key: 'default_product_code',
+      title: '默认产品代码',
+      dataIndex: 'default_product_code',
+      width: 140,
+      render: (_: any, record: CardMerchant) => record.default_product_code || '-'
+    },
+    {
+      key: 'default_card_material',
+      title: '上游卡介质',
+      dataIndex: 'default_card_material',
+      width: 120,
+      render: (_: any, record: CardMerchant) => {
+        if (record.default_card_material === 2) return '实体卡(2)'
+        if (record.default_card_material === 3) return '虚拟卡(3)'
+        return '-'
+      }
+    },
+    {
+      key: 'default_currency',
+      title: '默认币种',
+      dataIndex: 'default_currency',
+      width: 120,
+      render: (_: any, record: CardMerchant) => record.default_currency || '-'
     },
     {
       key: 'environment',
@@ -433,6 +467,35 @@ const CardMerchantListPage: React.FC = () => {
             rules={[{ required: true, message: '请输入子账户ID' }, { max: 50 }]}
           >
             <Input placeholder="主账户下注册的子账户标识" />
+          </Form.Item>
+          <Form.Item
+            name="default_product_code"
+            label="默认 Product Code"
+            initialValue="4102"
+            rules={[{ max: 32 }]}
+          >
+            <Input placeholder="虚拟卡默认 4102，实体卡默认 4101" />
+          </Form.Item>
+          <Form.Item
+            name="default_card_material"
+            label="默认上游卡介质"
+            initialValue={3}
+            rules={[{ required: true, message: '请选择默认上游卡介质' }]}
+          >
+            <Select
+              options={[
+                { label: '虚拟卡 (3)', value: 3 },
+                { label: '实体卡 (2)', value: 2 }
+              ]}
+            />
+          </Form.Item>
+          <Form.Item
+            name="default_currency"
+            label="默认币种"
+            initialValue="USD"
+            rules={[{ required: true, message: '请输入默认币种' }, { max: 16 }]}
+          >
+            <Input placeholder="USD" />
           </Form.Item>
           <Form.Item name="environment" label="环境" initialValue="sandbox">
             <Select
