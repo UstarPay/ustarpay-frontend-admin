@@ -13,6 +13,25 @@ import type { CardRecord } from '@shared/types'
 import { StatCard } from '@shared/components'
 import { CardFeeConfigModal } from './components/CardFeeConfigModal'
 
+const cardStatusMeta: Record<number, { label: string; color: string; helper: string }> = {
+  0: { label: '未激活', color: 'default', helper: 'Inactive' },
+  1: { label: '已激活', color: 'success', helper: 'Activated' },
+  2: { label: '已冻结', color: 'warning', helper: 'Frozen' },
+  3: { label: '已终止', color: 'error', helper: 'Terminated' },
+  4: { label: '已取消', color: 'default', helper: 'Cancelled Application' },
+  99: { label: '待审批', color: 'processing', helper: 'Pending Approval' },
+}
+
+const internalCardMaterialMap: Record<number, string> = {
+  1: '虚拟卡',
+  2: '实体卡',
+}
+
+const providerCardMaterialMap: Record<number, string> = {
+  2: 'METAL',
+  3: 'PLASTIC',
+}
+
 const CardListPage: React.FC = () => {
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useState({
@@ -35,6 +54,8 @@ const CardListPage: React.FC = () => {
   const cards = (cardData as any)?.data?.items || []
   const total = (cardData as any)?.data?.total ?? 0
   const activeCards = useMemo(() => cards.filter((item: CardRecord) => item.status === 1).length, [cards])
+  const pendingCards = useMemo(() => cards.filter((item: CardRecord) => item.status === 99).length, [cards])
+  const frozenCards = useMemo(() => cards.filter((item: CardRecord) => item.status === 2).length, [cards])
   const totalBalance = useMemo(
     () => cards.reduce((sum: number, item: CardRecord) => sum + Number(item.balance || 0), 0),
     [cards]
@@ -47,11 +68,6 @@ const CardListPage: React.FC = () => {
     () => cards.filter((item: CardRecord) => item.card_material === 2).length,
     [cards]
   )
-
-  const cardMaterialMap: Record<number, string> = {
-    1: '虚拟卡',
-    2: '实体卡'
-  }
 
   const columns = [
     {
@@ -113,8 +129,26 @@ const CardListPage: React.FC = () => {
       title: '卡类型',
       dataIndex: 'card_material',
       key: 'card_material',
-      width: 90,
-      render: (v: number) => (v ? cardMaterialMap[v] || `未知(${v})` : '-')
+      width: 140,
+      render: (v: number, record: CardRecord) => (
+        <div className="space-y-1">
+          <div className="font-medium text-slate-900">{v ? internalCardMaterialMap[v] || `未知(${v})` : '-'}</div>
+          <div className="text-xs text-slate-500">
+            上游: {record.provider_card_material ? providerCardMaterialMap[record.provider_card_material] || `枚举${record.provider_card_material}` : '-'}
+          </div>
+        </div>
+      )
+    },
+    {
+      title: '持卡信息',
+      key: 'holder_info',
+      width: 180,
+      render: (_: unknown, record: CardRecord) => (
+        <div className="space-y-1">
+          <div className="font-medium text-slate-900">{record.cardholder_name || '-'}</div>
+          <div className="text-xs text-slate-500">{record.preferred_printed_name || '无印刷名'}</div>
+        </div>
+      )
     },
     {
       title: '卡号后四位',
@@ -148,11 +182,39 @@ const CardListPage: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 80,
-      render: (v: number) => (
-        <Tag color={v === 1 ? 'success' : v === 0 ? 'processing' : 'default'}>
-          {v === 0 ? '待激活' : v === 1 ? '已激活' : `状态${v}`}
-        </Tag>
+      width: 140,
+      render: (v: number, record: CardRecord) => {
+        const meta = cardStatusMeta[v] || { label: `状态${v}`, color: 'default', helper: record.status_desc || 'Unknown Status' }
+        return (
+          <div className="space-y-1">
+            <Tag color={meta.color}>{record.status_name || meta.label}</Tag>
+            <div className="text-xs text-slate-500">{record.status_desc || meta.helper}</div>
+          </div>
+        )
+      }
+    },
+    {
+      title: '额度 / 功能',
+      key: 'limits',
+      width: 210,
+      render: (_: unknown, record: CardRecord) => (
+        <div className="space-y-1 text-xs text-slate-600">
+          <div>单笔: {record.transaction_limit ? `${record.currency || 'USD'} ${record.transaction_limit}` : '-'}</div>
+          <div>月限: {record.monthly_limit ? `${record.currency || 'USD'} ${record.monthly_limit}` : '-'}</div>
+          <div>PIN {record.pin_enabled ? '开' : '关'} / 自动扣款 {record.auto_debit_enabled ? '开' : '关'} / 限额 {record.card_limit_enabled ? '开' : '关'}</div>
+        </div>
+      )
+    },
+    {
+      title: '上游快照',
+      key: 'provider_snapshot',
+      width: 200,
+      render: (_: unknown, record: CardRecord) => (
+        <div className="space-y-1 text-xs text-slate-600">
+          <div>ClientID: {record.provider_client_id || '-'}</div>
+          <div>{record.email || '-'}</div>
+          <div>{record.mobile_number || '-'}</div>
+        </div>
       )
     },
     {
@@ -214,7 +276,8 @@ const CardListPage: React.FC = () => {
                   {[
                     { label: '卡片总余额', value: `$${totalBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '可用资金沉淀', tone: 'bg-[#eff6ff]' },
                     { label: '待结算金额', value: `$${pendingBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '账务处理中', tone: 'bg-[#ecfeff]' },
-                    { label: '已激活卡片', value: activeCards, helper: '当前可用卡数', tone: 'bg-[#dbeafe]' }
+                    { label: '已激活卡片', value: activeCards, helper: '当前可用卡数', tone: 'bg-[#dbeafe]' },
+                    { label: '待审批 / 冻结', value: `${pendingCards} / ${frozenCards}`, helper: '待审批与冻结状态', tone: 'bg-[#f8fafc]' }
                   ].map(item => (
                     <div key={item.label} className={`rounded-2xl border border-sky-100 ${item.tone} px-4 py-3`}>
                       <div className="text-xs text-slate-500">{item.label}</div>

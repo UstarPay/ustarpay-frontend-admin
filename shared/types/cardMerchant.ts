@@ -5,15 +5,33 @@ export interface CardRecord {
   user_id: string
   external_card_id: string
   reference_no: string
+  provider_client_id?: string
   product_code?: string
   card_material?: number
+  provider_card_material?: number
   currency: string
   status: number
+  status_name?: string
+  status_desc?: string
+  cardholder_name?: string
+  preferred_printed_name?: string
   card_number_last4?: string
   expiry_date?: string
+  email?: string
+  mobile_number?: string
+  pin_enabled?: boolean
+  auto_debit_enabled?: boolean
+  card_limit_enabled?: boolean
+  transaction_limit?: string
+  monthly_limit?: string
   balance: string
   pending_balance: string
   tracking_no?: string
+  delivery_country?: string
+  delivery_state?: string
+  delivery_city?: string
+  delivery_address1?: string
+  delivery_postal?: string
   merchant_id?: string
   merchant_name?: string // 卡商名称
   created_at: string
