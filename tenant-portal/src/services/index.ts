@@ -20,11 +20,13 @@ export { withdrawalService } from './withdrawalService'
 export { hotWalletService } from './hotWalletService'
 export { coldWalletService } from './coldWalletService'
 export { fundAccountService } from './fundAccountService'
+export { fundFlowService } from './fundFlowService'
 export { cardFundAccountService } from './cardFundAccountService'
 export { cardService } from './cardService'
 export { cardMerchantService } from './cardMerchantService'
 export { collectionService } from './collectionService'
 export { withdrawalRiskConfigService } from './withdrawalRiskConfigService'
+export { withdrawalFeeConfigService } from './withdrawalFeeConfigService'
 
 // 导出类型
 export type { APIKey, CreateAPIKeyRequest, UpdateAPIKeyRequest } from '@shared/types'

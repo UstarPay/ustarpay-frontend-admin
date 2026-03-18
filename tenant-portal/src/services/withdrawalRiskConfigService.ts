@@ -10,6 +10,14 @@ export interface WithdrawalRiskConfig {
   dailyTxCountLimit: number
   kycCooldownHours: number
   userFrequencyLimitMins: number
+  feeMode?: number
+  fixedFee?: string
+  feeRate?: string
+  minFee?: string
+  maxFee?: string
+  feeSymbol?: string | null
+  feeDeductMode?: number
+  networkFeeMode?: number
   requireApproval: boolean
   riskLevel: number
   status: number
@@ -25,6 +33,14 @@ export interface UpsertRiskConfigRequest {
   dailyTxCountLimit?: number
   kycCooldownHours?: number
   userFrequencyLimitMins?: number
+  feeMode?: number
+  fixedFee?: string | number
+  feeRate?: string | number
+  minFee?: string | number
+  maxFee?: string | number
+  feeSymbol?: string
+  feeDeductMode?: number
+  networkFeeMode?: number
   requireApproval: boolean
 }
 

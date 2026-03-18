@@ -131,7 +131,7 @@ const menuTree: MenuNode[] = [
     permissions: ['transactions:view', 'internal_transfers:view', 'withdrawals:view'],
     children: [
       { key: '/transactions/list', label: '\u4ea4\u6613\u8bb0\u5f55', permissions: ['transactions:view'] },
-      { key: '/transactions/internal', label: '\u5185\u90e8\u8f6c\u8d26', permissions: ['internal_transfers:view'] },
+      { key: '/transactions/fund-flows', label: '资金变动', permissions: ['transactions:view'] },
       { key: '/transactions/withdraw', label: '提现管理', permissions: ['withdrawals:view'] },
     ],
   },

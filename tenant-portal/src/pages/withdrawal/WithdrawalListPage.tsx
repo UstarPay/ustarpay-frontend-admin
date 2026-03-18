@@ -32,9 +32,10 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   SafetyCertificateOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  DollarOutlined
 } from '@ant-design/icons'
-import { currencyService, withdrawalRiskConfigService, withdrawalService } from '@/services'
+import { currencyService, withdrawalFeeConfigService, withdrawalRiskConfigService, withdrawalService } from '@/services'
 import { TENANT_PERMISSION } from '@/constants/rbac'
 import { useAuthStore } from '@/stores'
 import type { Currency } from '@shared/types/currency'
@@ -136,6 +137,7 @@ const WithdrawalListPage: React.FC = () => {
   const [form] = Form.useForm()
   const [reviewForm] = Form.useForm()
   const [riskForm] = Form.useForm()
+  const [feeForm] = Form.useForm()
   const [chains, setChains] = useState<{ chainCode: string; label: string }[]>([])
   const [allCurrencies, setAllCurrencies] = useState<Currency[]>([])
   const [symbols, setSymbols] = useState<Currency[]>([])
@@ -155,12 +157,14 @@ const WithdrawalListPage: React.FC = () => {
   const [applyModalVisible, setApplyModalVisible] = useState(false)
   const [reviewModalVisible, setReviewModalVisible] = useState(false)
   const [riskModalVisible, setRiskModalVisible] = useState(false)
+  const [feeModalVisible, setFeeModalVisible] = useState(false)
   const [reviewLoading, setReviewLoading] = useState(false)
   const [riskConfigs, setRiskConfigs] = useState<WithdrawalRiskConfig[]>([])
   const [riskConfigLoading, setRiskConfigLoading] = useState(false)
   const [riskConfigSaving, setRiskConfigSaving] = useState(false)
   const [riskConfigDeleting, setRiskConfigDeleting] = useState(false)
   const [riskPairLoading, setRiskPairLoading] = useState(false)
+  const [feePairLoading, setFeePairLoading] = useState(false)
   const [detailRecord, setDetailRecord] = useState<WithdrawalRecord | null>(null)
   const [reviewRecord, setReviewRecord] = useState<WithdrawalRecord | null>(null)
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 })
@@ -177,8 +181,18 @@ const WithdrawalListPage: React.FC = () => {
   const selectedRiskDailyTxCountLimit = Form.useWatch('dailyTxCountLimit', riskForm)
   const selectedRiskKYCCooldownHours = Form.useWatch('kycCooldownHours', riskForm)
   const selectedRiskUserFrequencyLimitMins = Form.useWatch('userFrequencyLimitMins', riskForm)
+  const selectedFeeChain = Form.useWatch('chainCode', feeForm)
+  const selectedFeeSymbol = Form.useWatch('symbol', feeForm)
+  const selectedFeeMode = Form.useWatch('feeMode', feeForm)
+  const selectedFeeFixedFee = Form.useWatch('fixedFee', feeForm)
+  const selectedFeeRate = Form.useWatch('feeRate', feeForm)
+  const selectedFeeMinFee = Form.useWatch('minFee', feeForm)
+  const selectedFeeMaxFee = Form.useWatch('maxFee', feeForm)
+  const selectedFeeDeductMode = Form.useWatch('feeDeductMode', feeForm)
   const canViewRiskConfig = permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_VIEW) || permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_MANAGE)
   const canManageRiskConfig = permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_MANAGE)
+  const canViewFeeConfig = canViewRiskConfig
+  const canManageFeeConfig = canManageRiskConfig
 
   const riskSymbolOptions = Array.from(
     new Map(
@@ -189,9 +203,24 @@ const WithdrawalListPage: React.FC = () => {
   )
   const configuredRiskPairs = new Set(riskConfigs.map(item => `${item.chainCode}::${item.symbol}`))
   const unconfiguredRiskCurrencies = allCurrencies.filter(item => !configuredRiskPairs.has(`${item.chainCode}::${item.symbol}`))
+  const configuredFeePairs = new Set(
+    riskConfigs
+      .filter(item => Number(item.feeMode ?? 0) > 0 || Number(item.fixedFee ?? 0) > 0 || Number(item.feeRate ?? 0) > 0 || Number(item.minFee ?? 0) > 0 || Number(item.maxFee ?? 0) > 0)
+      .map(item => `${item.chainCode}::${item.symbol}`)
+  )
+  const unconfiguredFeeCurrencies = allCurrencies.filter(item => !configuredFeePairs.has(`${item.chainCode}::${item.symbol}`))
 
   const currentRiskConfig = selectedRiskChain && selectedRiskSymbol
     ? riskConfigs.find(item => item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol) ?? null
+    : null
+  const currentFeeConfig = selectedFeeChain && selectedFeeSymbol
+    ? riskConfigs.find(item => item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol) ?? null
+    : null
+  const currentRiskCurrency = selectedRiskChain && selectedRiskSymbol
+    ? allCurrencies.find(item => item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol) ?? null
+    : null
+  const currentFeeCurrency = selectedFeeChain && selectedFeeSymbol
+    ? allCurrencies.find(item => item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol) ?? null
     : null
   const previewRequireApproval = selectedRiskRequireApproval ?? currentRiskConfig?.requireApproval ?? false
   const previewSingleLimit = selectedRiskSingleLimit ?? (currentRiskConfig ? Number(currentRiskConfig.singleLimit) || null : null)
@@ -199,6 +228,23 @@ const WithdrawalListPage: React.FC = () => {
   const previewDailyTxCountLimit = selectedRiskDailyTxCountLimit ?? currentRiskConfig?.dailyTxCountLimit ?? 0
   const previewKYCCooldownHours = selectedRiskKYCCooldownHours ?? currentRiskConfig?.kycCooldownHours ?? 0
   const previewUserFrequencyLimitMins = selectedRiskUserFrequencyLimitMins ?? currentRiskConfig?.userFrequencyLimitMins ?? 0
+  const previewFeeMode = selectedFeeMode ?? currentFeeConfig?.feeMode ?? 0
+  const previewFixedFee = selectedFeeFixedFee ?? (currentFeeConfig ? Number(currentFeeConfig.fixedFee ?? 0) : 0)
+  const previewFeeRate = selectedFeeRate ?? (currentFeeConfig ? Number(currentFeeConfig.feeRate ?? 0) : 0)
+  const previewMinFee = selectedFeeMinFee ?? (currentFeeConfig ? Number(currentFeeConfig.minFee ?? 0) : 0)
+  const previewMaxFee = selectedFeeMaxFee ?? (currentFeeConfig ? Number(currentFeeConfig.maxFee ?? 0) : 0)
+  const previewFeeDeductMode = selectedFeeDeductMode ?? currentFeeConfig?.feeDeductMode ?? 1
+  const hasExplicitFeeConfig = !!currentFeeConfig && Number(currentFeeConfig.feeMode ?? 0) > 0
+  const shouldShowFixedFeeFields = previewFeeMode === 1 || previewFeeMode === 3
+  const shouldShowRateFeeFields = previewFeeMode === 2 || previewFeeMode === 3
+  const shouldShowFeeBoundFields = previewFeeMode === 1 || previewFeeMode === 2 || previewFeeMode === 3
+  const feeSymbolOptions = Array.from(
+    new Map(
+      allCurrencies
+        .filter(item => !selectedFeeChain || item.chainCode === selectedFeeChain)
+        .map(item => [item.symbol, { value: item.symbol, label: item.symbol }])
+    ).values()
+  )
 
   const loadChains = useCallback(async () => {
     try {
@@ -343,6 +389,12 @@ const WithdrawalListPage: React.FC = () => {
   }, [riskModalVisible, loadRiskConfigs])
 
   useEffect(() => {
+    if (feeModalVisible) {
+      loadRiskConfigs()
+    }
+  }, [feeModalVisible, loadRiskConfigs])
+
+  useEffect(() => {
     if (!riskModalVisible || !selectedRiskChain || !selectedRiskSymbol) return
     let cancelled = false
     setRiskPairLoading(true)
@@ -380,6 +432,44 @@ const WithdrawalListPage: React.FC = () => {
     })
     return () => { cancelled = true }
   }, [riskModalVisible, selectedRiskChain, selectedRiskSymbol, riskForm])
+
+  useEffect(() => {
+    if (!feeModalVisible || !selectedFeeChain || !selectedFeeSymbol) return
+    let cancelled = false
+    setFeePairLoading(true)
+    withdrawalFeeConfigService.getFeeConfig(selectedFeeChain, selectedFeeSymbol).then((config) => {
+      if (cancelled) return
+      feeForm.setFieldsValue({
+        chainCode: selectedFeeChain,
+        symbol: selectedFeeSymbol,
+        feeMode: config && Number(config.feeMode ?? 0) > 0 ? config.feeMode : undefined,
+        fixedFee: config ? (Number(config.fixedFee ?? 0) || 0) : 0,
+        feeRate: config ? (Number(config.feeRate ?? 0) || 0) : 0,
+        minFee: config ? (Number(config.minFee ?? 0) || 0) : 0,
+        maxFee: config ? (Number(config.maxFee ?? 0) || 0) : 0,
+        feeDeductMode: config?.feeDeductMode ?? 1,
+      })
+      setRiskConfigs(prev => {
+        const next = prev.filter(item => !(item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol))
+        return config ? [...next, config] : next
+      })
+    }).catch(() => {
+      if (cancelled) return
+      feeForm.setFieldsValue({
+        chainCode: selectedFeeChain,
+        symbol: selectedFeeSymbol,
+        feeMode: undefined,
+        fixedFee: 0,
+        feeRate: 0,
+        minFee: 0,
+        maxFee: 0,
+        feeDeductMode: 1,
+      })
+    }).finally(() => {
+      if (!cancelled) setFeePairLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [feeModalVisible, selectedFeeChain, selectedFeeSymbol, feeForm])
 
   const netAmount = (amount != null && amount > 0 && withdrawFee !== null)
     ? Math.max(0, Number(amount) - Number(withdrawFee)).toFixed(8).replace(/\.?0+$/, '')
@@ -476,9 +566,30 @@ const WithdrawalListPage: React.FC = () => {
     setRiskModalVisible(true)
   }
 
+  const openFeeModal = () => {
+    const firstChain = chains[0]?.chainCode
+    const firstSymbol = allCurrencies.find(item => item.chainCode === firstChain)?.symbol
+    feeForm.setFieldsValue({
+      chainCode: firstChain,
+      symbol: firstSymbol,
+      feeMode: undefined,
+      fixedFee: 0,
+      feeRate: 0,
+      minFee: 0,
+      maxFee: 0,
+      feeDeductMode: 1,
+    })
+    setFeeModalVisible(true)
+  }
+
   const closeRiskModal = () => {
     setRiskModalVisible(false)
     riskForm.resetFields()
+  }
+
+  const closeFeeModal = () => {
+    setFeeModalVisible(false)
+    feeForm.resetFields()
   }
 
   const submitReview = async (status: 1 | 2) => {
@@ -576,6 +687,40 @@ const WithdrawalListPage: React.FC = () => {
       message.error(e?.message || '删除风控配置失败')
     } finally {
       setRiskConfigDeleting(false)
+    }
+  }
+
+  const handleFeeSave = async () => {
+    try {
+      const values = await feeForm.validateFields()
+      const existing = currentFeeConfig
+      setRiskConfigSaving(true)
+      await withdrawalFeeConfigService.upsertFeeConfig({
+        chainCode: values.chainCode,
+        symbol: values.symbol,
+        singleLimit: existing?.singleLimit ?? 0,
+        dailyLimit: existing?.dailyLimit ?? 0,
+        dailyTxCountLimit: existing?.dailyTxCountLimit ?? 0,
+        kycCooldownHours: existing?.kycCooldownHours ?? 0,
+        userFrequencyLimitMins: existing?.userFrequencyLimitMins ?? 0,
+        requireApproval: existing?.requireApproval ?? false,
+        feeMode: values.feeMode ?? 0,
+        fixedFee: values.fixedFee ?? 0,
+        feeRate: values.feeRate ?? 0,
+        minFee: values.minFee ?? 0,
+        maxFee: values.maxFee ?? 0,
+        feeSymbol: values.symbol,
+        feeDeductMode: values.feeDeductMode ?? 1,
+        networkFeeMode: 1,
+      })
+      message.success('提现手续费配置已保存')
+      await loadRiskConfigs()
+      closeFeeModal()
+    } catch (e: any) {
+      if (e?.errorFields) return
+      message.error(e?.message || '保存提现手续费配置失败')
+    } finally {
+      setRiskConfigSaving(false)
     }
   }
 
@@ -803,6 +948,16 @@ const WithdrawalListPage: React.FC = () => {
         <Space>
           <Button icon={<ReloadOutlined />} onClick={loadList} loading={loading}>刷新</Button>
           <Button icon={<DownloadOutlined />} onClick={handleExport} loading={loading}>导出</Button>
+          {canViewFeeConfig && (
+            <Button
+              size="large"
+              icon={<DollarOutlined />}
+              onClick={openFeeModal}
+              className="!h-11 !rounded-xl !border-slate-200 !bg-white !px-5 !font-semibold !text-slate-700 shadow-sm hover:!border-emerald-300 hover:!text-emerald-600"
+            >
+              提现手续费配置
+            </Button>
+          )}
           {canViewRiskConfig && (
             <Button
               type="primary"
@@ -1184,6 +1339,17 @@ const WithdrawalListPage: React.FC = () => {
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
+                    <Form.Item label="单笔最低提现额度">
+                      <InputNumber
+                        value={currentRiskCurrency ? Number(currentRiskCurrency.minWithdraw ?? 0) : 0}
+                        style={{ width: '100%' }}
+                        disabled
+                        stringMode
+                        addonAfter={selectedRiskSymbol || currentRiskCurrency?.symbol || ''}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
                     <Form.Item
                       name="singleLimit"
                       label="单笔提现限额"
@@ -1282,6 +1448,13 @@ const WithdrawalListPage: React.FC = () => {
 
             <div className="grid gap-4 md:grid-cols-3">
               <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔最低提现额度</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {currentRiskCurrency ? currentRiskCurrency.minWithdraw : '未设置'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">当前继承币种基础配置，当前页面暂为只读展示</div>
+              </Card>
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔限额校验</div>
                 <div className="mt-2 text-base font-semibold text-slate-900">
                   {previewSingleLimit != null && Number(previewSingleLimit) > 0 ? previewSingleLimit : '不限制'}
@@ -1336,6 +1509,287 @@ const WithdrawalListPage: React.FC = () => {
                 showIcon
                 message="当前账号只有查看权限"
                 description="如需修改提现风控配置，请为当前账号补充 withdrawal_risk:manage 权限。"
+              />
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        title="提现手续费配置"
+        open={feeModalVisible}
+        onCancel={closeFeeModal}
+        onOk={canManageFeeConfig ? handleFeeSave : closeFeeModal}
+        okText={canManageFeeConfig ? '保存配置' : '关闭'}
+        cancelText="取消"
+        confirmLoading={riskConfigSaving}
+        width={980}
+        destroyOnClose
+      >
+        <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <div className="space-y-4">
+            <Card size="small" className="border-slate-200">
+              <div className="text-sm font-semibold text-slate-900">已配置币种</div>
+              <div className="mt-3">
+                {riskConfigLoading ? (
+                  <div className="py-6 text-center text-sm text-slate-500">加载中...</div>
+                ) : configuredFeePairs.size === 0 ? (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无手续费配置" />
+                ) : (
+                  <div className="space-y-2">
+                    {riskConfigs
+                      .filter(item => configuredFeePairs.has(`${item.chainCode}::${item.symbol}`))
+                      .slice()
+                      .sort((a, b) => `${a.chainCode}-${a.symbol}`.localeCompare(`${b.chainCode}-${b.symbol}`))
+                      .map(item => (
+                        <button
+                          key={`fee-${item.chainCode}-${item.symbol}`}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                            item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol
+                              ? 'border-emerald-300 bg-emerald-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          onClick={() => feeForm.setFieldsValue({ chainCode: item.chainCode, symbol: item.symbol })}
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">{item.chainCode} / {item.symbol}</div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              {Number(item.feeMode ?? 0) === 1 ? '固定手续费' : Number(item.feeMode ?? 0) === 2 ? '按比例收费' : '固定 + 比例收费'}
+                            </div>
+                          </div>
+                          <Tag color="green">已配置</Tag>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            <Card size="small" className="border-slate-200">
+              <div className="text-sm font-semibold text-slate-900">未配置币种</div>
+              <div className="mt-3">
+                {riskConfigLoading ? (
+                  <div className="py-6 text-center text-sm text-slate-500">加载中...</div>
+                ) : unconfiguredFeeCurrencies.length === 0 ? (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无未配置币种" />
+                ) : (
+                  <div className="space-y-2">
+                    {unconfiguredFeeCurrencies
+                      .slice()
+                      .sort((a, b) => `${a.chainCode}-${a.symbol}`.localeCompare(`${b.chainCode}-${b.symbol}`))
+                      .map(item => (
+                        <button
+                          key={`fee-unconfigured-${item.chainCode}-${item.symbol}`}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                            item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol
+                              ? 'border-emerald-300 bg-emerald-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          onClick={() => feeForm.setFieldsValue({
+                            chainCode: item.chainCode,
+                            symbol: item.symbol,
+                            feeMode: undefined,
+                            fixedFee: 0,
+                            feeRate: 0,
+                            minFee: 0,
+                            maxFee: 0,
+                            feeDeductMode: 1,
+                          })}
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">{item.chainCode} / {item.symbol}</div>
+                            <div className="mt-1 text-xs text-slate-500">{item.name || '平台已开放币种'} · 点击后可直接配置手续费</div>
+                          </div>
+                          <Tag color="default">未配置</Tag>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card className="border-0 shadow-sm shadow-slate-200/60">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xs uppercase tracking-[0.18em] text-slate-400">默认配置</div>
+                  <div className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+                    {currentFeeCurrency ? `${currentFeeCurrency.chainCode} / ${currentFeeCurrency.symbol}` : '未选择币种'}
+                  </div>
+                  <div className="mt-2 text-sm text-slate-500">当前币种无指定配置，将按以下默认配置执行。</div>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-500">
+                  <DollarOutlined className="text-xl" />
+                </div>
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">默认提现手续费</div>
+                  <div className="mt-2 text-lg font-semibold text-slate-900">
+                    {currentFeeCurrency?.withdrawFee ?? '-'}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">平台币种基础手续费</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔最低提现额度</div>
+                  <div className="mt-2 text-lg font-semibold text-slate-900">
+                    {currentFeeCurrency?.minWithdraw ?? '-'}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">低于该金额不可发起提现</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">默认手续费币种</div>
+                  <div className="mt-2 text-lg font-semibold text-slate-900">
+                    {currentFeeCurrency?.symbol ?? '-'}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">当前默认与提现币种一致</div>
+                </div>
+              </div>
+            </Card>
+
+            <Card size="small" className="border-slate-200">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-slate-900">配置详情</div>
+                <Tag color="blue">按链+币种生效</Tag>
+              </div>
+              <Form
+                form={feeForm}
+                layout="vertical"
+                initialValues={{ feeMode: undefined, fixedFee: 0, feeRate: 0, minFee: 0, maxFee: 0, feeDeductMode: 1 }}
+              >
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="chainCode" label="链" rules={[{ required: true, message: '请选择链' }]}>
+                      <Select
+                        placeholder="请选择链"
+                        options={chains.map(item => ({ value: item.chainCode, label: item.label }))}
+                        onChange={() => feeForm.setFieldValue('symbol', undefined)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="symbol" label="币种" rules={[{ required: true, message: '请选择币种' }]}>
+                      <Select placeholder="请选择币种" options={feeSymbolOptions} disabled={!selectedFeeChain} />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="feeMode" label="手续费模式" rules={[{ required: true, message: '请选择手续费模式' }]}>
+                      <Select
+                        options={[
+                          { value: 1, label: '固定手续费' },
+                          { value: 2, label: '按比例收费' },
+                          { value: 3, label: '固定 + 比例收费' },
+                        ]}
+                        placeholder="请选择手续费模式"
+                        disabled={!canManageFeeConfig || feePairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item name="feeDeductMode" label="手续费扣费方式">
+                      <Select
+                        options={[
+                          { value: 1, label: '内扣' },
+                          { value: 2, label: '外扣' },
+                        ]}
+                        disabled={!canManageFeeConfig || feePairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24}>
+                    <Alert
+                      type="info"
+                      showIcon
+                      message={previewFeeDeductMode === 2 ? '外扣：用户账户额外扣除手续费，到账金额保持为申请提现金额。' : '内扣：手续费从申请提现金额中扣除，用户实际到账金额 = 申请金额 - 手续费。'}
+                    />
+                  </Col>
+                  {shouldShowFixedFeeFields && (
+                    <Col xs={24} md={12}>
+                      <Form.Item name="fixedFee" label="固定手续费">
+                        <InputNumber min={0} precision={8} stringMode style={{ width: '100%' }} disabled={!canManageFeeConfig || feePairLoading} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                  {shouldShowRateFeeFields && (
+                    <Col xs={24} md={12}>
+                      <Form.Item name="feeRate" label="比例手续费" tooltip="例如 0.01 表示 1%">
+                        <InputNumber min={0} precision={8} stringMode style={{ width: '100%' }} disabled={!canManageFeeConfig || feePairLoading} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                  {shouldShowFeeBoundFields && (
+                    <Col xs={24} md={12}>
+                      <Form.Item name="minFee" label="手续费下限">
+                        <InputNumber min={0} precision={8} stringMode style={{ width: '100%' }} disabled={!canManageFeeConfig || feePairLoading} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                  {shouldShowFeeBoundFields && (
+                    <Col xs={24} md={12}>
+                      <Form.Item name="maxFee" label="手续费上限">
+                        <InputNumber min={0} precision={8} stringMode style={{ width: '100%' }} disabled={!canManageFeeConfig || feePairLoading} />
+                      </Form.Item>
+                    </Col>
+                  )}
+                </Row>
+              </Form>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">手续费模式</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {hasExplicitFeeConfig || selectedFeeMode ? (['', '固定', '比例', '固定+比例'][previewFeeMode] || '未指定') : '默认配置'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">{hasExplicitFeeConfig || selectedFeeMode ? '按租户指定模式计算手续费' : '当前未保存租户专属手续费规则'}</div>
+              </Card>
+              {shouldShowFixedFeeFields && (
+                <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">固定手续费</div>
+                  <div className="mt-2 text-base font-semibold text-slate-900">{previewFixedFee || 0}</div>
+                  <div className="mt-1 text-xs text-slate-500">适用于固定或固定+比例模式</div>
+                </Card>
+              )}
+              {shouldShowRateFeeFields && (
+                <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">比例手续费</div>
+                  <div className="mt-2 text-base font-semibold text-slate-900">{previewFeeRate || 0}</div>
+                  <div className="mt-1 text-xs text-slate-500">例如 0.01 = 1%</div>
+                </Card>
+              )}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {shouldShowFeeBoundFields && (
+                <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">手续费下限</div>
+                  <div className="mt-2 text-base font-semibold text-slate-900">{previewMinFee || 0}</div>
+                  <div className="mt-1 text-xs text-slate-500">0 表示不限制</div>
+                </Card>
+              )}
+              {shouldShowFeeBoundFields && (
+                <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">手续费上限</div>
+                  <div className="mt-2 text-base font-semibold text-slate-900">{previewMaxFee || 0}</div>
+                  <div className="mt-1 text-xs text-slate-500">0 表示不限制</div>
+                </Card>
+              )}
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">扣费方式</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">{previewFeeDeductMode === 2 ? '外扣' : '内扣'}</div>
+                <div className="mt-1 text-xs text-slate-500">控制到账金额与冻结金额口径</div>
+              </Card>
+            </div>
+
+            {!canManageFeeConfig && (
+              <Alert
+                type="warning"
+                showIcon
+                message="当前账号只有查看权限"
+                description="如需修改提现手续费配置，请为当前账号补充 withdrawal_risk:manage 权限。"
               />
             )}
           </div>

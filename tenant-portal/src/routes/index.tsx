@@ -17,6 +17,7 @@ import {
   WebhookLogPage,
   TwoFactorAuthPage,
   TransactionListPage,
+  FundFlowListPage,
   TransactionDetailPage,
   TransactionStatsPage,
   InternalTransferPage,
@@ -92,6 +93,7 @@ export function AppRoutes() {
         <Route path="security/secondary-password" element={protect(<SecondaryPasswordUpdatePage />, [TENANT_PERMISSION.TENANT_VIEW])} />
         <Route path="transactions" element={<Navigate to="/transactions/list" replace />} />
         <Route path="transactions/list" element={protect(<TransactionListPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
+        <Route path="transactions/fund-flows" element={protect(<FundFlowListPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
         <Route path="transactions/stats" element={protect(<TransactionStatsPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
         <Route path="transactions/:id" element={protect(<TransactionDetailPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
         <Route path="history/deposits" element={protect(<DepositHistoryPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])} />
