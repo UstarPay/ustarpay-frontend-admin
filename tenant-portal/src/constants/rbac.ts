@@ -21,6 +21,8 @@ export const TENANT_PERMISSION = {
   INTERNAL_TRANSFERS_VIEW: 'internal_transfers:view',
   DEPOSITS_VIEW: 'deposits:view',
   WITHDRAWALS_VIEW: 'withdrawals:view',
+  WITHDRAWAL_RISK_VIEW: 'withdrawal_risk:view',
+  WITHDRAWAL_RISK_MANAGE: 'withdrawal_risk:manage',
   SECURITY_2FA: 'security:2fa',
   CARDS_VIEW: 'cards:view',
 } as const

@@ -7,6 +7,9 @@ export interface WithdrawalRiskConfig {
   symbol: string
   singleLimit: string
   dailyLimit: string
+  dailyTxCountLimit: number
+  kycCooldownHours: number
+  userFrequencyLimitMins: number
   requireApproval: boolean
   riskLevel: number
   status: number
@@ -19,6 +22,9 @@ export interface UpsertRiskConfigRequest {
   symbol: string
   singleLimit: string | number
   dailyLimit: string | number
+  dailyTxCountLimit?: number
+  kycCooldownHours?: number
+  userFrequencyLimitMins?: number
   requireApproval: boolean
 }
 
@@ -46,5 +52,9 @@ export const withdrawalRiskConfigService = {
 
   upsertRiskConfig: async (data: UpsertRiskConfigRequest): Promise<void> => {
     await api.put('/withdrawal-risk-configs', data)
+  },
+
+  deleteRiskConfig: async (chainCode: string, symbol: string): Promise<void> => {
+    await api.delete(`/withdrawal-risk-configs/${chainCode}/${symbol}`)
   },
 }

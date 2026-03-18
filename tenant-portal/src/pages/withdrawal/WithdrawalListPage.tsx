@@ -16,6 +16,9 @@ import {
   Tooltip,
   Modal,
   InputNumber,
+  Switch,
+  Empty,
+  Popconfirm,
   message
 } from 'antd'
 import {
@@ -27,10 +30,15 @@ import {
   PlusOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  SafetyCertificateOutlined,
+  DeleteOutlined
 } from '@ant-design/icons'
-import { withdrawalService, currencyService } from '@/services'
+import { currencyService, withdrawalRiskConfigService, withdrawalService } from '@/services'
+import { TENANT_PERMISSION } from '@/constants/rbac'
+import { useAuthStore } from '@/stores'
 import type { Currency } from '@shared/types/currency'
+import type { WithdrawalRiskConfig } from '@/services/withdrawalRiskConfigService'
 import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
@@ -127,7 +135,9 @@ function normalizeRecord(raw: any): WithdrawalRecord {
 const WithdrawalListPage: React.FC = () => {
   const [form] = Form.useForm()
   const [reviewForm] = Form.useForm()
+  const [riskForm] = Form.useForm()
   const [chains, setChains] = useState<{ chainCode: string; label: string }[]>([])
+  const [allCurrencies, setAllCurrencies] = useState<Currency[]>([])
   const [symbols, setSymbols] = useState<Currency[]>([])
   const [availableBalance, setAvailableBalance] = useState<string | null>(null)
   const [balanceLoading, setBalanceLoading] = useState(false)
@@ -144,19 +154,57 @@ const WithdrawalListPage: React.FC = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [applyModalVisible, setApplyModalVisible] = useState(false)
   const [reviewModalVisible, setReviewModalVisible] = useState(false)
+  const [riskModalVisible, setRiskModalVisible] = useState(false)
   const [reviewLoading, setReviewLoading] = useState(false)
+  const [riskConfigs, setRiskConfigs] = useState<WithdrawalRiskConfig[]>([])
+  const [riskConfigLoading, setRiskConfigLoading] = useState(false)
+  const [riskConfigSaving, setRiskConfigSaving] = useState(false)
+  const [riskConfigDeleting, setRiskConfigDeleting] = useState(false)
+  const [riskPairLoading, setRiskPairLoading] = useState(false)
   const [detailRecord, setDetailRecord] = useState<WithdrawalRecord | null>(null)
   const [reviewRecord, setReviewRecord] = useState<WithdrawalRecord | null>(null)
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 })
+  const permissions = useAuthStore(state => state.permissions)
 
   const selectedChain = Form.useWatch('chain_code', form)
   const selectedSymbol = Form.useWatch('symbol', form)
   const amount = Form.useWatch('amount', form)
+  const selectedRiskChain = Form.useWatch('chainCode', riskForm)
+  const selectedRiskSymbol = Form.useWatch('symbol', riskForm)
+  const selectedRiskRequireApproval = Form.useWatch('requireApproval', riskForm)
+  const selectedRiskSingleLimit = Form.useWatch('singleLimit', riskForm)
+  const selectedRiskDailyLimit = Form.useWatch('dailyLimit', riskForm)
+  const selectedRiskDailyTxCountLimit = Form.useWatch('dailyTxCountLimit', riskForm)
+  const selectedRiskKYCCooldownHours = Form.useWatch('kycCooldownHours', riskForm)
+  const selectedRiskUserFrequencyLimitMins = Form.useWatch('userFrequencyLimitMins', riskForm)
+  const canViewRiskConfig = permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_VIEW) || permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_MANAGE)
+  const canManageRiskConfig = permissions.includes(TENANT_PERMISSION.WITHDRAWAL_RISK_MANAGE)
+
+  const riskSymbolOptions = Array.from(
+    new Map(
+      allCurrencies
+        .filter(item => !selectedRiskChain || item.chainCode === selectedRiskChain)
+        .map(item => [item.symbol, { value: item.symbol, label: item.symbol }])
+    ).values()
+  )
+  const configuredRiskPairs = new Set(riskConfigs.map(item => `${item.chainCode}::${item.symbol}`))
+  const unconfiguredRiskCurrencies = allCurrencies.filter(item => !configuredRiskPairs.has(`${item.chainCode}::${item.symbol}`))
+
+  const currentRiskConfig = selectedRiskChain && selectedRiskSymbol
+    ? riskConfigs.find(item => item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol) ?? null
+    : null
+  const previewRequireApproval = selectedRiskRequireApproval ?? currentRiskConfig?.requireApproval ?? false
+  const previewSingleLimit = selectedRiskSingleLimit ?? (currentRiskConfig ? Number(currentRiskConfig.singleLimit) || null : null)
+  const previewDailyLimit = selectedRiskDailyLimit ?? (currentRiskConfig ? Number(currentRiskConfig.dailyLimit) || null : null)
+  const previewDailyTxCountLimit = selectedRiskDailyTxCountLimit ?? currentRiskConfig?.dailyTxCountLimit ?? 0
+  const previewKYCCooldownHours = selectedRiskKYCCooldownHours ?? currentRiskConfig?.kycCooldownHours ?? 0
+  const previewUserFrequencyLimitMins = selectedRiskUserFrequencyLimitMins ?? currentRiskConfig?.userFrequencyLimitMins ?? 0
 
   const loadChains = useCallback(async () => {
     try {
       const res = await currencyService.getActiveCurrencies()
       const list = (res?.data ?? res ?? []) as Currency[]
+      setAllCurrencies(list)
       const map = new Map<string, string>()
       list.forEach((c: Currency) => {
         const code = c.chainCode ?? (c as any).chain_code ?? ''
@@ -164,6 +212,7 @@ const WithdrawalListPage: React.FC = () => {
       })
       setChains(Array.from(map.entries()).map(([k]) => ({ chainCode: k, label: k })))
     } catch {
+      setAllCurrencies([])
       setChains([
         { chainCode: 'ETH', label: 'Ethereum' },
         { chainCode: 'BSC', label: 'BSC' },
@@ -269,9 +318,68 @@ const WithdrawalListPage: React.FC = () => {
     }
   }, [pagination.page, pagination.pageSize, statusFilter, chainFilter, symbolFilter, searchText, dateRange])
 
+  const loadRiskConfigs = useCallback(async () => {
+    if (!canViewRiskConfig) return
+    try {
+      setRiskConfigLoading(true)
+      const configs = await withdrawalRiskConfigService.listRiskConfigs()
+      setRiskConfigs(configs)
+    } catch (e) {
+      console.error('加载提现风控配置失败:', e)
+      setRiskConfigs([])
+    } finally {
+      setRiskConfigLoading(false)
+    }
+  }, [canViewRiskConfig])
+
   useEffect(() => {
     loadList()
   }, [loadList])
+
+  useEffect(() => {
+    if (riskModalVisible) {
+      loadRiskConfigs()
+    }
+  }, [riskModalVisible, loadRiskConfigs])
+
+  useEffect(() => {
+    if (!riskModalVisible || !selectedRiskChain || !selectedRiskSymbol) return
+    let cancelled = false
+    setRiskPairLoading(true)
+    withdrawalRiskConfigService.getRiskConfig(selectedRiskChain, selectedRiskSymbol).then((config) => {
+      if (cancelled) return
+      const nextValues = {
+        chainCode: selectedRiskChain,
+        symbol: selectedRiskSymbol,
+        singleLimit: config ? (Number(config.singleLimit) || null) : null,
+        dailyLimit: config ? (Number(config.dailyLimit) || null) : null,
+        dailyTxCountLimit: config?.dailyTxCountLimit ?? 0,
+        kycCooldownHours: config?.kycCooldownHours ?? 0,
+        userFrequencyLimitMins: config?.userFrequencyLimitMins ?? 0,
+        requireApproval: config?.requireApproval ?? false
+      }
+      riskForm.setFieldsValue(nextValues)
+      setRiskConfigs(prev => {
+        const next = prev.filter(item => !(item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol))
+        return config ? [...next, config] : next
+      })
+    }).catch(() => {
+      if (cancelled) return
+      riskForm.setFieldsValue({
+        chainCode: selectedRiskChain,
+        symbol: selectedRiskSymbol,
+        singleLimit: null,
+        dailyLimit: null,
+        dailyTxCountLimit: 0,
+        kycCooldownHours: 0,
+        userFrequencyLimitMins: 0,
+        requireApproval: false
+      })
+    }).finally(() => {
+      if (!cancelled) setRiskPairLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [riskModalVisible, selectedRiskChain, selectedRiskSymbol, riskForm])
 
   const netAmount = (amount != null && amount > 0 && withdrawFee !== null)
     ? Math.max(0, Number(amount) - Number(withdrawFee)).toFixed(8).replace(/\.?0+$/, '')
@@ -352,6 +460,27 @@ const WithdrawalListPage: React.FC = () => {
     reviewForm.resetFields()
   }
 
+  const openRiskModal = () => {
+    const firstChain = chains[0]?.chainCode
+    const firstSymbol = allCurrencies.find(item => item.chainCode === firstChain)?.symbol
+    riskForm.setFieldsValue({
+      chainCode: firstChain,
+      symbol: firstSymbol,
+      singleLimit: null,
+      dailyLimit: null,
+      dailyTxCountLimit: 0,
+      kycCooldownHours: 0,
+      userFrequencyLimitMins: 0,
+      requireApproval: false
+    })
+    setRiskModalVisible(true)
+  }
+
+  const closeRiskModal = () => {
+    setRiskModalVisible(false)
+    riskForm.resetFields()
+  }
+
   const submitReview = async (status: 1 | 2) => {
     if (!reviewRecord) return
     try {
@@ -398,6 +527,55 @@ const WithdrawalListPage: React.FC = () => {
       message.success('导出已触发')
     } catch (e: any) {
       message.error(e?.message || '导出失败')
+    }
+  }
+
+  const handleRiskSave = async () => {
+    try {
+      const values = await riskForm.validateFields()
+      setRiskConfigSaving(true)
+      await withdrawalRiskConfigService.upsertRiskConfig({
+        chainCode: values.chainCode,
+        symbol: values.symbol,
+        singleLimit: values.singleLimit ?? 0,
+        dailyLimit: values.dailyLimit ?? 0,
+        dailyTxCountLimit: values.dailyTxCountLimit ?? 0,
+        kycCooldownHours: values.kycCooldownHours ?? 0,
+        userFrequencyLimitMins: values.userFrequencyLimitMins ?? 0,
+        requireApproval: values.requireApproval ?? false
+      })
+      message.success('提现风控配置已保存')
+      await loadRiskConfigs()
+      closeRiskModal()
+    } catch (e: any) {
+      if (e?.errorFields) return
+      message.error(e?.message || '保存风控配置失败')
+    } finally {
+      setRiskConfigSaving(false)
+    }
+  }
+
+  const handleRiskDelete = async () => {
+    if (!selectedRiskChain || !selectedRiskSymbol) return
+    try {
+      setRiskConfigDeleting(true)
+      await withdrawalRiskConfigService.deleteRiskConfig(selectedRiskChain, selectedRiskSymbol)
+      message.success('提现风控配置已删除')
+      await loadRiskConfigs()
+      riskForm.setFieldsValue({
+        chainCode: selectedRiskChain,
+        symbol: selectedRiskSymbol,
+        singleLimit: null,
+        dailyLimit: null,
+        dailyTxCountLimit: 0,
+        kycCooldownHours: 0,
+        userFrequencyLimitMins: 0,
+        requireApproval: false
+      })
+    } catch (e: any) {
+      message.error(e?.message || '删除风控配置失败')
+    } finally {
+      setRiskConfigDeleting(false)
     }
   }
 
@@ -625,6 +803,17 @@ const WithdrawalListPage: React.FC = () => {
         <Space>
           <Button icon={<ReloadOutlined />} onClick={loadList} loading={loading}>刷新</Button>
           <Button icon={<DownloadOutlined />} onClick={handleExport} loading={loading}>导出</Button>
+          {canViewRiskConfig && (
+            <Button
+              type="primary"
+              size="large"
+              icon={<SafetyCertificateOutlined />}
+              onClick={openRiskModal}
+              className="!h-11 !rounded-xl !border-0 !bg-[linear-gradient(135deg,#f97316_0%,#ef4444_100%)] !px-5 !font-semibold !text-white shadow-lg shadow-orange-500/30 hover:!bg-[linear-gradient(135deg,#fb923c_0%,#f87171_100%)]"
+            >
+              提现风控配置
+            </Button>
+          )}
         </Space>
       </div>
 
@@ -693,6 +882,11 @@ const WithdrawalListPage: React.FC = () => {
               <div className="text-xs uppercase tracking-[0.16em] text-slate-400">费用预估</div>
               <div className="mt-2 text-sm font-medium text-slate-900">链和币种选定后自动估算手续费</div>
               <div className="mt-1 text-xs leading-5 text-slate-500">输入金额后会同步更新预计到账金额，便于复核最终出账。</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">基础风控</div>
+              <div className="mt-2 text-sm font-medium text-slate-900">系统会先校验提现额度与提交规则</div>
+              <div className="mt-1 text-xs leading-5 text-slate-500">通过校验后，将根据当前风控设置决定是直接进入提现流程，还是先进入人工审核。</div>
             </div>
           </div>
         </Card>
@@ -831,6 +1025,321 @@ const WithdrawalListPage: React.FC = () => {
             </Col>
           </Row>
         </Form>
+      </Modal>
+
+      <Modal
+        title="提现风控配置"
+        open={riskModalVisible}
+        onCancel={closeRiskModal}
+        onOk={canManageRiskConfig ? handleRiskSave : closeRiskModal}
+        okText={canManageRiskConfig ? '保存配置' : '关闭'}
+        cancelText="取消"
+        confirmLoading={riskConfigSaving}
+        width={980}
+        destroyOnClose
+      >
+        <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <div className="space-y-4">
+            <Card size="small" className="border-slate-200">
+              <div className="text-sm font-semibold text-slate-900">已配置币种</div>
+              <div className="mt-3">
+                {riskConfigLoading ? (
+                  <div className="py-6 text-center text-sm text-slate-500">加载中...</div>
+                ) : riskConfigs.length === 0 ? (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无风控配置" />
+                ) : (
+                  <div className="space-y-2">
+                    {riskConfigs
+                      .slice()
+                      .sort((a, b) => `${a.chainCode}-${a.symbol}`.localeCompare(`${b.chainCode}-${b.symbol}`))
+                      .map(item => (
+                        <button
+                          key={`${item.chainCode}-${item.symbol}`}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                            item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol
+                              ? 'border-sky-300 bg-sky-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          onClick={() => riskForm.setFieldsValue({ chainCode: item.chainCode, symbol: item.symbol })}
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">{item.chainCode} / {item.symbol}</div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              单笔 {Number(item.singleLimit) > 0 ? item.singleLimit : '不限制'} · 日累计 {Number(item.dailyLimit) > 0 ? item.dailyLimit : '不限制'}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              日次数 {item.dailyTxCountLimit > 0 ? `${item.dailyTxCountLimit} 次` : '不限制'} · KYC冷静期 {item.kycCooldownHours > 0 ? `${item.kycCooldownHours} 小时` : '关闭'}
+                            </div>
+                          </div>
+                          <Tag color={item.requireApproval ? 'gold' : 'green'}>
+                            {item.requireApproval ? '待审核' : '直通'}
+                          </Tag>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            <Card size="small" className="border-slate-200">
+              <div className="text-sm font-semibold text-slate-900">未配置币种</div>
+              <div className="mt-3">
+                {riskConfigLoading ? (
+                  <div className="py-6 text-center text-sm text-slate-500">加载中...</div>
+                ) : unconfiguredRiskCurrencies.length === 0 ? (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无未配置币种" />
+                ) : (
+                  <div className="space-y-2">
+                    {unconfiguredRiskCurrencies
+                      .slice()
+                      .sort((a, b) => `${a.chainCode}-${a.symbol}`.localeCompare(`${b.chainCode}-${b.symbol}`))
+                      .map(item => (
+                        <button
+                          key={`unconfigured-${item.chainCode}-${item.symbol}`}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                            item.chainCode === selectedRiskChain && item.symbol === selectedRiskSymbol
+                              ? 'border-orange-300 bg-orange-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          onClick={() => riskForm.setFieldsValue({
+                            chainCode: item.chainCode,
+                            symbol: item.symbol,
+                            singleLimit: null,
+                            dailyLimit: null,
+                            dailyTxCountLimit: 0,
+                            kycCooldownHours: 0,
+                            userFrequencyLimitMins: 0,
+                            requireApproval: false
+                          })}
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">{item.chainCode} / {item.symbol}</div>
+                            <div className="mt-1 text-xs text-slate-500">{item.name || '平台已开放币种'} · 点击后可直接配置风控</div>
+                          </div>
+                          <Tag color="default">未配置</Tag>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card size="small" className="border-slate-200">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-slate-900">配置详情</div>
+                {currentRiskConfig && canManageRiskConfig ? (
+                  <Popconfirm
+                    title="确认删除当前风控配置吗？"
+                    description="删除后该链和币种将恢复为未配置状态。"
+                    okText="删除"
+                    cancelText="取消"
+                    okButtonProps={{ danger: true, loading: riskConfigDeleting }}
+                    onConfirm={handleRiskDelete}
+                  >
+                    <Button
+                      danger
+                      icon={<DeleteOutlined />}
+                      loading={riskConfigDeleting}
+                      disabled={riskPairLoading}
+                    >
+                      删除当前配置
+                    </Button>
+                  </Popconfirm>
+                ) : null}
+              </div>
+              <Form
+                form={riskForm}
+                layout="vertical"
+                initialValues={{ requireApproval: false, singleLimit: null, dailyLimit: null, dailyTxCountLimit: 0, kycCooldownHours: 0, userFrequencyLimitMins: 0 }}
+              >
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="chainCode"
+                      label="链"
+                      rules={[{ required: true, message: '请选择链' }]}
+                    >
+                      <Select
+                        placeholder="请选择链"
+                        options={chains.map(item => ({ value: item.chainCode, label: item.label }))}
+                        onChange={() => riskForm.setFieldValue('symbol', undefined)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                        name="symbol"
+                        label="币种"
+                        rules={[{ required: true, message: '请选择币种' }]}
+                    >
+                      <Select
+                        placeholder="请选择币种"
+                        options={riskSymbolOptions}
+                        disabled={!selectedRiskChain}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="singleLimit"
+                      label="单笔提现限额"
+                      tooltip="0 或留空表示不限制"
+                    >
+                      <InputNumber
+                        min={0}
+                        precision={8}
+                        stringMode
+                        style={{ width: '100%' }}
+                        placeholder="0 = 不限制"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="dailyLimit"
+                      label="日累计提现限额"
+                      tooltip="0 或留空表示不限制"
+                    >
+                      <InputNumber
+                        min={0}
+                        precision={8}
+                        stringMode
+                        style={{ width: '100%' }}
+                        placeholder="0 = 不限制"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="dailyTxCountLimit"
+                      label="日提现次数限制"
+                      tooltip="0 表示不限制"
+                    >
+                      <InputNumber
+                        min={0}
+                        precision={0}
+                        style={{ width: '100%' }}
+                        placeholder="0 = 不限制"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="kycCooldownHours"
+                      label="KYC通过后冷静期"
+                      tooltip="用户 KYC 审核通过后，在此小时数内不可提现"
+                    >
+                      <InputNumber
+                        min={0}
+                        precision={0}
+                        style={{ width: '100%' }}
+                        placeholder="0 = 不限制"
+                        addonAfter="小时"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="userFrequencyLimitMins"
+                      label="用户提交频率限制"
+                      tooltip="用户提交提现申请后，在此分钟数内不可再次提交"
+                    >
+                      <InputNumber
+                        min={0}
+                        precision={0}
+                        style={{ width: '100%' }}
+                        placeholder="0 = 不限制"
+                        addonAfter="分钟"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24}>
+                    <Form.Item
+                      name="requireApproval"
+                      label="是否开启风控"
+                      valuePropName="checked"
+                      tooltip="开启后，提现申请通过基础限额校验后仍会进入待审核"
+                    >
+                      <Switch
+                        checkedChildren="开启风控"
+                        unCheckedChildren="关闭风控"
+                        disabled={!canManageRiskConfig || riskPairLoading}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔限额校验</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewSingleLimit != null && Number(previewSingleLimit) > 0 ? previewSingleLimit : '不限制'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">超限直接拦截申请</div>
+              </Card>
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">日累计限额校验</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewDailyLimit != null && Number(previewDailyLimit) > 0 ? previewDailyLimit : '不限制'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">累计超限直接拦截申请</div>
+              </Card>
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">入单初始状态</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewRequireApproval ? '待审核' : '审核通过'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {previewRequireApproval ? '提交后进入人工审核流程' : '提交后无需人工审核可直接提现'}
+                </div>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">日提现次数</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewDailyTxCountLimit > 0 ? `${previewDailyTxCountLimit} 次` : '不限制'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">按链和币种统计当日申请次数</div>
+              </Card>
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">KYC冷静期</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewKYCCooldownHours > 0 ? `${previewKYCCooldownHours} 小时` : '关闭'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">KYC刚通过的用户暂缓提现</div>
+              </Card>
+              <Card size="small" className="border-0 bg-slate-50 shadow-none">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">提交频率限制</div>
+                <div className="mt-2 text-base font-semibold text-slate-900">
+                  {previewUserFrequencyLimitMins > 0 ? `${previewUserFrequencyLimitMins} 分钟` : '不限制'}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">限制同一用户短时间重复提交</div>
+              </Card>
+            </div>
+
+            {!canManageRiskConfig && (
+              <Alert
+                type="warning"
+                showIcon
+                message="当前账号只有查看权限"
+                description="如需修改提现风控配置，请为当前账号补充 withdrawal_risk:manage 权限。"
+              />
+            )}
+          </div>
+        </div>
       </Modal>
 
       <Modal
