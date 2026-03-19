@@ -51,7 +51,11 @@ const menuTree: MenuNode[] = [
     children: [
       { key: '/cards/merchants', label: '\u5361\u5546\u5217\u8868', permissions: ['cards:view'] },
       { key: '/cards/list', label: '\u5361\u7247\u5217\u8868', permissions: ['cards:view'] },
-      { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u8bb0\u5f55', permissions: ['cards:view'] },
+      { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u53f0\u8d26', permissions: ['cards:view'] },
+      { key: '/cards/account-flows', label: '\u989d\u5ea6\u6d41\u6c34', permissions: ['cards:view'] },
+      { key: '/cards/fund-flows', label: '\u8d44\u91d1\u603b\u8d26', permissions: ['cards:view'] },
+      { key: '/cards/settlement-batches', label: '\u7ed3\u7b97\u6279\u6b21', permissions: ['cards:view'] },
+      { key: '/cards/reconcile-diffs', label: '\u5bf9\u8d26\u5dee\u5f02', permissions: ['cards:view'] },
     ],
   },
   {
