@@ -44,6 +44,16 @@ const menuTree: MenuNode[] = [
     permissions: ['dashboard:view'],
   },
   {
+    key: '/tenant-users',
+    icon: <UserOutlined />,
+    label: '\u7528\u6237\u7ba1\u7406',
+    permissions: ['tenant_users:view', 'tenant_user_kyc:view'],
+    children: [
+      { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
+      { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
+    ],
+  },
+  {
     key: '/cards',
     icon: <CreditCardOutlined />,
     label: '\u5361\u7247\u7ba1\u7406',
@@ -56,16 +66,6 @@ const menuTree: MenuNode[] = [
       { key: '/cards/fund-flows', label: '\u5361\u8d44\u91d1\u603b\u8d26', permissions: ['cards:view'] },
       { key: '/cards/settlement-batches', label: '\u5361\u7ed3\u7b97\u6279\u6b21', permissions: ['cards:view'] },
       { key: '/cards/reconcile-diffs', label: '\u5361\u5bf9\u8d26\u5dee\u5f02', permissions: ['cards:view'] },
-    ],
-  },
-  {
-    key: '/tenant-users',
-    icon: <UserOutlined />,
-    label: '\u7528\u6237\u7ba1\u7406',
-    permissions: ['tenant_users:view', 'tenant_user_kyc:view'],
-    children: [
-      { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
-      { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
     ],
   },
   {

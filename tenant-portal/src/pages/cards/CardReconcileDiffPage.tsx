@@ -141,7 +141,7 @@ const CardReconcileDiffPage: React.FC = () => {
         className="overflow-hidden rounded-[30px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#172554_55%,#1d4ed8_100%)] text-white shadow-[0_24px_56px_rgba(30,64,175,0.24)]"
         bodyStyle={{ padding: 0 }}
       >
-        <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_260px]">
+        <div className="grid grid-cols-1 xl:grid-cols-[390px_minmax(0,1fr)_370px]">
           <div className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.03)_100%)] px-4 py-2 xl:border-b-0 xl:border-r">
             <div className="text-[11px] uppercase tracking-[0.34em] text-slate-300">Reconciliation Diff Queue</div>
             <div className="mt-1 text-[22px] font-semibold tracking-tight text-white">卡对账差异</div>
