@@ -117,6 +117,9 @@ export interface CardTransaction {
   status: string
   reconcile_status?: string
   provider_batch_id?: string
+  provider_event?: string
+  provider_transaction_type?: string
+  provider_transaction_state?: string
   merchant_name?: string
   merchant_category?: string
   merchant_country?: string

@@ -10,17 +10,9 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { cardService } from '@/services'
 import type { CardRecord } from '@shared/types'
+import { getCardStatusMeta } from './cardDisplay'
 import { StatCard } from '@shared/components'
 import { CardFeeConfigModal } from './components/CardFeeConfigModal'
-
-const cardStatusMeta: Record<number, { label: string; color: string; helper: string }> = {
-  0: { label: '未激活', color: 'default', helper: 'Inactive' },
-  1: { label: '已激活', color: 'success', helper: 'Activated' },
-  2: { label: '已冻结', color: 'warning', helper: 'Frozen' },
-  3: { label: '已终止', color: 'error', helper: 'Terminated' },
-  4: { label: '已取消', color: 'default', helper: 'Cancelled Application' },
-  99: { label: '待审批', color: 'processing', helper: 'Pending Approval' },
-}
 
 const internalCardMaterialMap: Record<number, string> = {
   1: '虚拟卡',
@@ -28,8 +20,8 @@ const internalCardMaterialMap: Record<number, string> = {
 }
 
 const providerCardMaterialMap: Record<number, string> = {
-  2: 'METAL',
-  3: 'PLASTIC',
+  2: '金属卡',
+  3: '塑料卡',
 }
 
 const CardListPage: React.FC = () => {
@@ -74,10 +66,10 @@ const CardListPage: React.FC = () => {
       title: '外部卡ID',
       dataIndex: 'external_card_id',
       key: 'external_card_id',
-      width: 140,
+      width: 220,
       render: (v: string) => (
         <Typography.Text copyable={{ text: v }} className="font-mono text-xs">
-          {v?.slice(0, 12)}...
+          {v || '-'}
         </Typography.Text>
       )
     },
@@ -85,8 +77,13 @@ const CardListPage: React.FC = () => {
       title: '参考号',
       dataIndex: 'reference_no',
       key: 'reference_no',
-      width: 140,
-      ellipsis: true
+      width: 180,
+      render: (v: string) =>
+        v ? (
+          <Typography.Text copyable={{ text: v }} className="font-mono text-xs">
+            {v}
+          </Typography.Text>
+        ) : '-'
     },
     {
       title: '用户名',
@@ -184,11 +181,11 @@ const CardListPage: React.FC = () => {
       key: 'status',
       width: 140,
       render: (v: number, record: CardRecord) => {
-        const meta = cardStatusMeta[v] || { label: `状态${v}`, color: 'default', helper: record.status_desc || 'Unknown Status' }
+        const meta = getCardStatusMeta(v, record.status_desc)
         return (
           <div className="space-y-1">
-            <Tag color={meta.color}>{record.status_name || meta.label}</Tag>
-            <div className="text-xs text-slate-500">{record.status_desc || meta.helper}</div>
+            <Tag color={meta.color}>{meta.label}</Tag>
+            <div className="text-xs text-slate-500">{meta.helper}</div>
           </div>
         )
       }
@@ -235,34 +232,34 @@ const CardListPage: React.FC = () => {
     <div className="space-y-6">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[32px] border border-sky-100 bg-[linear-gradient(135deg,#f7fbff_0%,#edf7fb_44%,#f8fdff_100%)] shadow-[0_24px_60px_rgba(14,116,144,0.10)]"
+        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#172554_55%,#1d4ed8_100%)] text-white shadow-[0_24px_60px_rgba(30,64,175,0.24)]"
         bodyStyle={{ padding: 0 }}
       >
-        <div className="relative overflow-hidden px-6 py-4 lg:px-8">
-          <div className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,#0f766e_0%,#0284c7_50%,#67e8f9_100%)]" />
+        <div className="relative overflow-hidden px-5 py-2 lg:px-6">
+          <div className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,#93c5fd_0%,#dbeafe_100%)]" />
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_100%)] p-4 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-[0.32em] text-sky-700/70">Card Asset Ledger</div>
-              <div className="mt-2 text-[28px] font-semibold tracking-tight text-slate-900">卡片列表</div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-sky-100 bg-[#eff6ff] px-4 py-3">
-                  <div className="text-xs uppercase tracking-[0.16em] text-sky-700/70">总卡量</div>
-                  <div className="mt-1 text-[28px] font-semibold leading-none text-slate-900">{total}</div>
+            <div className="rounded-[24px] border border-white/10 bg-white/10 p-3 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-[0.32em] text-slate-300">Card Asset Ledger</div>
+              <div className="mt-1 text-[22px] font-semibold tracking-tight text-white">卡片列表</div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-300">总卡量</div>
+                  <div className="mt-1 text-[22px] font-semibold leading-none text-white">{total}</div>
                 </div>
-                <div className="rounded-2xl bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_58%,#0ea5e9_100%)] px-4 py-3 text-white">
-                  <div className="text-xs uppercase tracking-[0.16em] text-white/60">实体卡占比</div>
-                  <div className="mt-1 text-[28px] font-semibold leading-none">{physicalRatio}%</div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-white">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-300">实体卡占比</div>
+                  <div className="mt-1 text-[22px] font-semibold leading-none">{physicalRatio}%</div>
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-9 rounded-full border-sky-200 bg-white px-5 hover:!border-sky-300 hover:!text-sky-700">
+              <div className="mt-3 flex flex-wrap gap-3">
+                <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} className="h-8 rounded-full border-white/15 bg-white/10 px-4 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white">
                   刷新卡片
                 </Button>
                 <Button
                   type="primary"
                   icon={<SettingOutlined />}
                   onClick={() => setFeeConfigVisible(true)}
-                  className="h-9 rounded-full bg-sky-700 px-5 shadow-none hover:!bg-sky-800"
+                  className="h-8 rounded-full border border-white/15 bg-white/10 px-4 text-white shadow-none hover:!border-white/30 hover:!bg-white/15 hover:!text-white"
                 >
                   开卡费用配置
                 </Button>
@@ -270,38 +267,38 @@ const CardListPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_100%)] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">余额盘点</div>
-                <div className="mt-3 grid grid-cols-1 gap-3">
+              <div className="rounded-[24px] border border-white/10 bg-white/10 p-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-300">余额盘点</div>
+                <div className="mt-2 grid grid-cols-1 gap-2">
                   {[
-                    { label: '卡片总余额', value: `$${totalBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '可用资金沉淀', tone: 'bg-[#eff6ff]' },
-                    { label: '待结算金额', value: `$${pendingBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '账务处理中', tone: 'bg-[#ecfeff]' },
-                    { label: '已激活卡片', value: activeCards, helper: '当前可用卡数', tone: 'bg-[#dbeafe]' },
-                    { label: '待审批 / 冻结', value: `${pendingCards} / ${frozenCards}`, helper: '待审批与冻结状态', tone: 'bg-[#f8fafc]' }
+                    { label: '卡片总余额', value: `$${totalBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '可用资金沉淀' },
+                    { label: '待结算金额', value: `$${pendingBalance.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`, helper: '账务处理中' },
+                    { label: '已激活卡片', value: activeCards, helper: '当前可用卡数' },
+                    { label: '待审批 / 冻结', value: `${pendingCards} / ${frozenCards}`, helper: '待审批与冻结状态' }
                   ].map(item => (
-                    <div key={item.label} className={`rounded-2xl border border-sky-100 ${item.tone} px-4 py-3`}>
-                      <div className="text-xs text-slate-500">{item.label}</div>
-                      <div className="mt-1 text-[22px] font-semibold leading-none text-slate-900">{item.value}</div>
-                      <div className="mt-1 text-xs text-slate-500">{item.helper}</div>
+                    <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                      <div className="text-xs text-slate-300">{item.label}</div>
+                      <div className="mt-1 text-[18px] font-semibold leading-none text-white">{item.value}</div>
+                      <div className="mt-1 text-xs text-slate-300">{item.helper}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#eff6ff_100%)] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-sky-700/70">费用策略</div>
-                <div className="mt-3 space-y-3">
-                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                    <div className="text-xs text-slate-500">资金支出账户</div>
-                    <div className="mt-1 break-all text-sm font-semibold text-slate-900">{deductAccount || '未配置'}</div>
+              <div className="rounded-[24px] border border-white/10 bg-white/10 p-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-300">费用策略</div>
+                <div className="mt-2 space-y-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                    <div className="text-xs text-slate-300">资金支出账户</div>
+                    <div className="mt-1 break-all text-sm font-semibold text-white">{deductAccount || '未配置'}</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                    <div className="text-xs text-slate-500">虚拟卡开卡费</div>
-                    <div className="mt-1 text-[22px] font-semibold leading-none text-slate-900">${virtualFee}</div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                    <div className="text-xs text-slate-300">虚拟卡开卡费</div>
+                    <div className="mt-1 text-[18px] font-semibold leading-none text-white">${virtualFee}</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                    <div className="text-xs text-slate-500">实体卡开卡费</div>
-                    <div className="mt-1 text-[22px] font-semibold leading-none text-slate-900">${physicalFee}</div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">
+                    <div className="text-xs text-slate-300">实体卡开卡费</div>
+                    <div className="mt-1 text-[18px] font-semibold leading-none text-white">${physicalFee}</div>
                   </div>
                 </div>
               </div>
@@ -352,7 +349,7 @@ const CardListPage: React.FC = () => {
               <span className="mx-1 font-semibold text-slate-900">
                 {physicalRatio}%
               </span>
-              ，适合按用户、卡号和参考号排查。
+              。
             </div>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
