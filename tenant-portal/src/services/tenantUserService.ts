@@ -9,6 +9,7 @@ export interface TenantAppUser {
   status: number
   isKycInternal: number
   isKycGenuine: number
+  invitedUid?: string
   registerTime: string
   lastLoginTime?: string
   remark?: string
@@ -134,4 +135,3 @@ export const tenantUserService = {
   reviewKyc: (id: string, payload: TenantUserKycReviewPayload) => api.post(`/app-users/kyc/${id}/review`, payload),
   deleteKyc: (id: string) => api.delete(`/app-users/kyc/${id}`),
 }
-

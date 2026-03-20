@@ -1,16 +1,11 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react'
-import { Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd'
+import { Button, Card, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { TENANT_PERMISSION } from '@/constants/rbac'
 import { tenantUserService, type TenantAppUser, type TenantUserSavePayload } from '@/services/tenantUserService'
 import { useAuthStore } from '@/stores/authStore'
 
 const { Title } = Typography
-
-const statusOptions = [
-  { label: '禁用', value: 0 },
-  { label: '正常', value: 1 },
-]
 
 const genderOptions = [
   { label: '男', value: 1 },
@@ -49,6 +44,10 @@ const UserListPage: React.FC = () => {
     loadUsers()
   }, [])
 
+  const activeCount = useMemo(() => items.filter((item) => item.status === 1).length, [items])
+  const internalKycCount = useMemo(() => items.filter((item) => item.isKycInternal === 1).length, [items])
+  const phoneBoundCount = useMemo(() => items.filter((item) => !!item.phone).length, [items])
+
   const columns = useMemo(() => [
     { title: '用户名', dataIndex: 'userName', key: 'userName' },
     { title: '邮箱', dataIndex: 'email', key: 'email' },
@@ -60,10 +59,16 @@ const UserListPage: React.FC = () => {
       render: (value: number) => <Tag color={value === 1 ? 'success' : 'default'}>{value === 1 ? '正常' : '禁用'}</Tag>,
     },
     {
-      title: '内部KYC',
+      title: '三方KYC认证',
       dataIndex: 'isKycInternal',
       key: 'isKycInternal',
       render: (value: number) => <Tag color={value === 1 ? 'gold' : 'default'}>{value === 1 ? '已认证' : '未认证'}</Tag>,
+    },
+    {
+      title: '邀请人',
+      dataIndex: 'invitedUid',
+      key: 'invitedUid',
+      render: (value?: string) => value || '-',
     },
     { title: '注册时间', dataIndex: 'registerTime', key: 'registerTime' },
     {
@@ -93,7 +98,7 @@ const UserListPage: React.FC = () => {
     }
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ accountLevel: 1, gender: 1, profession: '4', status: 1 })
+    form.setFieldsValue({ gender: 1, profession: '4' })
     setOpen(true)
   }
 
@@ -144,7 +149,7 @@ const UserListPage: React.FC = () => {
         await tenantUserService.updateUser(editing.id, payload)
         message.success('用户已更新')
       } else {
-        await tenantUserService.createUser(values)
+        await tenantUserService.createUser({ ...values, status: 1 })
         message.success('用户已创建')
       }
       setOpen(false)
@@ -157,24 +162,107 @@ const UserListPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>用户管理</Title>
-        <Space>
-          <Input.Search placeholder="搜索用户名/邮箱/手机号" value={search} onChange={(e) => setSearch(e.target.value)} onSearch={loadUsers} style={{ width: 260 }} />
-          <Button icon={<ReloadOutlined />} onClick={loadUsers} loading={loading}>刷新</Button>
-          {canManageUsers ? <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>新增用户</Button> : null}
-        </Space>
+    <div className="space-y-6 p-6">
+      <Card
+        bordered={false}
+        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#172554_55%,#1d4ed8_100%)] text-white shadow-[0_28px_70px_rgba(29,78,216,0.32)]"
+        bodyStyle={{ padding: 0 }}
+      >
+        <div className="relative overflow-hidden px-6 py-5 lg:px-7">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.10),transparent_28%)]" />
+          <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-[26px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-[0.34em] text-slate-300">User Directory</div>
+              <div className="mt-2 text-3xl font-semibold tracking-tight text-white">用户列表</div>
+              <div className="mt-2 text-sm leading-6 text-slate-200">集中查看租户用户基础档案、认证状态和联系方式，便于快速检索与维护。</div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Input.Search
+                  placeholder="搜索用户名/邮箱/手机号"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onSearch={loadUsers}
+                  className="w-full max-w-[320px]"
+                />
+                <Button icon={<ReloadOutlined />} onClick={loadUsers} loading={loading} className="h-9 rounded-full border-white/15 bg-white/10 px-4 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white">
+                  刷新
+                </Button>
+                {canManageUsers ? (
+                  <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate} className="h-9 rounded-full bg-sky-500 px-4 shadow-none hover:!bg-sky-400">
+                    新增用户
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: '用户总数', value: items.length, helper: '当前列表载入' },
+                { label: '正常用户', value: activeCount, helper: '状态正常' },
+                { label: '内部KYC', value: internalKycCount, helper: '已完成内部认证' },
+                { label: '已绑手机', value: phoneBoundCount, helper: '具备手机号信息' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-300">{item.label}</div>
+                  <div className="mt-3 text-2xl font-semibold text-white">{item.value}</div>
+                  <div className="mt-1 text-xs text-slate-200">{item.helper}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {[
+          { label: '正常占比', value: items.length > 0 ? `${Math.round((activeCount / items.length) * 100)}%` : '0%', tone: 'bg-sky-50 text-sky-700' },
+          { label: '内部KYC占比', value: items.length > 0 ? `${Math.round((internalKycCount / items.length) * 100)}%` : '0%', tone: 'bg-cyan-50 text-cyan-700' },
+          { label: '手机号覆盖率', value: items.length > 0 ? `${Math.round((phoneBoundCount / items.length) * 100)}%` : '0%', tone: 'bg-blue-50 text-blue-700' },
+        ].map((item) => (
+          <div key={item.label} className={`rounded-[24px] px-4 py-4 shadow-sm ${item.tone}`}>
+            <div className="text-xs">{item.label}</div>
+            <div className="mt-2 text-2xl font-semibold">{item.value}</div>
+          </div>
+        ))}
       </div>
 
-      <Card>
+      <Card
+        bordered={false}
+        className="rounded-[30px] border border-sky-100 bg-[linear-gradient(180deg,#ffffff_0%,#f5fbff_100%)] shadow-sm"
+        bodyStyle={{ padding: 24 }}
+      >
+        <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="text-sm font-medium text-slate-500">用户档案</div>
+            <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">用户记录列表</div>
+            <div className="mt-2 text-sm text-slate-600">支持查看基础信息、账号状态和内部 KYC 状态，并直接执行编辑和删除操作。</div>
+          </div>
+          <div className="rounded-full bg-sky-50 px-4 py-2 text-xs font-medium text-sky-700">
+            用户资料与认证状态联动展示
+          </div>
+        </div>
+
         <Table rowKey="id" loading={loading} columns={columns} dataSource={items} pagination={{ pageSize: 10 }} />
       </Card>
 
-      <Modal title={editing ? '编辑用户' : '新增用户'} open={open} onCancel={() => setOpen(false)} onOk={handleSubmit} okButtonProps={{ disabled: !canManageUsers }} width={720} destroyOnClose>
-        <Form form={form} layout="vertical">
+      <Modal
+        title={(
+          <div>
+            <div className="text-sm font-medium text-slate-500">{editing ? '用户编辑' : '用户创建'}</div>
+            <div className="mt-1 text-xl font-semibold text-slate-900">{editing ? '编辑用户' : '新增用户'}</div>
+          </div>
+        )}
+        open={open}
+        onCancel={() => setOpen(false)}
+        onOk={handleSubmit}
+        okText={editing ? '保存' : '创建'}
+        cancelText="取消"
+        okButtonProps={{ disabled: !canManageUsers }}
+        width={760}
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
           <Form.Item name="userName" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input />
+            <Input autoComplete="off" />
           </Form.Item>
           <Form.Item name="email" label="邮箱" rules={[{ required: true, message: '请输入邮箱' }]}>
             <Input />
@@ -185,9 +273,6 @@ const UserListPage: React.FC = () => {
           <Form.Item name="countryCode" label="国家代码(alpha-2)">
             <Input placeholder="CN" />
           </Form.Item>
-          <Form.Item name="accountLevel" label="账户等级">
-            <InputNumber min={1} style={{ width: '100%' }} />
-          </Form.Item>
           <Form.Item name="gender" label="性别">
             <Select options={genderOptions} />
           </Form.Item>
@@ -197,10 +282,7 @@ const UserListPage: React.FC = () => {
           <Form.Item name="birthDay" label="生日">
             <Input placeholder="YYYY-MM-DD" />
           </Form.Item>
-          <Form.Item name="status" label="状态">
-            <Select options={statusOptions} />
-          </Form.Item>
-          <Form.Item name="remark" label="备注">
+          <Form.Item name="remark" label="备注" className="md:col-span-2">
             <Input.TextArea rows={3} />
           </Form.Item>
           <Form.Item name="loginPassword" label={editing ? '登录密码(留空不改)' : '登录密码'} rules={editing ? [] : [{ required: true, message: '请输入登录密码' }]}>

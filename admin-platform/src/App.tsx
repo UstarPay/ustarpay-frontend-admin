@@ -23,6 +23,7 @@ import RoleListPage from '@/pages/Role/RoleListPage'
 import PermissionListPage from '@/pages/Permission/PermissionListPage'
 import ChainListPage from '@/pages/Chain/ChainListPage'
 import CurrencyListPage from '@/pages/Currency/CurrencyListPage'
+import AWSKMSConfigPage from '@/pages/KMS/AWSKMSConfigPage'
 import LoginLogPage from '@/pages/LoginLog/LoginLogPage'
 import SystemSettingsPage from '@/pages/System/SystemSettingsPage'
 import SecuritySettingsPage from '@/pages/Security/SecuritySettingsPage'
@@ -203,6 +204,14 @@ function App() {
                       element={
                         <ProtectedRoute requiredPermission="currency:list">
                           <CurrencyListPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/kms/aws"
+                      element={
+                        <ProtectedRoute requiredPermission="chain:list">
+                          <AWSKMSConfigPage />
                         </ProtectedRoute>
                       }
                     />

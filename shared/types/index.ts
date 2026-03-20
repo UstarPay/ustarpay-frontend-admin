@@ -95,6 +95,9 @@ export * from './chain'
 // 货币相关类型
 export * from './currency'
 
+// KMS 配置相关类型
+export * from './kms'
+
 // 存款相关类型
 export * from './deposit'
 

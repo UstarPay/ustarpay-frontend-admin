@@ -76,17 +76,17 @@ const menuTree: MenuNode[] = [
     children: [
       {
         key: '/wallets/list',
-        label: '数字钱包列表',
+        label: '用户钱包管理',
         permissions: ['wallets:view'],
       },
       {
         key: '/wallets/fund-accounts',
-        label: '资金账户列表',
+        label: '用户资金管理',
         permissions: ['wallets:view'],
       },
       {
         key: '/wallets/card-fund-accounts',
-        label: '卡账户列表',
+        label: '用户卡账户管理',
         permissions: ['wallets:view'],
       },
     ],

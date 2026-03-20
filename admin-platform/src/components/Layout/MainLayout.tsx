@@ -5,17 +5,14 @@ import {
   MenuUnfoldOutlined,
   BellOutlined,
   UserOutlined,
-  SettingOutlined,
   LogoutOutlined,
   DashboardOutlined,
-  TeamOutlined,
   ShopOutlined,
   AppstoreOutlined,
   DatabaseOutlined,
   SafetyOutlined,
   CreditCardOutlined,
   KeyOutlined,
-  HistoryOutlined
 } from '@ant-design/icons'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
@@ -118,6 +115,18 @@ const getMenuItems = (): MenuItem[] => [
     ],
   },
   {
+    key: 'kms-config-management',
+    icon: <KeyOutlined />,
+    label: 'KMS配置管理',
+    children: [
+      {
+        key: '/kms/aws',
+        label: <Link to="/kms/aws">AWS KMS配置</Link>,
+        permission: 'chain:list',
+      },
+    ],
+  },
+  {
     key: 'system-management',
     icon: <AppstoreOutlined />,
     label: '系统管理',
@@ -175,40 +184,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return filterMenuItems(menuItems)
   }, [menuItems, hasPermission])
 
+  const findMenuPath = (items: MenuItem[], targetPath: string, parents: string[] = []): string[] => {
+    for (const item of items) {
+      if (item.children && item.children.length > 0) {
+        const matched = findMenuPath(item.children, targetPath, [...parents, item.key])
+        if (matched.length > 0) {
+          return matched
+        }
+      } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
+        return parents
+      }
+    }
+    return []
+  }
+
+  const findSelectedKey = (items: MenuItem[], targetPath: string): string | null => {
+    for (const item of items) {
+      if (item.children && item.children.length > 0) {
+        const matched = findSelectedKey(item.children, targetPath)
+        if (matched) {
+          return matched
+        }
+      } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
+        return item.key
+      }
+    }
+    return null
+  }
+
   // 根据当前路由自动展开对应的子菜单
   useEffect(() => {
-    const findParentKey = (targetPath: string): string | null => {
-      if (targetPath.startsWith('/tenants')) return 'tenant-management'
-      if (targetPath.startsWith('/tenant-plan')) return 'tenant-plan-management'
-      if (targetPath.startsWith('/users') || targetPath.startsWith('/roles') || targetPath.startsWith('/permissions')) return 'rbac-management'
-      if (targetPath.startsWith('/chains') || targetPath.startsWith('/currencies')) return 'blockchain-management'
-      if (targetPath.startsWith('/login-logs') || targetPath.startsWith('/system') || targetPath.startsWith('/security')) return 'system-management'
-      return null
-    }
-
-    const parentKey = findParentKey(location.pathname)
-    if (parentKey) {
-      setOpenKeys([parentKey])
-    } else {
-      setOpenKeys([])
-    }
-  }, [location.pathname])
+    setOpenKeys(findMenuPath(filteredMenuItems, location.pathname))
+  }, [location.pathname, filteredMenuItems])
 
   // 获取当前选中的菜单项 - 使用useMemo缓存
   const selectedKeys = useMemo(() => {
-    // 优先匹配精确路径
-    for (const item of filteredMenuItems) {
-      if (item.children) {
-        for (const child of item.children) {
-          if (location.pathname === child.key || location.pathname.startsWith(child.key + '/')) {
-            return [child.key]
-          }
-        }
-      } else if (location.pathname === item.key) {
-        return [item.key]
-      }
-    }
-    return [location.pathname]
+    const matched = findSelectedKey(filteredMenuItems, location.pathname)
+    return matched ? [matched] : [location.pathname]
   }, [location.pathname, filteredMenuItems])
 
   // 处理子菜单展开/收起
@@ -268,7 +280,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           selectedKeys={selectedKeys}
           openKeys={sidebarCollapsed ? [] : openKeys}
           onOpenChange={handleOpenChange}
-          items={filteredMenuItems}
+          items={filteredMenuItems as any}
           className="border-none"
           inlineIndent={20}
         />
