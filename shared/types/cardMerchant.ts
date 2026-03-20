@@ -110,17 +110,79 @@ export interface CardTransaction {
   reference_no?: string
   type: string
   amount: string
+  authorization_amount?: string
+  settlement_amount?: string
+  diff_amount?: string
   currency: string
   status: string
+  reconcile_status?: string
+  provider_batch_id?: string
+  provider_event?: string
+  provider_transaction_type?: string
+  provider_transaction_state?: string
   merchant_name?: string
   merchant_category?: string
   merchant_country?: string
   authorization_code?: string
   merchant_id?: string
   merchant_name_from_card?: string
+  authorized_at?: string
   settled_at?: string
   created_at: string
   updated_at: string
+}
+
+export interface CardAccountFlow {
+  id: string
+  tenant_id: string
+  user_id: string
+  card_account_id: string
+  card_record_id: string
+  card_transaction_id?: string
+  external_transaction_id?: string
+  flow_type: string
+  currency: string
+  amount: string
+  available_before: string
+  available_after: string
+  held_before: string
+  held_after: string
+  reference_type: string
+  reference_id: string
+  remark?: string
+  created_at: string
+}
+
+export interface CardSettlementBatch {
+  id: string
+  tenant_id: string
+  provider: string
+  batch_id: string
+  currency: string
+  total_count: number
+  total_amount: string
+  matched_count: number
+  diff_count: number
+  status: string
+  last_settled_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CardReconcileDiff {
+  id: string
+  tenant_id: string
+  batch_id?: string
+  card_transaction_id?: string
+  external_transaction_id: string
+  diff_type: string
+  currency: string
+  expected_amount: string
+  actual_amount: string
+  status: string
+  resolution_note?: string
+  created_at: string
+  resolved_at?: string
 }
 
 export interface UpdateCardMerchantRequest {

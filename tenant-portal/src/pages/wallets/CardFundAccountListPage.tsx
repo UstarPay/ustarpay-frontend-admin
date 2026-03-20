@@ -233,7 +233,7 @@ const CardFundAccountListPage: React.FC = () => {
               <div className="max-w-3xl">
                 <div className="text-[11px] uppercase tracking-[0.34em] text-[#dbeafe]">Card Capital Console</div>
                 <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                  卡账户列表
+                  用户卡账户管理
                 </div>
                 <div className="mt-3 text-sm leading-6 text-[#eff6ff]/90">
                   聚焦用户卡额度、活跃度与异常状态分布。
@@ -330,7 +330,7 @@ const CardFundAccountListPage: React.FC = () => {
       )}
 
       <SearchTable
-        title="卡账户列表"
+        title="用户卡账户管理"
         searchFields={searchFields}
         onSearch={handleSearch}
         onReset={handleReset}

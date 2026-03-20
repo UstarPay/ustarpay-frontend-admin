@@ -200,7 +200,7 @@ const FundAccountListPage: React.FC = () => {
           >
             <div className="text-[11px] uppercase tracking-[0.28em] text-[#dbeafe]">资金账户</div>
             <div className="mt-4 whitespace-nowrap text-3xl font-semibold leading-tight">
-              资金账户列表
+              用户资金管理
             </div>
             <div className="mt-8 rounded-[24px] border border-white/10 bg-white/10 p-4">
               <div className="flex items-center justify-between text-[#dbeafe]">
@@ -290,7 +290,7 @@ const FundAccountListPage: React.FC = () => {
             <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <div className="text-xs uppercase tracking-[0.22em] text-slate-400">查询条件</div>
-                <div className="mt-2 text-2xl font-semibold text-slate-900">资金账户列表</div>
+                <div className="mt-2 text-2xl font-semibold text-slate-900">用户资金管理</div>
                 <div className="mt-1 text-sm text-slate-500">按用户、币种和状态查询账户数据。</div>
               </div>
               <div className="rounded-full bg-[#dbeafe] px-4 py-2 text-sm font-medium text-sky-700">
@@ -302,7 +302,7 @@ const FundAccountListPage: React.FC = () => {
           dataSource={accounts}
           columns={columns}
           searchFields={searchFields}
-          title="资金账户列表"
+          title="用户资金管理"
           searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
           tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
           loading={isLoading}

@@ -38,7 +38,15 @@ import {
   WithdrawalListPage,
 } from '@/pages'
 import { ColdWalletListPage, HotWalletDetailPage, ColdWalletDetailPage } from '@/pages/wallets'
-import { CardListPage, CardMerchantListPage, CardTransactionListPage } from '@/pages/cards'
+import {
+  CardAccountFlowPage,
+  CardFundFlowPage,
+  CardListPage,
+  CardMerchantListPage,
+  CardReconcileDiffPage,
+  CardSettlementBatchPage,
+  CardTransactionListPage,
+} from '@/pages/cards'
 import { CollectionConfigPage, CollectionTaskPage, CollectionStatsPage } from '@/pages/collection'
 
 function protect(element: ReactNode, requiredPermissions: string[] = []) {
@@ -85,6 +93,10 @@ export function AppRoutes() {
         <Route path="cards/list" element={protect(<CardListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/merchants" element={protect(<CardMerchantListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/transactions" element={protect(<CardTransactionListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/account-flows" element={protect(<CardAccountFlowPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/fund-flows" element={protect(<CardFundFlowPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/settlement-batches" element={protect(<CardSettlementBatchPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/reconcile-diffs" element={protect(<CardReconcileDiffPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="collection/configs" element={protect(<CollectionConfigPage />, [TENANT_PERMISSION.COLLECTION_VIEW])} />
         <Route path="collection/tasks" element={protect(<CollectionTaskPage />, [TENANT_PERMISSION.COLLECTION_VIEW])} />
         <Route path="collection/stats" element={protect(<CollectionStatsPage />, [TENANT_PERMISSION.COLLECTION_VIEW])} />

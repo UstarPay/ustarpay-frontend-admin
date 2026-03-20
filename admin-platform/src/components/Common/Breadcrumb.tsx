@@ -52,6 +52,7 @@ const routeConfig: Record<string, BreadcrumbItem> = {
   '/currencies/create': { title: '添加货币' },
   '/currencies/:id': { title: '货币详情' },
   '/currencies/:id/edit': { title: '编辑货币' },
+  '/kms/aws': { title: 'AWS KMS配置' },
   
   // 系统管理
   '/login-logs': { title: '登录日志' },
@@ -67,6 +68,7 @@ const routeGroups: Record<string, BreadcrumbItem> = {
   'tenant-plan-management': { title: '租户计划管理' },
   'rbac-management': { title: 'RBAC管理' },
   'blockchain-management': { title: '区块链管理' },
+  'kms-config-management': { title: 'KMS配置管理' },
   'system-management': { title: '系统管理' },
 }
 
@@ -108,6 +110,9 @@ const getRouteGroup = (pathname: string): BreadcrumbItem | null => {
   if (pathname.startsWith('/chains') || pathname.startsWith('/currencies')) {
     return routeGroups['blockchain-management']
   }
+  if (pathname.startsWith('/kms')) {
+    return routeGroups['blockchain-management']
+  }
   if (pathname.startsWith('/login-logs') || pathname.startsWith('/system') || pathname.startsWith('/security')) {
     return routeGroups['system-management']
   }
@@ -136,6 +141,10 @@ const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
     breadcrumbs.push({
       title: routeGroup.title
     })
+  }
+
+  if (pathname.startsWith('/kms')) {
+    breadcrumbs.push({ title: routeGroups['kms-config-management'].title })
   }
 
   // 生成路径面包屑

@@ -44,17 +44,6 @@ const menuTree: MenuNode[] = [
     permissions: ['dashboard:view'],
   },
   {
-    key: '/cards',
-    icon: <CreditCardOutlined />,
-    label: '\u5361\u7247\u7ba1\u7406',
-    permissions: ['cards:view'],
-    children: [
-      { key: '/cards/merchants', label: '\u5361\u5546\u5217\u8868', permissions: ['cards:view'] },
-      { key: '/cards/list', label: '\u5361\u7247\u5217\u8868', permissions: ['cards:view'] },
-      { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u8bb0\u5f55', permissions: ['cards:view'] },
-    ],
-  },
-  {
     key: '/tenant-users',
     icon: <UserOutlined />,
     label: '\u7528\u6237\u7ba1\u7406',
@@ -66,6 +55,21 @@ const menuTree: MenuNode[] = [
     ],
   },
   {
+    key: '/cards',
+    icon: <CreditCardOutlined />,
+    label: '\u5361\u7247\u7ba1\u7406',
+    permissions: ['cards:view'],
+    children: [
+      { key: '/cards/merchants', label: '\u5361\u5546\u5217\u8868', permissions: ['cards:view'] },
+      { key: '/cards/list', label: '\u5361\u7247\u5217\u8868', permissions: ['cards:view'] },
+      { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u53f0\u8d26', permissions: ['cards:view'] },
+      { key: '/cards/account-flows', label: '\u5361\u989d\u5ea6\u6d41\u6c34', permissions: ['cards:view'] },
+      { key: '/cards/fund-flows', label: '\u5361\u8d44\u91d1\u603b\u8d26', permissions: ['cards:view'] },
+      { key: '/cards/settlement-batches', label: '\u5361\u7ed3\u7b97\u6279\u6b21', permissions: ['cards:view'] },
+      { key: '/cards/reconcile-diffs', label: '\u5361\u5bf9\u8d26\u5dee\u5f02', permissions: ['cards:view'] },
+    ],
+  },
+  {
     key: '/wallets',
     icon: <WalletOutlined />,
     label: '资产管理',
@@ -73,17 +77,17 @@ const menuTree: MenuNode[] = [
     children: [
       {
         key: '/wallets/list',
-        label: '数字钱包列表',
+        label: '用户钱包管理',
         permissions: ['wallets:view'],
       },
       {
         key: '/wallets/fund-accounts',
-        label: '资金账户列表',
+        label: '用户资金管理',
         permissions: ['wallets:view'],
       },
       {
         key: '/wallets/card-fund-accounts',
-        label: '卡账户列表',
+        label: '用户卡账户管理',
         permissions: ['wallets:view'],
       },
     ],

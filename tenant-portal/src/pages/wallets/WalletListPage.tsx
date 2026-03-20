@@ -16,7 +16,7 @@ import type { SearchField, TableColumn } from '@shared/components/SearchTable'
 
 
 /**
- * 数字钱包列表页面
+ * 用户钱包管理页面
  */
 const WalletListPage: React.FC = () => {
   const queryClient = useQueryClient()
@@ -425,7 +425,7 @@ const WalletListPage: React.FC = () => {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.32em] text-[#dbeafe]">User Wallet Registry</div>
-                <div className="mt-3 text-3xl font-semibold tracking-tight">数字钱包列表</div>
+                <div className="mt-3 text-3xl font-semibold tracking-tight">用户钱包管理</div>
                 <div className="mt-3 max-w-2xl text-sm text-[#eff6ff]/90">
                   面向用户资产检索和地址排查，快速查看钱包归属、网络覆盖、币种支持与余额记录沉淀情况。
                 </div>
@@ -545,7 +545,7 @@ const WalletListPage: React.FC = () => {
           dataSource={walletStats}
           columns={walletColumns}
           searchFields={searchFields}
-          title="数字钱包列表"
+          title="用户钱包管理"
           searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
           tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
           loading={walletsLoading}
