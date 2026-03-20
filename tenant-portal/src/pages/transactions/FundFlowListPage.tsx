@@ -132,6 +132,24 @@ function getChangeTypeLabel(changeType: string) {
   return labelMap[changeType] || changeType || '-'
 }
 
+function getBizTypeLabel(bizType?: string) {
+  const labelMap: Record<string, string> = {
+    withdrawal: '提现业务',
+    card_apply: '开卡业务',
+    card_consume: '卡消费业务',
+  }
+  return labelMap[bizType || ''] || bizType || '-'
+}
+
+function getReferenceTypeLabel(referenceType?: string) {
+  const labelMap: Record<string, string> = {
+    tenant_withdrawal: '提现单',
+    card_apply: '开卡申请单',
+    card_transaction: '卡交易单',
+  }
+  return labelMap[referenceType || ''] || referenceType || '-'
+}
+
 const FundFlowListPage: React.FC = () => {
   const [filters, setFilters] = useState<FundFlowFilterState>(INITIAL_FILTERS)
   const [records, setRecords] = useState<FundFlowRecord[]>([])
@@ -244,9 +262,9 @@ const FundFlowListPage: React.FC = () => {
       key: 'bizInfo',
       render: (_, record) => (
         <Space direction="vertical" size={2}>
-          <Text strong>{record.bizType || '-'}</Text>
+          <Text strong>{getBizTypeLabel(record.bizType)}</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            引用: {record.referenceType || '-'}
+            引用: {getReferenceTypeLabel(record.referenceType)}
           </Text>
           <Tooltip title={record.referenceId}>
             <Text code>{record.referenceId?.slice(0, 12) || '-'}{record.referenceId?.length > 12 ? '...' : ''}</Text>
@@ -461,7 +479,7 @@ const FundFlowListPage: React.FC = () => {
                   }}
                   options={[
                     { value: 'all', label: '全部业务类型' },
-                    ...uniqueBizTypes.map((item) => ({ value: item, label: item })),
+                    ...uniqueBizTypes.map((item) => ({ value: item, label: getBizTypeLabel(item) })),
                   ]}
                 />
               </Col>

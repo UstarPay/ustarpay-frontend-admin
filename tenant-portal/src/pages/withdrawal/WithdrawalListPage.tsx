@@ -953,7 +953,7 @@ const WithdrawalListPage: React.FC = () => {
               size="large"
               icon={<DollarOutlined />}
               onClick={openFeeModal}
-              className="!h-11 !rounded-xl !border-slate-200 !bg-white !px-5 !font-semibold !text-slate-700 shadow-sm hover:!border-emerald-300 hover:!text-emerald-600"
+              className="!h-11 !rounded-xl !border-0 !bg-[linear-gradient(135deg,#0f766e_0%,#14b8a6_100%)] !px-5 !font-semibold !text-white shadow-lg shadow-teal-500/30 hover:!bg-[linear-gradient(135deg,#0d9488_0%,#2dd4bf_100%)] hover:shadow-xl hover:shadow-teal-500/35"
             >
               提现手续费配置
             </Button>
@@ -972,27 +972,28 @@ const WithdrawalListPage: React.FC = () => {
         </Space>
       </div>
 
-      <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="border-0 shadow-sm shadow-slate-200/60">
-          <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-6 grid gap-6">
+        <Card className="h-full border-0 shadow-sm shadow-slate-200/60" bodyStyle={{ padding: 18 }}>
+          <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-semibold text-slate-900">筛选与搜索</div>
-              <div className="mt-1 text-xs text-slate-500">组合条件快速收敛待处理申请、链上确认单和历史记录</div>
+              <div className="mt-0.5 text-xs text-slate-500">组合条件快速收敛待处理申请、链上确认单和历史记录</div>
             </div>
-            <Tag color="blue" className="rounded-full px-3 py-1">实时查询</Tag>
+            <Tag color="blue" className="rounded-full px-2.5 py-0.5 text-[11px]">实时查询</Tag>
           </div>
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} xl={8}>
+          <Row gutter={[12, 10]}>
+            <Col xs={24} md={12} xl={9}>
               <Search
                 placeholder="申请人 / 地址 / 交易哈希"
                 value={searchText}
                 onChange={e => setSearchText(e.target.value)}
                 onSearch={() => setPagination(p => ({ ...p, page: 1 }))}
                 allowClear
+                size="middle"
               />
             </Col>
-            <Col xs={24} sm={12} xl={5}>
-              <Select value={statusFilter} onChange={v => { setStatusFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+            <Col xs={24} md={12} xl={5}>
+              <Select size="middle" value={statusFilter} onChange={v => { setStatusFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
                 <Option value="all">全部状态</Option>
                 <Option value="0">{STATUS_MAP[0]?.text}</Option>
                 <Option value="1">{STATUS_MAP[1]?.text}</Option>
@@ -1000,14 +1001,14 @@ const WithdrawalListPage: React.FC = () => {
                 <Option value="3">区块确认中</Option>
               </Select>
             </Col>
-            <Col xs={24} sm={12} xl={4}>
-              <Select value={chainFilter} onChange={v => { setChainFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+            <Col xs={24} sm={12} xl={5}>
+              <Select size="middle" value={chainFilter} onChange={v => { setChainFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
                 <Option value="all">全部链</Option>
                 {chains.map(c => <Option key={c.chainCode} value={c.chainCode}>{c.label}</Option>)}
               </Select>
             </Col>
-            <Col xs={24} sm={12} xl={4}>
-              <Select value={symbolFilter} onChange={v => { setSymbolFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
+            <Col xs={24} sm={12} xl={5}>
+              <Select size="middle" value={symbolFilter} onChange={v => { setSymbolFilter(v); setPagination(p => ({ ...p, page: 1 })) }} style={{ width: '100%' }}>
                 <Option value="all">全部币种</Option>
                 <Option value="USDT">USDT</Option>
                 <Option value="ETH">ETH</Option>
@@ -1015,36 +1016,33 @@ const WithdrawalListPage: React.FC = () => {
                 <Option value="TRX">TRX</Option>
               </Select>
             </Col>
-            <Col xs={24} xl={7}>
+            <Col xs={24} xl={9}>
               <RangePicker
                 value={dateRange}
                 onChange={d => { setDateRange(d as [dayjs.Dayjs, dayjs.Dayjs]); setPagination(p => ({ ...p, page: 1 })) }}
                 style={{ width: '100%' }}
+                size="middle"
               />
+            </Col>
+            <Col xs={24} xl={4}>
+              <Button
+                block
+                size="middle"
+                onClick={() => {
+                  setSearchText('')
+                  setStatusFilter('all')
+                  setChainFilter('all')
+                  setSymbolFilter('all')
+                  setDateRange(null)
+                  setPagination(p => ({ ...p, page: 1 }))
+                }}
+              >
+                重置筛选
+              </Button>
             </Col>
           </Row>
         </Card>
 
-        <Card className="border-0 shadow-sm shadow-slate-200/60">
-          <div className="text-sm font-semibold text-slate-900">提现规则</div>
-          <div className="mt-4 space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">地址限制</div>
-              <div className="mt-2 text-sm font-medium text-slate-900">冷钱包地址不可作为出资方</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">系统会自动选择可用热提钱包，不需要手工填写出资方地址。</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">费用预估</div>
-              <div className="mt-2 text-sm font-medium text-slate-900">链和币种选定后自动估算手续费</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">输入金额后会同步更新预计到账金额，便于复核最终出账。</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-400">基础风控</div>
-              <div className="mt-2 text-sm font-medium text-slate-900">系统会先校验提现额度与提交规则</div>
-              <div className="mt-1 text-xs leading-5 text-slate-500">通过校验后，将根据当前风控设置决定是直接进入提现流程，还是先进入人工审核。</div>
-            </div>
-          </div>
-        </Card>
       </div>
 
       <Card

@@ -260,9 +260,9 @@ const UserListPage: React.FC = () => {
         width={760}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
+        <Form form={form} layout="vertical" autoComplete="off" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
           <Form.Item name="userName" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input autoComplete="off" />
+            <Input autoComplete="new-password" />
           </Form.Item>
           <Form.Item name="email" label="邮箱" rules={[{ required: true, message: '请输入邮箱' }]}>
             <Input />
@@ -286,7 +286,7 @@ const UserListPage: React.FC = () => {
             <Input.TextArea rows={3} />
           </Form.Item>
           <Form.Item name="loginPassword" label={editing ? '登录密码(留空不改)' : '登录密码'} rules={editing ? [] : [{ required: true, message: '请输入登录密码' }]}>
-            <Input.Password />
+            <Input.Password autoComplete="new-password" />
           </Form.Item>
           <Form.Item name="transactionPin" label={editing ? '交易密码(留空不改)' : '交易密码'} rules={editing ? [] : [{ required: true, message: '请输入交易密码' }]}>
             <Input.Password />
