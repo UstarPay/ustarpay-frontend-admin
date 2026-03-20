@@ -15,6 +15,39 @@ export interface TenantAppUser {
   remark?: string
 }
 
+export interface TenantInvitationRelation {
+  id: string
+  inviteCode: string
+  bindSource: string
+  boundAt: string
+  inviteeId: string
+  inviteeUserName: string
+  inviteeEmail: string
+  inviteeRegisterTime: string
+  inviteeKycStatus: number
+  inviterId: string
+  inviterUserName: string
+  inviterEmail: string
+}
+
+export interface TenantInvitationUserSummary {
+  id: string
+  userName: string
+  email: string
+  invitationCode?: string
+  registerTime: string
+  isKycInternal: number
+  boundAt?: string
+  bindSource?: string
+}
+
+export interface TenantInvitationDetail {
+  user: TenantInvitationUserSummary
+  inviter?: TenantInvitationUserSummary
+  invitees: TenantInvitationUserSummary[]
+  inviteeCount: number
+}
+
 export interface TenantAppUserKyc {
   id: string
   userId: string
@@ -67,6 +100,16 @@ export interface TenantUserKycListParams {
   approvedTo?: string
   rejectedFrom?: string
   rejectedTo?: string
+}
+
+export interface TenantInvitationListParams {
+  page?: number
+  pageSize?: number
+  search?: string
+  inviter?: string
+  invitee?: string
+  inviteCode?: string
+  bindSource?: string
 }
 
 export interface TenantUserSavePayload {
@@ -124,6 +167,8 @@ export interface TenantUserKycReviewPayload {
 export const tenantUserService = {
   getUsers: (params?: TenantUserListParams) => api.get('/app-users', params),
   getUser: (id: string) => api.get(`/app-users/${id}`),
+  getInvitations: (params?: TenantInvitationListParams) => api.get('/app-users/invitations', params),
+  getUserInvitations: (id: string) => api.get(`/app-users/${id}/invitations`),
   createUser: (payload: TenantUserSavePayload) => api.post('/app-users', payload),
   updateUser: (id: string, payload: Partial<TenantUserSavePayload>) => api.put(`/app-users/${id}`, payload),
   deleteUser: (id: string) => api.delete(`/app-users/${id}`),

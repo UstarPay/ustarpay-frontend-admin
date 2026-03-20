@@ -31,6 +31,7 @@ import {
   CardFundAccountListPage,
   UserListPage,
   KycListPage,
+  InvitationListPage,
   TenantRbacUserPage,
   TenantRbacRolePage,
   TenantRbacPermissionPage,
@@ -77,6 +78,7 @@ export function AppRoutes() {
         <Route path="tenant" element={protect(<TenantInfoPage />, [TENANT_PERMISSION.TENANT_VIEW])} />
         <Route path="tenant-users/list" element={protect(<UserListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
         <Route path="tenant-users/kyc" element={protect(<KycListPage />, [TENANT_PERMISSION.TENANT_USER_KYC_VIEW])} />
+        <Route path="tenant-users/invitations" element={protect(<InvitationListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
         <Route path="wallets/list" element={protect(<WalletListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/fund-accounts" element={protect(<FundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/card-fund-accounts" element={protect(<CardFundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
