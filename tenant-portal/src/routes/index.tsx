@@ -32,10 +32,13 @@ import {
   UserListPage,
   KycListPage,
   InvitationListPage,
+  AddressBookListPage,
   TenantRbacUserPage,
   TenantRbacRolePage,
   TenantRbacPermissionPage,
   WithdrawalListPage,
+  DepositConfigPage,
+  WithdrawalConfigPage,
 } from '@/pages'
 import { ColdWalletListPage, HotWalletDetailPage, ColdWalletDetailPage } from '@/pages/wallets'
 import {
@@ -79,6 +82,7 @@ export function AppRoutes() {
         <Route path="tenant-users/list" element={protect(<UserListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
         <Route path="tenant-users/kyc" element={protect(<KycListPage />, [TENANT_PERMISSION.TENANT_USER_KYC_VIEW])} />
         <Route path="tenant-users/invitations" element={protect(<InvitationListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
+        <Route path="tenant-users/address-books" element={protect(<AddressBookListPage />, [TENANT_PERMISSION.TENANT_USERS_VIEW])} />
         <Route path="wallets/list" element={protect(<WalletListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/fund-accounts" element={protect(<FundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
         <Route path="wallets/card-fund-accounts" element={protect(<CardFundAccountListPage />, [TENANT_PERMISSION.WALLETS_VIEW])} />
@@ -111,9 +115,11 @@ export function AppRoutes() {
         <Route path="transactions/stats" element={protect(<TransactionStatsPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
         <Route path="transactions/:id" element={protect(<TransactionDetailPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])} />
         <Route path="history/deposits" element={protect(<DepositHistoryPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])} />
+        <Route path="history/deposit-config" element={protect(<DepositConfigPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])} />
         <Route path="history/withdrawals" element={protect(<WithdrawHistoryPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])} />
         <Route path="transactions/internal" element={protect(<InternalTransferPage />, [TENANT_PERMISSION.INTERNAL_TRANSFERS_VIEW])} />
         <Route path="transactions/withdraw" element={protect(<WithdrawalListPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])} />
+        <Route path="transactions/withdraw-config" element={protect(<WithdrawalConfigPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])} />
         <Route path="settings/profile" element={protect(<ProfilePage />, [TENANT_PERMISSION.TENANT_VIEW])} />
         <Route path="rbac/users" element={protect(<TenantRbacUserPage />, [TENANT_PERMISSION.TENANT_RBAC_USERS_VIEW])} />
         <Route path="rbac/roles" element={protect(<TenantRbacRolePage />, [TENANT_PERMISSION.TENANT_RBAC_ROLES_VIEW])} />

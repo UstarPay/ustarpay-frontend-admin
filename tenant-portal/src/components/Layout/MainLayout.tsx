@@ -44,17 +44,6 @@ const menuTree: MenuNode[] = [
     permissions: ['dashboard:view'],
   },
   {
-    key: '/tenant-users',
-    icon: <UserOutlined />,
-    label: '\u7528\u6237\u7ba1\u7406',
-    permissions: ['tenant_users:view', 'tenant_user_kyc:view'],
-    children: [
-      { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
-      { key: '/tenant-users/invitations', label: '\u9080\u8bf7\u5173\u7cfb', permissions: ['tenant_users:view'] },
-      { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
-    ],
-  },
-  {
     key: '/cards',
     icon: <CreditCardOutlined />,
     label: '\u5361\u7247\u7ba1\u7406',
@@ -67,6 +56,18 @@ const menuTree: MenuNode[] = [
       { key: '/cards/fund-flows', label: '\u5361\u8d44\u91d1\u603b\u8d26', permissions: ['cards:view'] },
       { key: '/cards/settlement-batches', label: '\u5361\u7ed3\u7b97\u6279\u6b21', permissions: ['cards:view'] },
       { key: '/cards/reconcile-diffs', label: '\u5361\u5bf9\u8d26\u5dee\u5f02', permissions: ['cards:view'] },
+    ],
+  },
+  {
+    key: '/tenant-users',
+    icon: <UserOutlined />,
+    label: '\u7528\u6237\u7ba1\u7406',
+    permissions: ['tenant_users:view', 'tenant_user_kyc:view'],
+    children: [
+      { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
+      { key: '/tenant-users/invitations', label: '\u9080\u8bf7\u5173\u7cfb', permissions: ['tenant_users:view'] },
+      { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
+      { key: '/tenant-users/address-books', label: '地址簿管理', permissions: ['tenant_users:view'] },
     ],
   },
   {
@@ -138,6 +139,7 @@ const menuTree: MenuNode[] = [
       { key: '/transactions/list', label: '\u4ea4\u6613\u8bb0\u5f55', permissions: ['transactions:view'] },
       { key: '/transactions/fund-flows', label: '资金变动', permissions: ['transactions:view'] },
       { key: '/transactions/withdraw', label: '提现管理', permissions: ['withdrawals:view'] },
+      { key: '/transactions/withdraw-config', label: '提现链配置', permissions: ['withdrawals:view'] },
     ],
   },
   {
@@ -147,6 +149,7 @@ const menuTree: MenuNode[] = [
     permissions: ['deposits:view', 'withdrawals:view'],
     children: [
       { key: '/history/deposits', label: '\u5145\u503c\u8bb0\u5f55', permissions: ['deposits:view'] },
+      { key: '/history/deposit-config', label: '充值链配置', permissions: ['deposits:view'] },
       { key: '/history/withdrawals', label: '\u63d0\u73b0\u8bb0\u5f55', permissions: ['withdrawals:view'] },
     ],
   },
