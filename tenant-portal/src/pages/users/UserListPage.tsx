@@ -26,19 +26,29 @@ const PASSWORD_SPECIAL_REGEX = /[^A-Za-z0-9]/
 const PIN_REGEX = /^\d{6}$/
 const COUNTRY_CODE_REGEX = /^[A-Za-z]{2}$/
 const BIRTHDAY_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const loginPasswordRuleLabels = [
+  { key: 'length', label: '长度 8-20 位' },
+  { key: 'letter', label: '至少包含 1 个字母' },
+  { key: 'number', label: '至少包含 1 个数字' },
+  { key: 'special', label: '至少包含 1 个特殊字符' },
+] as const
 
 function isValidEmail(value: string) {
   return EMAIL_REGEX.test(value.trim().toLowerCase())
 }
 
+function getLoginPasswordRequirementState(password: string) {
+  return {
+    length: password.length >= 8 && password.length <= 20,
+    letter: PASSWORD_LETTER_REGEX.test(password),
+    number: PASSWORD_NUMBER_REGEX.test(password),
+    special: PASSWORD_SPECIAL_REGEX.test(password),
+  }
+}
+
 function isValidLoginPassword(value: string) {
-  return (
-    value.length >= 8 &&
-    value.length <= 20 &&
-    PASSWORD_LETTER_REGEX.test(value) &&
-    PASSWORD_NUMBER_REGEX.test(value) &&
-    PASSWORD_SPECIAL_REGEX.test(value)
-  )
+  const state = getLoginPasswordRequirementState(value)
+  return state.length && state.letter && state.number && state.special
 }
 
 function isValidTransactionPin(value: string) {
@@ -62,6 +72,11 @@ const UserListPage: React.FC = () => {
   const [editing, setEditing] = useState<TenantAppUser | null>(null)
   const [search, setSearch] = useState('')
   const canManageUsers = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.TENANT_USERS_MANAGE))
+  const loginPassword = Form.useWatch('loginPassword', form) || ''
+  const loginPasswordRequirementState = useMemo(
+    () => getLoginPasswordRequirementState(loginPassword),
+    [loginPassword]
+  )
 
   const loadUsers = async () => {
     try {
@@ -195,6 +210,41 @@ const UserListPage: React.FC = () => {
       }
     }
   }
+
+  const validateLoginPassword = async (_: unknown, value?: string) => {
+    if (!value) {
+      if (editing) {
+        return
+      }
+      throw new Error('请输入登录密码')
+    }
+
+    if (!isValidLoginPassword(value)) {
+      throw new Error('登录密码需为 8-20 位并包含字母、数字和特殊字符')
+    }
+  }
+
+  const loginPasswordRuleHint = (
+    <div className="space-y-1 pt-1">
+      {loginPasswordRuleLabels.map((item) => {
+        const active = loginPasswordRequirementState[item.key]
+
+        return (
+          <div
+            key={item.key}
+            className={`flex items-center gap-2 text-xs ${active ? 'text-emerald-600' : 'text-slate-500'}`}
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 rounded-full border ${
+                active ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 bg-transparent'
+              }`}
+            />
+            <span>{item.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
 
   return (
     <div className="space-y-6 p-6">
@@ -370,20 +420,8 @@ const UserListPage: React.FC = () => {
           <Form.Item
             name="loginPassword"
             label={editing ? '登录密码(留空不改)' : '登录密码'}
-            rules={[
-              ...(editing ? [] : [{ required: true, message: '请输入登录密码' }]),
-              {
-                validator: async (_rule, value?: string) => {
-                  if (!value && editing) {
-                    return
-                  }
-                  if (value && isValidLoginPassword(value)) {
-                    return
-                  }
-                  throw new Error('登录密码需为 8-20 位并包含字母、数字和特殊字符')
-                },
-              },
-            ]}
+            rules={[{ validator: validateLoginPassword }]}
+            extra={loginPasswordRuleHint}
           >
             <Input.Password autoComplete="new-password" />
           </Form.Item>
