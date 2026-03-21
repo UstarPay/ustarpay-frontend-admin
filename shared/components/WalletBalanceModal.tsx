@@ -21,7 +21,7 @@ const WalletBalanceModal: React.FC<WalletBalanceModalProps> = ({
   onClose,
   wallet,
   title,
-  width = 820
+  width = 902
 }) => {
   const assetCount = wallet?.balanceByChain
     ? Object.values(wallet.balanceByChain).reduce((sum, chainData) => {

@@ -92,6 +92,16 @@ const menuTree: MenuNode[] = [
         permissions: ["cards:view"],
       },
       {
+        key: "/cards/physical-inventories",
+        label: "\u9884\u5236\u5361\u5e93\u5b58",
+        permissions: ["cards:view"],
+      },
+      {
+        key: "/cards/physical-applications",
+        label: "\u9884\u5236\u5361\u7533\u8bf7",
+        permissions: ["cards:view"],
+      },
+      {
         key: "/cards/transactions",
         label: "\u5361\u4ea4\u6613\u53f0\u8d26",
         permissions: ["cards:view"],
@@ -215,6 +225,11 @@ const menuTree: MenuNode[] = [
         label: "提现管理",
         permissions: ["withdrawals:view"],
       },
+      {
+        key: "/transactions/withdraw-config",
+        label: "提现链配置",
+        permissions: ["withdrawals:view"],
+      },
     ],
   },
   {
@@ -226,6 +241,11 @@ const menuTree: MenuNode[] = [
       {
         key: "/history/deposits",
         label: "\u5145\u503c\u8bb0\u5f55",
+        permissions: ["deposits:view"],
+      },
+      {
+        key: "/history/deposit-config",
+        label: "充值链配置",
         permissions: ["deposits:view"],
       },
       {

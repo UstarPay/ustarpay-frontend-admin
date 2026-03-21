@@ -295,7 +295,7 @@ const UserListPage: React.FC = () => {
         width={760}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
+        <Form form={form} layout="vertical" autoComplete="off" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
           <Form.Item
             name="userName"
             label="用户名"
@@ -304,7 +304,7 @@ const UserListPage: React.FC = () => {
               { whitespace: true, message: '用户名不能为空白字符' },
             ]}
           >
-            <Input autoComplete="off" />
+            <Input autoComplete="new-password" />
           </Form.Item>
           <Form.Item
             name="email"
@@ -385,7 +385,7 @@ const UserListPage: React.FC = () => {
               },
             ]}
           >
-            <Input.Password />
+            <Input.Password autoComplete="new-password" />
           </Form.Item>
           <Form.Item
             name="transactionPin"
@@ -405,7 +405,7 @@ const UserListPage: React.FC = () => {
               },
             ]}
           >
-            <Input.Password />
+            <Input.Password autoComplete="new-password" />
           </Form.Item>
         </Form>
       </Modal>

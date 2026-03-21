@@ -15,6 +15,7 @@ export { statsService } from "./statsService";
 export { tenantService } from "./tenantService";
 export { tenantUserService } from "./tenantUserService";
 export { tenantRbacService } from "./tenantRbacService";
+export { tenantAddressBookService } from "./tenantAddressBookService";
 export { transactionService } from "./transactionService";
 export { twoFAService } from "./twoFAService";
 export { walletService } from "./walletService";
@@ -27,6 +28,7 @@ export { cardFundAccountService } from "./cardFundAccountService";
 export { cardService } from "./cardService";
 export { cardMerchantService } from "./cardMerchantService";
 export { collectionService } from "./collectionService";
+export { assetSupportConfigService } from "./assetSupportConfigService";
 export { withdrawalRiskConfigService } from "./withdrawalRiskConfigService";
 export { withdrawalFeeConfigService } from "./withdrawalFeeConfigService";
 

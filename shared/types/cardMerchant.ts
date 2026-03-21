@@ -42,6 +42,75 @@ export interface CardRecord {
   user_phone?: string     // 用户手机号
   user_status?: number    // 用户状态
   country_code?: string   // 国家代码
+  activation_mode?: string
+  courier_vendor?: string
+}
+
+export interface PhysicalCardInventory {
+  id: string
+  tenant_id: string
+  merchant_id?: string
+  provider_code?: string
+  external_card_id: string
+  product_code?: string
+  card_material?: number
+  currency?: string
+  card_number_last4?: string
+  tracking_no?: string
+  courier_vendor?: string
+  delivery_country?: string
+  delivery_state?: string
+  delivery_city?: string
+  delivery_address1?: string
+  delivery_postal?: string
+  cardholder_name?: string
+  preferred_printed_name?: string
+  email?: string
+  mobile_number?: string
+  issued_date?: string
+  expiry_date?: string
+  provider_card_material?: number
+  status: number
+  bind_user_id?: string
+  bind_application_id?: string
+  import_batch_no?: string
+  import_source?: string
+  import_operator?: string
+  invalid_reason?: string
+  created_at: string
+  updated_at: string
+  merchant_name?: string
+  bind_user_name?: string
+}
+
+export interface PhysicalCardApplication {
+  id: string
+  application_no: string
+  tenant_id: string
+  user_id: string
+  merchant_id?: string
+  card_fee: string
+  fee_symbol: string
+  freeze_reference_no?: string
+  freeze_status: number
+  status: number
+  inventory_id?: string
+  card_record_id?: string
+  reviewed_by?: string
+  reviewed_at?: string
+  reject_reason?: string
+  cancel_reason?: string
+  remark?: string
+  created_at: string
+  updated_at: string
+  merchant_name?: string
+  user_name?: string
+  user_email?: string
+  user_phone?: string
+  external_card_id?: string
+  card_number_last4?: string
+  tracking_no?: string
+  courier_vendor?: string
 }
 
 // 开卡费用配置类型

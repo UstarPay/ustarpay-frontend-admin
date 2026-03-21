@@ -111,10 +111,21 @@ const shortText = (value?: string | null, start = 8, end = 6) => {
   return `${value.slice(0, start)}...${value.slice(-end)}`
 }
 
-const sumFees = (record: WithdrawRecord) => {
-  const block = parseFloat(record.block_fee || '0')
-  const withdraw = parseFloat(record.withdraw_fee || '0')
-  return (Number.isNaN(block) ? 0 : block) + (Number.isNaN(withdraw) ? 0 : withdraw)
+const getNetworkFeeSymbol = (chainCode?: string) => {
+  const code = (chainCode || '').toUpperCase()
+  switch (code) {
+    case 'BSC':
+      return 'BNB'
+    case 'ETH':
+      return 'ETH'
+    case 'BTC':
+      return 'BTC'
+    case 'TRX':
+    case 'TRON':
+      return 'TRX'
+    default:
+      return code || '-'
+  }
 }
 
 const pageStyle: React.CSSProperties = {
@@ -329,12 +340,20 @@ const WithdrawHistoryPage: React.FC = () => {
     {
       title: '费用与确认',
       key: 'fees',
-      width: 180,
+      width: 220,
       render: (_: any, record: WithdrawRecord) => (
         <div className="py-1">
           <div>
-            <Text type="secondary" style={{ fontSize: 11 }}>总手续费</Text>
-            <div style={{ color: '#1e3a8a', fontWeight: 700 }}>{formatTokenAmount(String(sumFees(record)))}</div>
+            <Text type="secondary" style={{ fontSize: 11 }}>站内手续费</Text>
+            <div style={{ color: '#1e3a8a', fontWeight: 700 }}>
+              {formatTokenAmount(record.withdraw_fee)} {record.symbol}
+            </div>
+          </div>
+          <div className="mt-3">
+            <Text type="secondary" style={{ fontSize: 11 }}>网络手续费</Text>
+            <div style={{ color: '#0f766e', fontWeight: 700 }}>
+              {formatTokenAmount(record.block_fee)} {getNetworkFeeSymbol(record.chain_code)}
+            </div>
           </div>
           <div className="mt-3">
             <Text type="secondary" style={{ fontSize: 11 }}>区块确认</Text>
@@ -585,7 +604,7 @@ const WithdrawHistoryPage: React.FC = () => {
       </Card>
 
       <Row gutter={[20, 20]}>
-        <Col xs={24} xxl={6}>
+        <Col xs={24} xxl={4}>
           <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 22 }}>
             <div style={sectionLabelStyle}>Screening</div>
             <Form form={searchForm} layout="vertical" onFinish={handleSearch}>
@@ -626,24 +645,45 @@ const WithdrawHistoryPage: React.FC = () => {
             <Divider style={{ margin: '22px 0' }} />
 
             <div style={sectionLabelStyle}>Risk Focus</div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xxl:grid-cols-1">
+            <div className="flex flex-col gap-3">
               {[
-                { label: '待处理', value: stats?.pendingCount ?? 0, bg: '#eff6ff', color: '#1d4ed8' },
-                { label: '已完成', value: stats?.completedCount ?? 0, bg: '#ecfdf5', color: '#15803d' },
-                { label: '失败', value: stats?.failedCount ?? 0, bg: '#fef2f2', color: '#dc2626' },
+                { label: '待处理', value: stats?.pendingCount ?? 0, bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', color: '#1d4ed8' },
+                { label: '已完成', value: stats?.completedCount ?? 0, bg: 'linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%)', color: '#15803d' },
+                { label: '失败', value: stats?.failedCount ?? 0, bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', color: '#dc2626' },
               ].map((item) => (
                 <div
                   key={item.label}
                   style={{
                     borderRadius: 18,
-                    padding: 16,
+                    padding: '16px 18px',
                     background: item.bg,
                     border: `1px solid ${item.color}22`,
+                    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.06)',
                   }}
                 >
-                  <Text style={{ color: item.color, fontSize: 12 }}>{item.label}</Text>
-                  <div className="mt-1">
-                    <Text style={{ color: '#111827', fontSize: 26, fontWeight: 700 }}>{item.value}</Text>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <Text style={{ color: item.color, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</Text>
+                      <div className="mt-1">
+                        <Text style={{ color: '#111827', fontSize: 26, fontWeight: 700 }}>{item.value}</Text>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        minWidth: 44,
+                        height: 44,
+                        borderRadius: 14,
+                        background: 'rgba(255,255,255,0.66)',
+                        color: item.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {String(item.value).padStart(2, '0')}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -651,7 +691,7 @@ const WithdrawHistoryPage: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} xxl={18}>
+        <Col xs={24} xxl={20}>
           <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 0 }}>
             <div
               style={{

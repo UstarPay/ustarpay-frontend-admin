@@ -38,22 +38,24 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
     
     try {
       const values = await form.validateFields()
-      
-      // 处理RPC URLs和浏览器URLs
+      const rpcUrls = values.rpcUrlsText
+        ? values.rpcUrlsText.split('\n').map((url: string) => url.trim()).filter((url: string) => url)
+        : []
+      const explorerUrl = values.explorerUrlText
+        ? values.explorerUrlText.split('\n').map((url: string) => url.trim()).find((url: string) => url) || ''
+        : ''
+
       const processedValues = {
-        ...values,
-        rpc_urls: values.rpc_urls_text ? values.rpc_urls_text.split('\n').filter((url: string) => url.trim()) : [],
-        explorer_url: values.explorer_url_text ? values.explorer_url_text.split('\n').filter((url: string) => url.trim()) : [],
+        chainName: values.chainName,
+        nativeSymbol: values.nativeSymbol,
+        rpcUrls,
+        explorerUrl,
+        confirmationBlocks: values.confirmationBlocks,
+        scanHeight: values.scanHeight,
+        scanInterval: values.scanInterval,
         status: values.status ? 1 : 0
       }
-      
-      // 移除临时字段和不需要更新的字段
-      delete processedValues.rpc_urls_text
-      delete processedValues.explorer_url_text
-      delete processedValues.id
-      delete processedValues.created_at
-      delete processedValues.updated_at
-      
+
       onSubmit(chain.id, processedValues)
     } catch (error) {
       console.error('表单验证失败:', error)
