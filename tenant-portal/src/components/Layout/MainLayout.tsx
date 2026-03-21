@@ -69,7 +69,6 @@ const menuTree: MenuNode[] = [
       { key: '/tenant-users/list', label: '\u7528\u6237\u5217\u8868', permissions: ['tenant_users:view'] },
       { key: '/tenant-users/invitations', label: '\u9080\u8bf7\u5173\u7cfb', permissions: ['tenant_users:view'] },
       { key: '/tenant-users/kyc', label: 'KYC \u5217\u8868', permissions: ['tenant_user_kyc:view'] },
-      { key: '/tenant-users/address-books', label: '地址簿管理', permissions: ['tenant_users:view'] },
     ],
   },
   {
