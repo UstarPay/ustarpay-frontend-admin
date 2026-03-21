@@ -12,6 +12,7 @@ export * from './cards'
 export * from './collection'
 export * from './users'
 export * from './rbac'
+export * from './assets'
 
 // 鏃ュ織绠＄悊椤甸潰
 export * from './logs/index'
