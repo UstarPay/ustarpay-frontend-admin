@@ -19,6 +19,41 @@ const professionOptions = [
   { label: '其他', value: '4' },
 ]
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_LETTER_REGEX = /[A-Za-z]/
+const PASSWORD_NUMBER_REGEX = /\d/
+const PASSWORD_SPECIAL_REGEX = /[^A-Za-z0-9]/
+const PIN_REGEX = /^\d{6}$/
+const COUNTRY_CODE_REGEX = /^[A-Za-z]{2}$/
+const BIRTHDAY_REGEX = /^\d{4}-\d{2}-\d{2}$/
+
+function isValidEmail(value: string) {
+  return EMAIL_REGEX.test(value.trim().toLowerCase())
+}
+
+function isValidLoginPassword(value: string) {
+  return (
+    value.length >= 8 &&
+    value.length <= 20 &&
+    PASSWORD_LETTER_REGEX.test(value) &&
+    PASSWORD_NUMBER_REGEX.test(value) &&
+    PASSWORD_SPECIAL_REGEX.test(value)
+  )
+}
+
+function isValidTransactionPin(value: string) {
+  return PIN_REGEX.test(value.trim())
+}
+
+function isValidBirthday(value: string) {
+  if (!BIRTHDAY_REGEX.test(value.trim())) {
+    return false
+  }
+
+  const date = new Date(`${value.trim()}T00:00:00`)
+  return !Number.isNaN(date.getTime())
+}
+
 const UserListPage: React.FC = () => {
   const [form] = Form.useForm<TenantUserSavePayload>()
   const [items, setItems] = useState<TenantAppUser[]>([])
@@ -261,16 +296,50 @@ const UserListPage: React.FC = () => {
         destroyOnClose
       >
         <Form form={form} layout="vertical" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <Form.Item name="userName" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
+          <Form.Item
+            name="userName"
+            label="用户名"
+            rules={[
+              { required: true, message: '请输入用户名' },
+              { whitespace: true, message: '用户名不能为空白字符' },
+            ]}
+          >
             <Input autoComplete="off" />
           </Form.Item>
-          <Form.Item name="email" label="邮箱" rules={[{ required: true, message: '请输入邮箱' }]}>
+          <Form.Item
+            name="email"
+            label="邮箱"
+            rules={[
+              { required: true, message: '请输入邮箱' },
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || isValidEmail(value)) {
+                    return
+                  }
+                  throw new Error('请输入正确的邮箱地址')
+                },
+              },
+            ]}
+          >
             <Input />
           </Form.Item>
           <Form.Item name="phone" label="手机号">
             <Input />
           </Form.Item>
-          <Form.Item name="countryCode" label="国家代码(alpha-2)">
+          <Form.Item
+            name="countryCode"
+            label="国家代码(alpha-2)"
+            rules={[
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || COUNTRY_CODE_REGEX.test(value.trim())) {
+                    return
+                  }
+                  throw new Error('国家代码需为 2 位字母')
+                },
+              },
+            ]}
+          >
             <Input placeholder="CN" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
@@ -279,16 +348,63 @@ const UserListPage: React.FC = () => {
           <Form.Item name="profession" label="职业">
             <Select options={professionOptions} />
           </Form.Item>
-          <Form.Item name="birthDay" label="生日">
+          <Form.Item
+            name="birthDay"
+            label="生日"
+            rules={[
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || isValidBirthday(value)) {
+                    return
+                  }
+                  throw new Error('生日格式需为 YYYY-MM-DD')
+                },
+              },
+            ]}
+          >
             <Input placeholder="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item name="remark" label="备注" className="md:col-span-2">
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="loginPassword" label={editing ? '登录密码(留空不改)' : '登录密码'} rules={editing ? [] : [{ required: true, message: '请输入登录密码' }]}>
+          <Form.Item
+            name="loginPassword"
+            label={editing ? '登录密码(留空不改)' : '登录密码'}
+            rules={[
+              ...(editing ? [] : [{ required: true, message: '请输入登录密码' }]),
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value && editing) {
+                    return
+                  }
+                  if (value && isValidLoginPassword(value)) {
+                    return
+                  }
+                  throw new Error('登录密码需为 8-20 位并包含字母、数字和特殊字符')
+                },
+              },
+            ]}
+          >
             <Input.Password />
           </Form.Item>
-          <Form.Item name="transactionPin" label={editing ? '交易密码(留空不改)' : '交易密码'} rules={editing ? [] : [{ required: true, message: '请输入交易密码' }]}>
+          <Form.Item
+            name="transactionPin"
+            label={editing ? '交易密码(留空不改)' : '交易密码'}
+            rules={[
+              ...(editing ? [] : [{ required: true, message: '请输入交易密码' }]),
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value && editing) {
+                    return
+                  }
+                  if (value && isValidTransactionPin(value)) {
+                    return
+                  }
+                  throw new Error('交易密码必须为 6 位数字')
+                },
+              },
+            ]}
+          >
             <Input.Password />
           </Form.Item>
         </Form>

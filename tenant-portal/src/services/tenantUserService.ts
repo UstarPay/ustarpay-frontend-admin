@@ -30,6 +30,16 @@ export interface TenantInvitationRelation {
   inviterEmail: string
 }
 
+export interface TenantInvitationGroup {
+  inviterId: string
+  inviterUserName: string
+  inviterEmail: string
+  inviteeCount: number
+  kycPassedCount: number
+  latestBoundAt?: string
+  invitees: TenantInvitationRelation[]
+}
+
 export interface TenantInvitationUserSummary {
   id: string
   userName: string
@@ -167,6 +177,7 @@ export interface TenantUserKycReviewPayload {
 export const tenantUserService = {
   getUsers: (params?: TenantUserListParams) => api.get('/app-users', params),
   getUser: (id: string) => api.get(`/app-users/${id}`),
+  getInvitationGroups: (params?: TenantInvitationListParams) => api.get('/app-users/invitations/groups', params),
   getInvitations: (params?: TenantInvitationListParams) => api.get('/app-users/invitations', params),
   getUserInvitations: (id: string) => api.get(`/app-users/${id}/invitations`),
   createUser: (payload: TenantUserSavePayload) => api.post('/app-users', payload),

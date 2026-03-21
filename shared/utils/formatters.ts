@@ -1,5 +1,8 @@
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { CRYPTOCURRENCIES, DATE_FORMATS } from '../constants'
+
+dayjs.extend(relativeTime)
 
 // 数字格式化工具
 export const formatters = {

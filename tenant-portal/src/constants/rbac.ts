@@ -17,6 +17,8 @@ export const TENANT_PERMISSION = {
   COLD_WALLETS_VIEW: 'cold_wallets:view',
   BALANCE_MONITOR_VIEW: 'balance_monitor:view',
   COLLECTION_VIEW: 'collection:view',
+  CONFIG_VIEW: 'config:view',
+  CONFIG_MANAGE: 'config:manage',
   TRANSACTIONS_VIEW: 'transactions:view',
   INTERNAL_TRANSFERS_VIEW: 'internal_transfers:view',
   DEPOSITS_VIEW: 'deposits:view',
