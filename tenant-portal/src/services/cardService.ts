@@ -1,6 +1,8 @@
 import type {
   CardAccountFlow,
   CardFeeConfig,
+  PhysicalCardApplication,
+  PhysicalCardInventory,
   CardRecord,
   CardReconcileDiff,
   CardSettlementBatch,
@@ -47,5 +49,42 @@ export const cardService = {
 
   updateFeeConfig: async (config: CardFeeConfig): Promise<void> => {
     await api.put<void>('/cards/fee-config', { configValue: config })
+  },
+
+  getPhysicalInventories: async (params?: { page?: number; pageSize?: number; search?: string; status?: number }) => {
+    return api.getPaginated<PhysicalCardInventory>('/cards/physical-inventories', params)
+  },
+
+  getPrebuiltInventorySwitch: async (): Promise<{ enabled: boolean }> => {
+    const response = await api.get<{ enabled: boolean }>('/cards/physical-inventories/switch')
+    return response.data
+  },
+
+  updatePrebuiltInventorySwitch: async (enabled: boolean): Promise<void> => {
+    await api.put<void>('/cards/physical-inventories/switch', { enabled })
+  },
+
+  getPhysicalApplications: async (params?: { page?: number; pageSize?: number; search?: string; status?: number }) => {
+    return api.getPaginated<PhysicalCardApplication>('/cards/physical-applications', params)
+  },
+
+  downloadPhysicalInventoryTemplate: async (): Promise<void> => {
+    await api.download('/cards/physical-inventories/import-template', 'prebuilt-physical-card-import-template.csv')
+  },
+
+  importPhysicalInventories: async (file: File): Promise<void> => {
+    await api.upload<void>('/tenant-admin/v1/cards/physical-inventories/import', file)
+  },
+
+  approvePhysicalApplication: async (id: string, payload: { inventoryId: string; remark?: string }) => {
+    await api.post<void>(`/cards/physical-applications/${id}/approve`, payload)
+  },
+
+  rejectPhysicalApplication: async (id: string, payload: { rejectReason: string; remark?: string }) => {
+    await api.post<void>(`/cards/physical-applications/${id}/reject`, payload)
+  },
+
+  updatePhysicalApplicationShipment: async (id: string, payload: { courierVendor: string; trackingNo: string; remark?: string }) => {
+    await api.post<void>(`/cards/physical-applications/${id}/shipment`, payload)
   }
 }

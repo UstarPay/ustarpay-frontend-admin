@@ -43,6 +43,8 @@ import {
   CardFundFlowPage,
   CardListPage,
   CardMerchantListPage,
+  PhysicalCardApplicationPage,
+  PhysicalCardInventoryPage,
   CardReconcileDiffPage,
   CardSettlementBatchPage,
   CardTransactionListPage,
@@ -92,6 +94,8 @@ export function AppRoutes() {
         <Route path="cards" element={<Navigate to="/cards/list" replace />} />
         <Route path="cards/list" element={protect(<CardListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/merchants" element={protect(<CardMerchantListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/physical-inventories" element={protect(<PhysicalCardInventoryPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
+        <Route path="cards/physical-applications" element={protect(<PhysicalCardApplicationPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/transactions" element={protect(<CardTransactionListPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/account-flows" element={protect(<CardAccountFlowPage />, [TENANT_PERMISSION.CARDS_VIEW])} />
         <Route path="cards/fund-flows" element={protect(<CardFundFlowPage />, [TENANT_PERMISSION.CARDS_VIEW])} />

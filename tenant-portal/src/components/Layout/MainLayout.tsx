@@ -62,6 +62,8 @@ const menuTree: MenuNode[] = [
     children: [
       { key: '/cards/merchants', label: '\u5361\u5546\u5217\u8868', permissions: ['cards:view'] },
       { key: '/cards/list', label: '\u5361\u7247\u5217\u8868', permissions: ['cards:view'] },
+      { key: '/cards/physical-inventories', label: '\u9884\u5236\u5361\u5e93\u5b58', permissions: ['cards:view'] },
+      { key: '/cards/physical-applications', label: '\u9884\u5236\u5361\u7533\u8bf7', permissions: ['cards:view'] },
       { key: '/cards/transactions', label: '\u5361\u4ea4\u6613\u53f0\u8d26', permissions: ['cards:view'] },
       { key: '/cards/account-flows', label: '\u5361\u989d\u5ea6\u6d41\u6c34', permissions: ['cards:view'] },
       { key: '/cards/fund-flows', label: '\u5361\u8d44\u91d1\u603b\u8d26', permissions: ['cards:view'] },
