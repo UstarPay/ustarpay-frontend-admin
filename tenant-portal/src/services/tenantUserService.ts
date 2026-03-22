@@ -82,6 +82,25 @@ export interface TenantAppUserKyc {
   operatorDisplayName?: string
 }
 
+export interface TenantAppUserKycDetail extends TenantAppUserKyc {
+  fullName?: string
+  gender?: string
+  dob?: string
+  placeOfBirth?: string
+  countryOfBirth?: string
+  addressStreet?: string
+  addressBuildingNumber?: string
+  addressFlatNumber?: string
+  addressTown?: string
+  addressState?: string
+  addressPostCode?: string
+  addressFormattedAddress?: string
+  tin?: string
+  metadata?: Record<string, any>
+  idCardFrontUrl?: string
+  idCardBackUrl?: string
+}
+
 export interface TenantUserListParams {
   page?: number
   pageSize?: number
@@ -133,6 +152,7 @@ export interface TenantUserSavePayload {
   loginPassword?: string
   transactionPin?: string
   invitationCode?: string
+  inviterCode?: string
   email: string
   phoneAreaCode?: number
   phone?: string
@@ -185,7 +205,7 @@ export const tenantUserService = {
   deleteUser: (id: string) => api.delete(`/app-users/${id}`),
 
   getKycs: (params?: TenantUserKycListParams) => api.get('/app-users/kyc', params),
-  getKyc: (id: string) => api.get(`/app-users/kyc/${id}`),
+  getKyc: (id: string) => api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),
   updateKyc: (id: string, payload: Partial<TenantUserKycSavePayload>) => api.put(`/app-users/kyc/${id}`, payload),
   reviewKyc: (id: string, payload: TenantUserKycReviewPayload) => api.post(`/app-users/kyc/${id}/review`, payload),

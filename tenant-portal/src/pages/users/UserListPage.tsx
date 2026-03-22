@@ -148,7 +148,7 @@ const UserListPage: React.FC = () => {
     }
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ gender: 1, profession: '4' })
+    form.setFieldsValue({ gender: 1, profession: '4', inviterCode: '' })
     setOpen(true)
   }
 
@@ -160,8 +160,10 @@ const UserListPage: React.FC = () => {
     try {
       const response = await tenantUserService.getUser(record.id)
       setEditing(record)
+      form.resetFields()
       form.setFieldsValue({
         ...response.data,
+        inviterCode: undefined,
         loginPassword: '',
         transactionPin: '',
       })
@@ -196,6 +198,7 @@ const UserListPage: React.FC = () => {
         const payload = { ...values }
         if (!payload.loginPassword) delete payload.loginPassword
         if (!payload.transactionPin) delete payload.transactionPin
+        delete payload.inviterCode
         await tenantUserService.updateUser(editing.id, payload)
         message.success('用户已更新')
       } else {
@@ -373,6 +376,15 @@ const UserListPage: React.FC = () => {
           >
             <Input />
           </Form.Item>
+          {!editing ? (
+            <Form.Item
+              name="inviterCode"
+              label="邀请码(选填)"
+              extra="填写后会校验邀请码是否有效，并自动绑定邀请关系。"
+            >
+              <Input placeholder="输入上级邀请码" autoComplete="off" />
+            </Form.Item>
+          ) : null}
           <Form.Item name="phone" label="手机号">
             <Input />
           </Form.Item>

@@ -112,7 +112,7 @@ const InvitationListPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [bindSource, setBindSource] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [treePage, setTreePage] = useState(1);
   const [treePageSize, setTreePageSize] = useState(10);
@@ -641,11 +641,11 @@ const InvitationListPage: React.FC = () => {
       </Card>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} xl={11}>
+        <Col xs={24} xl={12}>
           <Card
             bordered={false}
-            className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm"
-            bodyStyle={{ padding: 24, minHeight: 620 }}
+            className="h-full rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm"
+            bodyStyle={{ padding: 24, minHeight: 620, height: "100%" }}
           >
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -687,11 +687,11 @@ const InvitationListPage: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} xl={13}>
+        <Col xs={24} xl={12}>
           <Card
             bordered={false}
-            className="rounded-[30px] border border-slate-200 bg-white shadow-sm"
-            bodyStyle={{ padding: 24, minHeight: 620 }}
+            className="h-full rounded-[30px] border border-slate-200 bg-white shadow-sm"
+            bodyStyle={{ padding: 24, minHeight: 620, height: "100%" }}
           >
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>

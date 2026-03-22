@@ -33,6 +33,7 @@ import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
   tenantUserService,
   type TenantAppUserKyc,
+  type TenantAppUserKycDetail,
   type TenantUserKycListParams,
   type TenantUserKycReviewPayload,
 } from "@/services/tenantUserService";
@@ -141,7 +142,7 @@ const KycListPage: React.FC = () => {
   const [items, setItems] = useState<TenantAppUserKyc[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [detailItem, setDetailItem] = useState<Record<string, any> | null>(null);
+  const [detailItem, setDetailItem] = useState<TenantAppUserKycDetail | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState<ReviewMode>("approve");
   const [reviewingItem, setReviewingItem] = useState<TenantAppUserKyc | null>(null);
@@ -201,7 +202,7 @@ const KycListPage: React.FC = () => {
   const handleView = async (id: string) => {
     try {
       const response = await tenantUserService.getKyc(id);
-      setDetailItem((response.data as Record<string, any>) || null);
+      setDetailItem(response.data || null);
       setDetailOpen(true);
     } catch (error) {
       message.error(error instanceof Error ? error.message : "加载 KYC 详情失败");
@@ -643,6 +644,7 @@ const KycListPage: React.FC = () => {
 
             <Card title="基础信息" size="small">
               <Descriptions column={1} bordered size="small">
+                <Descriptions.Item label="用户名">{detailItem.userName || "-"}</Descriptions.Item>
                 <Descriptions.Item label="用户 ID">{detailItem.userId || "-"}</Descriptions.Item>
                 <Descriptions.Item label="业务 ID">{detailItem.businessId || "-"}</Descriptions.Item>
                 <Descriptions.Item label="名">{detailItem.firstName || "-"}</Descriptions.Item>
@@ -680,6 +682,9 @@ const KycListPage: React.FC = () => {
                 </Descriptions.Item>
                 <Descriptions.Item label="证件反面">
                   {detailItem.idCardBackUrl ? <Text copyable>{detailItem.idCardBackUrl}</Text> : "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="操作员">
+                  {buildOperatorLabel(detailItem)}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
