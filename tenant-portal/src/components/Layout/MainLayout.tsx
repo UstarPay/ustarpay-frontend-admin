@@ -137,10 +137,12 @@ const menuTree: MenuNode[] = [
     label: '\u4ea4\u6613\u7ba1\u7406',
     permissions: ['transactions:view', 'internal_transfers:view', 'withdrawals:view'],
     children: [
+      { key: '/transactions/withdraw-config', label: '区块网络管理', permissions: ['withdrawals:view'] },
+      { key: '/transactions/binance-pay-config', label: '支付渠道管理', permissions: ['transactions:view'] },
+      { key: '/transactions/binance-pay-query', label: '支付渠道订单', permissions: ['transactions:view'] },
+      { key: '/transactions/withdraw', label: '提现管理中心', permissions: ['withdrawals:view'] },
       { key: '/transactions/list', label: '\u4ea4\u6613\u8bb0\u5f55', permissions: ['transactions:view'] },
       { key: '/transactions/fund-flows', label: '资金变动', permissions: ['transactions:view'] },
-      { key: '/transactions/withdraw', label: '提现管理', permissions: ['withdrawals:view'] },
-      { key: '/transactions/withdraw-config', label: '提现链配置', permissions: ['withdrawals:view'] },
     ],
   },
   {

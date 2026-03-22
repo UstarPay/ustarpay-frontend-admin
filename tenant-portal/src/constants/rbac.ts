@@ -18,6 +18,7 @@ export const TENANT_PERMISSION = {
   BALANCE_MONITOR_VIEW: 'balance_monitor:view',
   COLLECTION_VIEW: 'collection:view',
   TRANSACTIONS_VIEW: 'transactions:view',
+  TRANSACTIONS_MANAGE: 'transactions:manage',
   INTERNAL_TRANSFERS_VIEW: 'internal_transfers:view',
   DEPOSITS_VIEW: 'deposits:view',
   WITHDRAWALS_VIEW: 'withdrawals:view',

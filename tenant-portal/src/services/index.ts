@@ -26,6 +26,7 @@ export { cardService } from './cardService'
 export { cardMerchantService } from './cardMerchantService'
 export { collectionService } from './collectionService'
 export { assetSupportConfigService } from './assetSupportConfigService'
+export { paymentAdminService } from './paymentAdminService'
 export { withdrawalRiskConfigService } from './withdrawalRiskConfigService'
 export { withdrawalFeeConfigService } from './withdrawalFeeConfigService'
 

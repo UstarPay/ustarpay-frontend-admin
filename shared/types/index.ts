@@ -139,3 +139,6 @@ export * from './collection'
 
 // 交易相关类型
 export * from './transaction'
+
+// 支付相关类型
+export * from './payment'
