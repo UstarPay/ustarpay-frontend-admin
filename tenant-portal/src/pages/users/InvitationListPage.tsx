@@ -1,268 +1,312 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
   Card,
   Col,
   Descriptions,
-  Divider,
   Drawer,
   Empty,
   Input,
+  Pagination,
   Row,
   Select,
   Space,
-  Statistic,
   Table,
   Tag,
   Tree,
   Typography,
   message,
-} from 'antd'
-import type { DataNode } from 'antd/es/tree'
-import { EyeOutlined, ReloadOutlined, ShareAltOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
-import { TENANT_PERMISSION } from '@/constants/rbac'
+} from "antd";
+import type { DataNode } from "antd/es/tree";
+import {
+  EyeOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  ShareAltOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
   tenantUserService,
   type TenantInvitationDetail,
+  type TenantInvitationGroup,
   type TenantInvitationListParams,
   type TenantInvitationRelation,
   type TenantInvitationUserSummary,
-} from '@/services/tenantUserService'
-import { useAuthStore } from '@/stores/authStore'
+} from "@/services/tenantUserService";
+import { useAuthStore } from "@/stores/authStore";
 
-const { Title, Text, Paragraph } = Typography
+const { Paragraph, Text, Title } = Typography;
 
 const bindSourceOptions = [
-  { label: '全部来源', value: '' },
-  { label: '手动输入', value: 'manual_input' },
-  { label: '扫码绑定', value: 'qr_scan' },
-  { label: '邀请链接', value: 'invite_link' },
-]
+  { label: "全部来源", value: "" },
+  { label: "手动输入", value: "manual_input" },
+  { label: "扫码绑定", value: "qr_scan" },
+  { label: "邀请链接", value: "invite_link" },
+];
 
 const bindSourceText: Record<string, string> = {
-  manual_input: '手动输入',
-  qr_scan: '扫码绑定',
-  invite_link: '邀请链接',
-}
+  manual_input: "手动输入",
+  qr_scan: "扫码绑定",
+  invite_link: "邀请链接",
+};
 
-const searchPlaceholder = '搜索邀请人 / 被邀请用户 / 邮箱 / 邀请码'
-
-interface InvitationGroup {
-  inviterId: string
-  inviterUserName: string
-  inviterEmail: string
-  invitees: TenantInvitationRelation[]
-}
+const searchPlaceholder = "搜索邀请人、被邀请用户、邮箱或邀请码";
 
 function formatDateTime(value?: string) {
   if (!value) {
-    return '-'
+    return "-";
   }
 
-  const parsed = new Date(value)
+  const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    return value
+    return value;
   }
 
-  return parsed.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  return parsed.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
-  })
+  });
 }
 
 function renderBindSourceTag(value?: string) {
-  return <Tag color="blue">{bindSourceText[value || ''] || value || '-'}</Tag>
+  return <Tag color="blue">{bindSourceText[value || ""] || value || "-"}</Tag>;
 }
 
 function renderKycTag(value?: number) {
-  return <Tag color={value === 1 ? 'success' : 'default'}>{value === 1 ? '已 KYC' : '未 KYC'}</Tag>
+  return <Tag color={value === 1 ? "success" : "default"}>{value === 1 ? "已 KYC" : "未 KYC"}</Tag>;
 }
 
 function toggleExpandedKey(keys: string[], key: string) {
   if (keys.includes(key)) {
-    return keys.filter((item) => item !== key)
+    return keys.filter((item) => item !== key);
   }
 
-  return [...keys, key]
-}
-
-function buildInvitationGroups(items: TenantInvitationRelation[]): InvitationGroup[] {
-  const groupMap = new Map<string, InvitationGroup>()
-
-  items.forEach((item) => {
-    const current = groupMap.get(item.inviterId)
-    if (current) {
-      current.invitees.push(item)
-      return
-    }
-
-    groupMap.set(item.inviterId, {
-      inviterId: item.inviterId,
-      inviterUserName: item.inviterUserName,
-      inviterEmail: item.inviterEmail,
-      invitees: [item],
-    })
-  })
-
-  return Array.from(groupMap.values()).sort((left, right) => {
-    if (right.invitees.length !== left.invitees.length) {
-      return right.invitees.length - left.invitees.length
-    }
-
-    return left.inviterUserName.localeCompare(right.inviterUserName)
-  })
+  return [...keys, key];
 }
 
 function normalizeInvitationDetail(detail: TenantInvitationDetail | null): TenantInvitationDetail | null {
   if (!detail) {
-    return null
+    return null;
   }
 
   return {
     ...detail,
     invitees: Array.isArray(detail.invitees) ? detail.invitees : [],
-  }
+  };
 }
 
 const InvitationListPage: React.FC = () => {
-  const canView = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.TENANT_USERS_VIEW))
-  const [items, setItems] = useState<TenantInvitationRelation[]>([])
-  const [loading, setLoading] = useState(false)
-  const [search, setSearch] = useState('')
-  const [bindSource, setBindSource] = useState('')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [total, setTotal] = useState(0)
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detail, setDetail] = useState<TenantInvitationDetail | null>(null)
-  const [expandedGroupKeys, setExpandedGroupKeys] = useState<string[]>([])
-  const [expandedDetailKeys, setExpandedDetailKeys] = useState<string[]>([])
+  const canView = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.TENANT_USERS_VIEW));
+  const [items, setItems] = useState<TenantInvitationRelation[]>([]);
+  const [treeGroups, setTreeGroups] = useState<TenantInvitationGroup[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [treeLoading, setTreeLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [bindSource, setBindSource] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [treePage, setTreePage] = useState(1);
+  const [treePageSize, setTreePageSize] = useState(10);
+  const [treeTotal, setTreeTotal] = useState(0);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detail, setDetail] = useState<TenantInvitationDetail | null>(null);
+  const [expandedGroupKeys, setExpandedGroupKeys] = useState<string[]>([]);
+  const [expandedDetailKeys, setExpandedDetailKeys] = useState<string[]>([]);
 
   const loadInvitations = useCallback(
     async (
       nextPage = page,
       nextPageSize = pageSize,
       overrides?: {
-        search?: string
-        bindSource?: string
-      }
+        search?: string;
+        bindSource?: string;
+      },
     ) => {
       if (!canView) {
-        return
+        return;
       }
 
       try {
-        setLoading(true)
-        const nextSearch = overrides?.search ?? search
-        const nextBindSource = overrides?.bindSource ?? bindSource
+        setLoading(true);
+        const nextSearch = overrides?.search ?? search;
+        const nextBindSource = overrides?.bindSource ?? bindSource;
         const params: TenantInvitationListParams = {
           page: nextPage,
           pageSize: nextPageSize,
           search: nextSearch || undefined,
           bindSource: nextBindSource || undefined,
-        }
+        };
 
-        const response = await tenantUserService.getInvitations(params)
-        setItems(response.data?.items || [])
-        setTotal(response.data?.pagination?.total || 0)
-        setPage(response.data?.pagination?.page || nextPage)
-        setPageSize(response.data?.pagination?.pageSize || nextPageSize)
+        const response = await tenantUserService.getInvitations(params);
+        setItems(response.data?.items || []);
+        setTotal(response.data?.pagination?.total || 0);
+        setPage(response.data?.pagination?.page || nextPage);
+        setPageSize(response.data?.pagination?.pageSize || nextPageSize);
       } catch (error) {
-        message.error(error instanceof Error ? error.message : '加载邀请关系失败')
+        message.error(error instanceof Error ? error.message : "加载邀请关系列表失败");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [bindSource, canView, page, pageSize, search]
-  )
+    [bindSource, canView, page, pageSize, search],
+  );
+
+  const loadInvitationGroups = useCallback(
+    async (
+      nextPage = treePage,
+      nextPageSize = treePageSize,
+      overrides?: {
+        search?: string;
+        bindSource?: string;
+      },
+    ) => {
+      if (!canView) {
+        return;
+      }
+
+      try {
+        setTreeLoading(true);
+        const nextSearch = overrides?.search ?? search;
+        const nextBindSource = overrides?.bindSource ?? bindSource;
+        const params: TenantInvitationListParams = {
+          page: nextPage,
+          pageSize: nextPageSize,
+          search: nextSearch || undefined,
+          bindSource: nextBindSource || undefined,
+        };
+
+        const response = await tenantUserService.getInvitationGroups(params);
+        setTreeGroups(response.data?.items || []);
+        setTreeTotal(response.data?.pagination?.total || 0);
+        setTreePage(response.data?.pagination?.page || nextPage);
+        setTreePageSize(response.data?.pagination?.pageSize || nextPageSize);
+        setExpandedGroupKeys([]);
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : "加载邀请关系树失败");
+      } finally {
+        setTreeLoading(false);
+      }
+    },
+    [bindSource, canView, search, treePage, treePageSize],
+  );
 
   useEffect(() => {
-    loadInvitations(1, pageSize)
-  }, [canView])
+    if (!canView) {
+      return;
+    }
+
+    void loadInvitations(1, pageSize, { search: "", bindSource: "" });
+    void loadInvitationGroups(1, treePageSize, { search: "", bindSource: "" });
+  }, [canView]);
 
   const handleOpenDetail = useCallback(async (userId: string) => {
     if (!userId) {
-      return
+      return;
     }
 
     try {
-      setDetailLoading(true)
-      setDetailOpen(true)
-      const response = await tenantUserService.getUserInvitations(userId)
-      setDetail(normalizeInvitationDetail(response.data || null))
+      setDetailLoading(true);
+      setDetailOpen(true);
+      const response = await tenantUserService.getUserInvitations(userId);
+      setDetail(normalizeInvitationDetail(response.data || null));
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '加载邀请详情失败')
-      setDetailOpen(false)
-      setDetail(null)
+      message.error(error instanceof Error ? error.message : "加载邀请详情失败");
+      setDetailOpen(false);
+      setDetail(null);
     } finally {
-      setDetailLoading(false)
+      setDetailLoading(false);
     }
-  }, [])
-
-  const groupedInvitations = useMemo(() => buildInvitationGroups(items), [items])
-
-  useEffect(() => {
-    setExpandedGroupKeys(groupedInvitations.map((group) => `group-${group.inviterId}`))
-  }, [groupedInvitations])
+  }, []);
 
   useEffect(() => {
     if (!detail) {
-      setExpandedDetailKeys([])
-      return
+      setExpandedDetailKeys([]);
+      return;
     }
 
-    const keys: string[] = [`current-${detail.user.id}`]
+    const keys: string[] = [`current-${detail.user.id}`];
     if (detail.inviter) {
-      keys.unshift(`inviter-${detail.inviter.id}`)
+      keys.unshift(`inviter-${detail.inviter.id}`);
     }
-    setExpandedDetailKeys(keys)
-  }, [detail])
+    setExpandedDetailKeys(keys);
+  }, [detail]);
 
-  const totalKycPassed = useMemo(
-    () => items.reduce((count, item) => count + (item.inviteeKycStatus === 1 ? 1 : 0), 0),
-    [items]
-  )
+  const summary = useMemo(
+    () => ({
+      relationCount: total,
+      inviterCount: treeTotal,
+      currentPageKycPassed: treeGroups.reduce((count, group) => count + group.kycPassedCount, 0),
+      currentPageInvitees: treeGroups.reduce((count, group) => count + group.inviteeCount, 0),
+    }),
+    [total, treeGroups, treeTotal],
+  );
+
+  const handleSearchSubmit = () => {
+    void loadInvitations(1, pageSize);
+    void loadInvitationGroups(1, treePageSize);
+  };
+
+  const handleReset = () => {
+    setSearch("");
+    setBindSource("");
+    void loadInvitations(1, pageSize, { search: "", bindSource: "" });
+    void loadInvitationGroups(1, treePageSize, { search: "", bindSource: "" });
+  };
+
+  const handleRefresh = () => {
+    void loadInvitations(page, pageSize);
+    void loadInvitationGroups(treePage, treePageSize);
+  };
 
   const treeData = useMemo<DataNode[]>(
     () =>
-      groupedInvitations.map((group) => {
-        const nodeKey = `group-${group.inviterId}`
+      treeGroups.map((group) => {
+        const nodeKey = `group-${group.inviterId}`;
 
         return {
           key: nodeKey,
           selectable: false,
           title: (
-            <div onClick={() => setExpandedGroupKeys((current) => toggleExpandedKey(current, nodeKey))}>
-              <Space size={12} style={{ width: '100%', justifyContent: 'space-between' }}>
-                <Space direction="vertical" size={2}>
-                  <Space size={8}>
+            <div
+              className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3"
+              onClick={() => setExpandedGroupKeys((current) => toggleExpandedKey(current, nodeKey))}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <Space direction="vertical" size={4}>
+                  <Space size={8} wrap>
                     <Text strong>{group.inviterUserName}</Text>
-                    <Badge count={group.invitees.length} color="#1677ff" />
+                    <Badge count={group.inviteeCount} color="#1677ff" />
                   </Space>
                   <Text type="secondary">{group.inviterEmail}</Text>
+                  <Text type="secondary">最近绑定：{formatDateTime(group.latestBoundAt)}</Text>
                 </Space>
-                <Space size={8}>
-                  <Tag color="processing">邀请人</Tag>
+
+                <Space size={[8, 8]} wrap>
+                  <Tag color="processing">邀请 {group.inviteeCount}</Tag>
+                  <Tag color="success">已 KYC {group.kycPassedCount}</Tag>
                   <Button
                     type="link"
                     size="small"
                     icon={<EyeOutlined />}
                     onClick={(event) => {
-                      event.stopPropagation()
-                      handleOpenDetail(group.inviterId)
+                      event.stopPropagation();
+                      void handleOpenDetail(group.inviterId);
                     }}
                   >
-                    详情
+                    查看详情
                   </Button>
                 </Space>
-              </Space>
+              </div>
             </div>
           ),
           children: group.invitees.map((relation) => ({
@@ -270,37 +314,41 @@ const InvitationListPage: React.FC = () => {
             selectable: false,
             isLeaf: true,
             title: (
-              <Space size={12} style={{ width: '100%', justifyContent: 'space-between' }}>
-                <Space direction="vertical" size={2}>
-                  <Text>{relation.inviteeUserName}</Text>
-                  <Text type="secondary">{relation.inviteeEmail}</Text>
-                </Space>
-                <Space size={8}>
-                  {renderBindSourceTag(relation.bindSource)}
-                  {renderKycTag(relation.inviteeKycStatus)}
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<EyeOutlined />}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      handleOpenDetail(relation.inviteeId)
-                    }}
-                  >
-                    详情
-                  </Button>
-                </Space>
-              </Space>
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <Space direction="vertical" size={4}>
+                    <Text strong>{relation.inviteeUserName}</Text>
+                    <Text type="secondary">{relation.inviteeEmail}</Text>
+                    <Text type="secondary">绑定时间：{formatDateTime(relation.boundAt)}</Text>
+                  </Space>
+
+                  <Space size={[8, 8]} wrap>
+                    {renderBindSourceTag(relation.bindSource)}
+                    {renderKycTag(relation.inviteeKycStatus)}
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<EyeOutlined />}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleOpenDetail(relation.inviteeId);
+                      }}
+                    >
+                      查看详情
+                    </Button>
+                  </Space>
+                </div>
+              </div>
             ),
           })),
-        }
+        };
       }),
-    [groupedInvitations, handleOpenDetail]
-  )
+    [handleOpenDetail, treeGroups],
+  );
 
   const detailTreeData = useMemo<DataNode[]>(() => {
     if (!detail) {
-      return []
+      return [];
     }
 
     const inviteeChildren: DataNode[] = detail.invitees.map((invitee) => ({
@@ -308,94 +356,102 @@ const InvitationListPage: React.FC = () => {
       selectable: false,
       isLeaf: true,
       title: (
-        <Space size={12} style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Space direction="vertical" size={2}>
-            <Text strong>{invitee.userName}</Text>
-            <Text type="secondary">{invitee.email}</Text>
-          </Space>
-          <Space size={8}>
-            {renderKycTag(invitee.isKycInternal)}
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={(event) => {
-                event.stopPropagation()
-                handleOpenDetail(invitee.id)
-              }}
-            >
-              详情
-            </Button>
-          </Space>
-        </Space>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <Space direction="vertical" size={4}>
+              <Text strong>{invitee.userName}</Text>
+              <Text type="secondary">{invitee.email}</Text>
+            </Space>
+            <Space size={[8, 8]} wrap>
+              {renderKycTag(invitee.isKycInternal)}
+              <Button
+                type="link"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void handleOpenDetail(invitee.id);
+                }}
+              >
+                查看详情
+              </Button>
+            </Space>
+          </div>
+        </div>
       ),
-    }))
+    }));
 
-    const currentUserKey = `current-${detail.user.id}`
+    const currentUserKey = `current-${detail.user.id}`;
     const currentUserNode: DataNode = {
       key: currentUserKey,
       selectable: false,
       title: (
-        <div onClick={() => setExpandedDetailKeys((current) => toggleExpandedKey(current, currentUserKey))}>
-          <Space size={12} style={{ width: '100%', justifyContent: 'space-between' }}>
-            <Space direction="vertical" size={2}>
+        <div
+          className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3"
+          onClick={() => setExpandedDetailKeys((current) => toggleExpandedKey(current, currentUserKey))}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <Space direction="vertical" size={4}>
               <Text strong>{detail.user.userName}</Text>
               <Text type="secondary">{detail.user.email}</Text>
             </Space>
-            <Space size={8}>
+            <Space size={[8, 8]} wrap>
               {renderKycTag(detail.user.isKycInternal)}
               <Tag color="gold">当前用户</Tag>
             </Space>
-          </Space>
+          </div>
         </div>
       ),
       children: inviteeChildren,
-    }
+    };
 
     if (!detail.inviter) {
-      return [currentUserNode]
+      return [currentUserNode];
     }
 
-    const inviterKey = `inviter-${detail.inviter.id}`
+    const inviterKey = `inviter-${detail.inviter.id}`;
 
     return [
       {
         key: inviterKey,
         selectable: false,
         title: (
-          <div onClick={() => setExpandedDetailKeys((current) => toggleExpandedKey(current, inviterKey))}>
-            <Space size={12} style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Space direction="vertical" size={2}>
+          <div
+            className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3"
+            onClick={() => setExpandedDetailKeys((current) => toggleExpandedKey(current, inviterKey))}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <Space direction="vertical" size={4}>
                 <Text strong>{detail.inviter.userName}</Text>
                 <Text type="secondary">{detail.inviter.email}</Text>
               </Space>
-              <Space size={8}>
+              <Space size={[8, 8]} wrap>
                 <Tag color="purple">上游邀请人</Tag>
                 <Button
                   type="link"
                   size="small"
                   icon={<EyeOutlined />}
                   onClick={(event) => {
-                    event.stopPropagation()
-                    handleOpenDetail(detail.inviter!.id)
+                    event.stopPropagation();
+                    void handleOpenDetail(detail.inviter!.id);
                   }}
                 >
-                  详情
+                  查看详情
                 </Button>
               </Space>
-            </Space>
+            </div>
           </div>
         ),
         children: [currentUserNode],
       },
-    ]
-  }, [detail, handleOpenDetail])
+    ];
+  }, [detail, handleOpenDetail]);
 
   const tableColumns = useMemo(
     () => [
       {
-        title: '邀请人',
-        key: 'inviter',
+        title: "邀请人",
+        key: "inviter",
         render: (_: unknown, record: TenantInvitationRelation) => (
           <Space direction="vertical" size={2}>
             <Text strong>{record.inviterUserName}</Text>
@@ -404,8 +460,8 @@ const InvitationListPage: React.FC = () => {
         ),
       },
       {
-        title: '被邀请用户',
-        key: 'invitee',
+        title: "被邀请用户",
+        key: "invitee",
         render: (_: unknown, record: TenantInvitationRelation) => (
           <Space direction="vertical" size={2}>
             <Text strong>{record.inviteeUserName}</Text>
@@ -414,184 +470,242 @@ const InvitationListPage: React.FC = () => {
         ),
       },
       {
-        title: '邀请码',
-        dataIndex: 'inviteCode',
-        key: 'inviteCode',
-        render: (value: string) => value || '-',
+        title: "邀请码",
+        dataIndex: "inviteCode",
+        key: "inviteCode",
+        render: (value: string) => value || "-",
       },
       {
-        title: '绑定来源',
-        dataIndex: 'bindSource',
-        key: 'bindSource',
+        title: "绑定来源",
+        dataIndex: "bindSource",
+        key: "bindSource",
         render: (value: string) => renderBindSourceTag(value),
       },
       {
-        title: '绑定时间',
-        dataIndex: 'boundAt',
-        key: 'boundAt',
+        title: "绑定时间",
+        dataIndex: "boundAt",
+        key: "boundAt",
         render: (value: string) => formatDateTime(value),
       },
       {
-        title: 'KYC',
-        dataIndex: 'inviteeKycStatus',
-        key: 'inviteeKycStatus',
+        title: "KYC",
+        dataIndex: "inviteeKycStatus",
+        key: "inviteeKycStatus",
         render: (value: number) => renderKycTag(value),
       },
       {
-        title: '操作',
-        key: 'actions',
+        title: "操作",
+        key: "actions",
         width: 120,
         render: (_: unknown, record: TenantInvitationRelation) => (
-          <Button type="link" icon={<EyeOutlined />} onClick={() => handleOpenDetail(record.inviteeId)}>
-            详情
+          <Button type="link" icon={<EyeOutlined />} onClick={() => void handleOpenDetail(record.inviteeId)}>
+            查看详情
           </Button>
         ),
       },
     ],
-    [handleOpenDetail]
-  )
+    [handleOpenDetail],
+  );
 
   const inviteeColumns = useMemo(
     () => [
-      { title: '用户名', dataIndex: 'userName', key: 'userName' },
-      { title: '邮箱', dataIndex: 'email', key: 'email' },
+      { title: "用户名", dataIndex: "userName", key: "userName" },
+      { title: "邮箱", dataIndex: "email", key: "email" },
       {
-        title: '邀请码',
-        dataIndex: 'invitationCode',
-        key: 'invitationCode',
-        render: (value?: string) => value || '-',
+        title: "邀请码",
+        dataIndex: "invitationCode",
+        key: "invitationCode",
+        render: (value?: string) => value || "-",
       },
       {
-        title: '注册时间',
-        dataIndex: 'registerTime',
-        key: 'registerTime',
+        title: "注册时间",
+        dataIndex: "registerTime",
+        key: "registerTime",
         render: (value: string) => formatDateTime(value),
       },
       {
-        title: '绑定来源',
-        dataIndex: 'bindSource',
-        key: 'bindSource',
+        title: "绑定来源",
+        dataIndex: "bindSource",
+        key: "bindSource",
         render: (value?: string) => renderBindSourceTag(value),
       },
       {
-        title: '绑定时间',
-        dataIndex: 'boundAt',
-        key: 'boundAt',
+        title: "绑定时间",
+        dataIndex: "boundAt",
+        key: "boundAt",
         render: (value?: string) => formatDateTime(value),
       },
       {
-        title: 'KYC',
-        dataIndex: 'isKycInternal',
-        key: 'isKycInternal',
+        title: "KYC",
+        dataIndex: "isKycInternal",
+        key: "isKycInternal",
         render: (value: number) => renderKycTag(value),
       },
       {
-        title: '操作',
-        key: 'actions',
+        title: "操作",
+        key: "actions",
         width: 120,
         render: (_: unknown, record: TenantInvitationUserSummary) => (
-          <Button type="link" icon={<EyeOutlined />} onClick={() => handleOpenDetail(record.id)}>
-            详情
+          <Button type="link" icon={<EyeOutlined />} onClick={() => void handleOpenDetail(record.id)}>
+            查看详情
           </Button>
         ),
       },
     ],
-    [handleOpenDetail]
-  )
+    [handleOpenDetail],
+  );
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Title level={2} style={{ marginBottom: 8 }}>
-            邀请关系
-          </Title>
-          <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-            采用“树状关系 + 明细列表”的组合展示。主流邀请系统通常同时提供树视图和列表视图，便于同时看结构和查明细。
-          </Paragraph>
+    <div className="space-y-6 p-6">
+      <Card
+        bordered={false}
+        className="overflow-hidden rounded-[32px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_48%,#0ea5e9_100%)] text-white shadow-[0_28px_70px_rgba(14,165,233,0.22)]"
+        bodyStyle={{ padding: 0 }}
+      >
+        <div className="relative overflow-hidden px-6 py-6 lg:px-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_26%)]" />
+          <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[26px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-[0.34em] text-sky-100/80">Invitation Network</div>
+              <div className="mt-2 text-3xl font-semibold tracking-tight text-white">邀请关系</div>
+              <div className="mt-2 text-sm leading-6 text-sky-50/90">
+                左侧按邀请人聚合查看网络结构，右侧保留逐条明细，详情抽屉用于核对单个用户的上下游链路。
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Input.Search
+                  allowClear
+                  placeholder={searchPlaceholder}
+                  title={searchPlaceholder}
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  onSearch={handleSearchSubmit}
+                  className="w-full max-w-[340px]"
+                />
+                <Select
+                  value={bindSource}
+                  options={bindSourceOptions}
+                  style={{ width: 170 }}
+                  onChange={setBindSource}
+                />
+                <Button type="primary" icon={<SearchOutlined />} onClick={handleSearchSubmit}>
+                  搜索
+                </Button>
+                <Button onClick={handleReset}>重置</Button>
+                <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading || treeLoading}>
+                  刷新
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                {
+                  label: "关系总数",
+                  value: summary.relationCount,
+                  helper: "当前筛选结果",
+                  icon: <ShareAltOutlined className="text-sky-700" />,
+                },
+                {
+                  label: "邀请人",
+                  value: summary.inviterCount,
+                  helper: "树视图分页总量",
+                  icon: <UserOutlined className="text-indigo-700" />,
+                },
+                {
+                  label: "当前页邀请用户",
+                  value: summary.currentPageInvitees,
+                  helper: "左侧聚合结果",
+                  icon: <TeamOutlined className="text-cyan-700" />,
+                },
+                {
+                  label: "当前页已 KYC",
+                  value: summary.currentPageKycPassed,
+                  helper: "用于快速核对认证覆盖",
+                  icon: <EyeOutlined className="text-emerald-700" />,
+                },
+              ].map((item) => (
+                <div key={item.label} className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs uppercase tracking-[0.16em] text-sky-100/80">{item.label}</div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90">
+                      {item.icon}
+                    </div>
+                  </div>
+                  <div className="mt-3 text-2xl font-semibold text-white">{item.value}</div>
+                  <div className="mt-1 text-xs text-sky-100/80">{item.helper}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        <Space wrap>
-          <Input.Search
-            placeholder={searchPlaceholder}
-            title={searchPlaceholder}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            onSearch={() => loadInvitations(1, pageSize)}
-            allowClear
-            style={{ width: 320 }}
-          />
-          <Select
-            value={bindSource}
-            options={bindSourceOptions}
-            style={{ width: 160 }}
-            onChange={(value) => setBindSource(value)}
-          />
-          <Button type="primary" onClick={() => loadInvitations(1, pageSize)}>
-            搜索
-          </Button>
-          <Button
-            onClick={() => {
-              setSearch('')
-              setBindSource('')
-              loadInvitations(1, pageSize, { search: '', bindSource: '' })
-            }}
-          >
-            重置
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={() => loadInvitations(page, pageSize)} loading={loading}>
-            刷新
-          </Button>
-        </Space>
-      </div>
-
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} md={8}>
-          <Card>
-            <Statistic title="当前绑定关系" value={total} prefix={<ShareAltOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card>
-            <Statistic title="有效邀请人" value={groupedInvitations.length} prefix={<UserOutlined />} />
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card>
-            <Statistic title="已完成 KYC 的被邀请用户" value={totalKycPassed} prefix={<TeamOutlined />} />
-          </Card>
-        </Col>
-      </Row>
+      </Card>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={12}>
           <Card
-            title="邀请关系树"
-            extra={<Text type="secondary">点击树节点本身也可以展开或收起，不必只点箭头</Text>}
-            bodyStyle={{ minHeight: 520 }}
+            bordered={false}
+            className="h-full rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm"
+            bodyStyle={{ padding: 24, minHeight: 620, height: "100%" }}
           >
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-medium text-slate-500">Tree View</div>
+                <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">邀请网络树</div>
+                <div className="mt-2 text-sm text-slate-600">
+                  默认收起，按邀请人分组展示。点击节点只展开当前链路，不改变原有分页和详情逻辑。
+                </div>
+              </div>
+              <div className="rounded-full bg-sky-50 px-4 py-2 text-xs font-medium text-sky-700">
+                按邀请人聚合
+              </div>
+            </div>
+
             {treeData.length === 0 ? (
               <Empty description="暂无邀请关系数据" />
             ) : (
-              <Tree
-                blockNode
-                showLine
-                selectable={false}
-                expandedKeys={expandedGroupKeys}
-                onExpand={(keys) => setExpandedGroupKeys(keys as string[])}
-                treeData={treeData}
-                style={{ background: '#fff' }}
-              />
+              <Space direction="vertical" size={16} style={{ width: "100%" }}>
+                <Tree
+                  blockNode
+                  showLine
+                  selectable={false}
+                  expandedKeys={expandedGroupKeys}
+                  onExpand={(keys) => setExpandedGroupKeys(keys as string[])}
+                  treeData={treeData}
+                  style={{ background: "transparent" }}
+                />
+                <div className="flex justify-end">
+                  <Pagination
+                    current={treePage}
+                    pageSize={treePageSize}
+                    total={treeTotal}
+                    showSizeChanger
+                    onChange={(nextPage, nextPageSize) => void loadInvitationGroups(nextPage, nextPageSize)}
+                  />
+                </div>
+              </Space>
             )}
           </Card>
         </Col>
 
         <Col xs={24} xl={12}>
           <Card
-            title="邀请关系明细"
-            extra={<Text type="secondary">适合搜索、核对和导出前检查</Text>}
-            bodyStyle={{ minHeight: 520 }}
+            bordered={false}
+            className="h-full rounded-[30px] border border-slate-200 bg-white shadow-sm"
+            bodyStyle={{ padding: 24, minHeight: 620, height: "100%" }}
           >
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-medium text-slate-500">Relation Ledger</div>
+                <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">邀请关系明细</div>
+                <div className="mt-2 text-sm text-slate-600">
+                  保留逐条记录视图，用于搜索校对、导出前核查和快速打开单个用户详情。
+                </div>
+              </div>
+              <div className="rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600">
+                表格逻辑保持不变
+              </div>
+            </div>
+
             <Table
               rowKey="id"
               loading={loading}
@@ -602,7 +716,7 @@ const InvitationListPage: React.FC = () => {
                 pageSize,
                 total,
                 showSizeChanger: true,
-                onChange: (nextPage, nextPageSize) => loadInvitations(nextPage, nextPageSize),
+                onChange: (nextPage, nextPageSize) => void loadInvitations(nextPage, nextPageSize),
               }}
               scroll={{ x: 920 }}
             />
@@ -614,35 +728,24 @@ const InvitationListPage: React.FC = () => {
         title="邀请关系详情"
         open={detailOpen}
         onClose={() => {
-          setDetailOpen(false)
-          setDetail(null)
+          setDetailOpen(false);
+          setDetail(null);
         }}
-        width={920}
+        width={980}
       >
         {detailLoading ? (
           <Text type="secondary">加载中...</Text>
         ) : !detail ? (
           <Empty description="暂无详情数据" />
         ) : (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Card title="关系图" size="small">
-              <Tree
-                blockNode
-                showLine
-                selectable={false}
-                expandedKeys={expandedDetailKeys}
-                onExpand={(keys) => setExpandedDetailKeys(keys as string[])}
-                treeData={detailTreeData}
-              />
-            </Card>
-
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
             <Row gutter={[16, 16]}>
               <Col xs={24} lg={12}>
                 <Card title="当前用户" size="small">
                   <Descriptions size="small" column={1}>
                     <Descriptions.Item label="用户名">{detail.user.userName}</Descriptions.Item>
                     <Descriptions.Item label="邮箱">{detail.user.email}</Descriptions.Item>
-                    <Descriptions.Item label="邀请码">{detail.user.invitationCode || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="邀请码">{detail.user.invitationCode || "-"}</Descriptions.Item>
                     <Descriptions.Item label="注册时间">{formatDateTime(detail.user.registerTime)}</Descriptions.Item>
                     <Descriptions.Item label="KYC">{renderKycTag(detail.user.isKycInternal)}</Descriptions.Item>
                   </Descriptions>
@@ -654,7 +757,7 @@ const InvitationListPage: React.FC = () => {
                     <Descriptions size="small" column={1}>
                       <Descriptions.Item label="用户名">{detail.inviter.userName}</Descriptions.Item>
                       <Descriptions.Item label="邮箱">{detail.inviter.email}</Descriptions.Item>
-                      <Descriptions.Item label="邀请码">{detail.inviter.invitationCode || '-'}</Descriptions.Item>
+                      <Descriptions.Item label="邀请码">{detail.inviter.invitationCode || "-"}</Descriptions.Item>
                       <Descriptions.Item label="绑定来源">{renderBindSourceTag(detail.inviter.bindSource)}</Descriptions.Item>
                       <Descriptions.Item label="绑定时间">{formatDateTime(detail.inviter.boundAt)}</Descriptions.Item>
                     </Descriptions>
@@ -666,12 +769,27 @@ const InvitationListPage: React.FC = () => {
             </Row>
 
             <Card
-              title={`下游被邀请用户 (${detail.inviteeCount})`}
+              title="邀请链路"
               size="small"
-              extra={<Text type="secondary">一个用户只能有一个上游邀请人，但可以邀请多个下游用户</Text>}
+              extra={<Text type="secondary">在树中查看该用户的上下游关系结构</Text>}
+            >
+              <Tree
+                blockNode
+                showLine
+                selectable={false}
+                expandedKeys={expandedDetailKeys}
+                onExpand={(keys) => setExpandedDetailKeys(keys as string[])}
+                treeData={detailTreeData}
+              />
+            </Card>
+
+            <Card
+              title={`下游邀请用户 (${detail.inviteeCount})`}
+              size="small"
+              extra={<Text type="secondary">一个用户只会有一个上游邀请人，但可以有多个下游邀请用户</Text>}
             >
               {detail.invitees.length === 0 ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前用户还没有邀请记录" />
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前用户还没有下游邀请记录" />
               ) : (
                 <Table
                   rowKey="id"
@@ -682,16 +800,11 @@ const InvitationListPage: React.FC = () => {
                 />
               )}
             </Card>
-
-            <Divider style={{ margin: 0 }} />
-            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-              这一版按主流邀请系统的做法做成“树视图 + 列表视图 + 详情抽屉”三层结构：上层看整体关系，中层查明细，下层看单个用户的上下游链路。
-            </Paragraph>
           </Space>
         )}
       </Drawer>
     </div>
-  )
-}
+  );
+};
 
-export default InvitationListPage
+export default InvitationListPage;

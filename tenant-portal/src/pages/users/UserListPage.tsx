@@ -19,6 +19,51 @@ const professionOptions = [
   { label: '其他', value: '4' },
 ]
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PASSWORD_LETTER_REGEX = /[A-Za-z]/
+const PASSWORD_NUMBER_REGEX = /\d/
+const PASSWORD_SPECIAL_REGEX = /[^A-Za-z0-9]/
+const PIN_REGEX = /^\d{6}$/
+const COUNTRY_CODE_REGEX = /^[A-Za-z]{2}$/
+const BIRTHDAY_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const loginPasswordRuleLabels = [
+  { key: 'length', label: '长度 8-20 位' },
+  { key: 'letter', label: '至少包含 1 个字母' },
+  { key: 'number', label: '至少包含 1 个数字' },
+  { key: 'special', label: '至少包含 1 个特殊字符' },
+] as const
+
+function isValidEmail(value: string) {
+  return EMAIL_REGEX.test(value.trim().toLowerCase())
+}
+
+function getLoginPasswordRequirementState(password: string) {
+  return {
+    length: password.length >= 8 && password.length <= 20,
+    letter: PASSWORD_LETTER_REGEX.test(password),
+    number: PASSWORD_NUMBER_REGEX.test(password),
+    special: PASSWORD_SPECIAL_REGEX.test(password),
+  }
+}
+
+function isValidLoginPassword(value: string) {
+  const state = getLoginPasswordRequirementState(value)
+  return state.length && state.letter && state.number && state.special
+}
+
+function isValidTransactionPin(value: string) {
+  return PIN_REGEX.test(value.trim())
+}
+
+function isValidBirthday(value: string) {
+  if (!BIRTHDAY_REGEX.test(value.trim())) {
+    return false
+  }
+
+  const date = new Date(`${value.trim()}T00:00:00`)
+  return !Number.isNaN(date.getTime())
+}
+
 const UserListPage: React.FC = () => {
   const [form] = Form.useForm<TenantUserSavePayload>()
   const [items, setItems] = useState<TenantAppUser[]>([])
@@ -27,6 +72,11 @@ const UserListPage: React.FC = () => {
   const [editing, setEditing] = useState<TenantAppUser | null>(null)
   const [search, setSearch] = useState('')
   const canManageUsers = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.TENANT_USERS_MANAGE))
+  const loginPassword = Form.useWatch('loginPassword', form) || ''
+  const loginPasswordRequirementState = useMemo(
+    () => getLoginPasswordRequirementState(loginPassword),
+    [loginPassword]
+  )
 
   const loadUsers = async () => {
     try {
@@ -98,7 +148,7 @@ const UserListPage: React.FC = () => {
     }
     setEditing(null)
     form.resetFields()
-    form.setFieldsValue({ gender: 1, profession: '4' })
+    form.setFieldsValue({ gender: 1, profession: '4', inviterCode: '' })
     setOpen(true)
   }
 
@@ -110,8 +160,10 @@ const UserListPage: React.FC = () => {
     try {
       const response = await tenantUserService.getUser(record.id)
       setEditing(record)
+      form.resetFields()
       form.setFieldsValue({
         ...response.data,
+        inviterCode: undefined,
         loginPassword: '',
         transactionPin: '',
       })
@@ -146,6 +198,7 @@ const UserListPage: React.FC = () => {
         const payload = { ...values }
         if (!payload.loginPassword) delete payload.loginPassword
         if (!payload.transactionPin) delete payload.transactionPin
+        delete payload.inviterCode
         await tenantUserService.updateUser(editing.id, payload)
         message.success('用户已更新')
       } else {
@@ -160,6 +213,41 @@ const UserListPage: React.FC = () => {
       }
     }
   }
+
+  const validateLoginPassword = async (_: unknown, value?: string) => {
+    if (!value) {
+      if (editing) {
+        return
+      }
+      throw new Error('请输入登录密码')
+    }
+
+    if (!isValidLoginPassword(value)) {
+      throw new Error('登录密码需为 8-20 位并包含字母、数字和特殊字符')
+    }
+  }
+
+  const loginPasswordRuleHint = (
+    <div className="space-y-1 pt-1">
+      {loginPasswordRuleLabels.map((item) => {
+        const active = loginPasswordRequirementState[item.key]
+
+        return (
+          <div
+            key={item.key}
+            className={`flex items-center gap-2 text-xs ${active ? 'text-emerald-600' : 'text-slate-500'}`}
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 rounded-full border ${
+                active ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 bg-transparent'
+              }`}
+            />
+            <span>{item.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
 
   return (
     <div className="space-y-6 p-6">
@@ -261,16 +349,59 @@ const UserListPage: React.FC = () => {
         destroyOnClose
       >
         <Form form={form} layout="vertical" autoComplete="off" className="mt-4 grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <Form.Item name="userName" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
+          <Form.Item
+            name="userName"
+            label="用户名"
+            rules={[
+              { required: true, message: '请输入用户名' },
+              { whitespace: true, message: '用户名不能为空白字符' },
+            ]}
+          >
             <Input autoComplete="new-password" />
           </Form.Item>
-          <Form.Item name="email" label="邮箱" rules={[{ required: true, message: '请输入邮箱' }]}>
+          <Form.Item
+            name="email"
+            label="邮箱"
+            rules={[
+              { required: true, message: '请输入邮箱' },
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || isValidEmail(value)) {
+                    return
+                  }
+                  throw new Error('请输入正确的邮箱地址')
+                },
+              },
+            ]}
+          >
             <Input />
           </Form.Item>
+          {!editing ? (
+            <Form.Item
+              name="inviterCode"
+              label="邀请码(选填)"
+              extra="填写后会校验邀请码是否有效，并自动绑定邀请关系。"
+            >
+              <Input placeholder="输入上级邀请码" autoComplete="off" />
+            </Form.Item>
+          ) : null}
           <Form.Item name="phone" label="手机号">
             <Input />
           </Form.Item>
-          <Form.Item name="countryCode" label="国家代码(alpha-2)">
+          <Form.Item
+            name="countryCode"
+            label="国家代码(alpha-2)"
+            rules={[
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || COUNTRY_CODE_REGEX.test(value.trim())) {
+                    return
+                  }
+                  throw new Error('国家代码需为 2 位字母')
+                },
+              },
+            ]}
+          >
             <Input placeholder="CN" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
@@ -279,17 +410,52 @@ const UserListPage: React.FC = () => {
           <Form.Item name="profession" label="职业">
             <Select options={professionOptions} />
           </Form.Item>
-          <Form.Item name="birthDay" label="生日">
+          <Form.Item
+            name="birthDay"
+            label="生日"
+            rules={[
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value || isValidBirthday(value)) {
+                    return
+                  }
+                  throw new Error('生日格式需为 YYYY-MM-DD')
+                },
+              },
+            ]}
+          >
             <Input placeholder="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item name="remark" label="备注" className="md:col-span-2">
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item name="loginPassword" label={editing ? '登录密码(留空不改)' : '登录密码'} rules={editing ? [] : [{ required: true, message: '请输入登录密码' }]}>
+          <Form.Item
+            name="loginPassword"
+            label={editing ? '登录密码(留空不改)' : '登录密码'}
+            rules={[{ validator: validateLoginPassword }]}
+            extra={loginPasswordRuleHint}
+          >
             <Input.Password autoComplete="new-password" />
           </Form.Item>
-          <Form.Item name="transactionPin" label={editing ? '交易密码(留空不改)' : '交易密码'} rules={editing ? [] : [{ required: true, message: '请输入交易密码' }]}>
-            <Input.Password />
+          <Form.Item
+            name="transactionPin"
+            label={editing ? '交易密码(留空不改)' : '交易密码'}
+            rules={[
+              ...(editing ? [] : [{ required: true, message: '请输入交易密码' }]),
+              {
+                validator: async (_rule, value?: string) => {
+                  if (!value && editing) {
+                    return
+                  }
+                  if (value && isValidTransactionPin(value)) {
+                    return
+                  }
+                  throw new Error('交易密码必须为 6 位数字')
+                },
+              },
+            ]}
+          >
+            <Input.Password autoComplete="new-password" />
           </Form.Item>
         </Form>
       </Modal>

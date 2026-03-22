@@ -30,6 +30,16 @@ export interface TenantInvitationRelation {
   inviterEmail: string
 }
 
+export interface TenantInvitationGroup {
+  inviterId: string
+  inviterUserName: string
+  inviterEmail: string
+  inviteeCount: number
+  kycPassedCount: number
+  latestBoundAt?: string
+  invitees: TenantInvitationRelation[]
+}
+
 export interface TenantInvitationUserSummary {
   id: string
   userName: string
@@ -70,6 +80,25 @@ export interface TenantAppUserKyc {
   operatorId?: string
   operatorUsername?: string
   operatorDisplayName?: string
+}
+
+export interface TenantAppUserKycDetail extends TenantAppUserKyc {
+  fullName?: string
+  gender?: string
+  dob?: string
+  placeOfBirth?: string
+  countryOfBirth?: string
+  addressStreet?: string
+  addressBuildingNumber?: string
+  addressFlatNumber?: string
+  addressTown?: string
+  addressState?: string
+  addressPostCode?: string
+  addressFormattedAddress?: string
+  tin?: string
+  metadata?: Record<string, any>
+  idCardFrontUrl?: string
+  idCardBackUrl?: string
 }
 
 export interface TenantUserListParams {
@@ -123,6 +152,7 @@ export interface TenantUserSavePayload {
   loginPassword?: string
   transactionPin?: string
   invitationCode?: string
+  inviterCode?: string
   email: string
   phoneAreaCode?: number
   phone?: string
@@ -167,6 +197,7 @@ export interface TenantUserKycReviewPayload {
 export const tenantUserService = {
   getUsers: (params?: TenantUserListParams) => api.get('/app-users', params),
   getUser: (id: string) => api.get(`/app-users/${id}`),
+  getInvitationGroups: (params?: TenantInvitationListParams) => api.get('/app-users/invitations/groups', params),
   getInvitations: (params?: TenantInvitationListParams) => api.get('/app-users/invitations', params),
   getUserInvitations: (id: string) => api.get(`/app-users/${id}/invitations`),
   createUser: (payload: TenantUserSavePayload) => api.post('/app-users', payload),
@@ -174,7 +205,7 @@ export const tenantUserService = {
   deleteUser: (id: string) => api.delete(`/app-users/${id}`),
 
   getKycs: (params?: TenantUserKycListParams) => api.get('/app-users/kyc', params),
-  getKyc: (id: string) => api.get(`/app-users/kyc/${id}`),
+  getKyc: (id: string) => api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),
   updateKyc: (id: string, payload: Partial<TenantUserKycSavePayload>) => api.put(`/app-users/kyc/${id}`, payload),
   reviewKyc: (id: string, payload: TenantUserKycReviewPayload) => api.post(`/app-users/kyc/${id}/review`, payload),
