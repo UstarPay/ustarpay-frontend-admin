@@ -1,7 +1,6 @@
-// 共享类型定义
+// Shared type definitions
 
- 
-// API 响应类型
+// API response types
 export interface ApiResponse<T = any> {
   success: boolean;
   code: number;
@@ -18,7 +17,7 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-// 统计相关类型
+// Dashboard types
 export interface DashboardStats {
   totalTenants: number;
   activeTenants: number;
@@ -29,7 +28,6 @@ export interface DashboardStats {
   dailyVolume: string;
 }
 
-// 租户统计类型
 export interface TenantStats {
   totalWallets: number;
   totalTransactions: number;
@@ -44,7 +42,7 @@ export interface ChartData {
   type?: string;
 }
 
-// 系统配置类型
+// System config types
 export interface SystemConfig {
   siteName: string;
   siteDescription: string;
@@ -86,59 +84,23 @@ export interface NotificationSettings {
   emailTemplates: Record<string, string>;
 }
 
-// 基础类型
-export * from './base'
-
-// 链相关类型
-export * from './chain'
-
-// 货币相关类型
-export * from './currency'
-
-// KMS 配置相关类型
-export * from './kms'
-
-// 存款相关类型
-export * from './deposit'
-
-// 内部转账相关类型
-export * from './internalTransfer'
-
-// 登录日志相关类型
-export * from './loginLog'
-
-// 通知相关类型
-export * from './notice'
-
-// 权限相关类型
-export * from './permission'
-
-// 角色相关类型
-export * from './role'
-
-// 租户相关类型
-export * from './tenant'
-
-// 租户计划相关类型
-export * from './tenantPlan'
-
-// 用户相关类型
-export * from './user'
-
-// 钱包相关类型
-export * from './wallet'
-
-// 卡商相关类型
-export * from './cardMerchant'
-
-// 提现相关类型
-export * from './withdrawal'
-
-// 归集相关类型
-export * from './collection'
-
-// 交易相关类型
-export * from './transaction'
-
-// 支付相关类型
-export * from './payment'
+export * from "./base";
+export * from "./chain";
+export * from "./currency";
+export * from "./kms";
+export * from "./deposit";
+export * from "./internalTransfer";
+export * from "./loginLog";
+export * from "./notice";
+export * from "./permission";
+export * from "./role";
+export * from "./tenant";
+export * from "./tenantPlan";
+export * from "./user";
+export * from "./wallet";
+export * from "./cardMerchant";
+export * from "./withdrawal";
+export * from "./collection";
+export * from "./transaction";
+export * from "./payment";
+export * from "./inviteRebate";
