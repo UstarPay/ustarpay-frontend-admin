@@ -248,6 +248,29 @@ const WithdrawHistoryPage: React.FC = () => {
 
   const progressRate = stats && stats.totalWithdrawals > 0 ? Math.round((stats.completedCount / stats.totalWithdrawals) * 100) : 0
   const failureRate = stats && stats.totalWithdrawals > 0 ? Math.round((stats.failedCount / stats.totalWithdrawals) * 100) : 0
+  const riskCards = [
+    {
+      label: '待处理',
+      value: stats?.pendingCount ?? 0,
+      description: '等待审核或继续处理',
+      bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+      color: '#1d4ed8',
+    },
+    {
+      label: '已完成',
+      value: stats?.completedCount ?? 0,
+      description: '到账与链上处理完成',
+      bg: 'linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%)',
+      color: '#15803d',
+    },
+    {
+      label: '失败',
+      value: stats?.failedCount ?? 0,
+      description: '需要复核失败原因',
+      bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+      color: '#dc2626',
+    },
+  ]
 
   const columns = [
     {
@@ -604,94 +627,90 @@ const WithdrawHistoryPage: React.FC = () => {
       </Card>
 
       <Row gutter={[20, 20]}>
-        <Col xs={24} xxl={4}>
-          <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 22 }}>
-            <div style={sectionLabelStyle}>Screening</div>
+        <Col xs={24} xl={15}>
+          <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 20 }}>
+            <div style={sectionLabelStyle}>Filter Console</div>
             <Form form={searchForm} layout="vertical" onFinish={handleSearch}>
-              <Form.Item name="status" label="状态">
-                <Select placeholder="选择状态" allowClear size="large">
-                  <Option value={WithdrawalStatus.PENDING}>待审核</Option>
-                  <Option value={WithdrawalStatus.APPROVED}>审核成功</Option>
-                  <Option value={WithdrawalStatus.REJECTED}>审核失败</Option>
-                  <Option value={WithdrawalStatus.COMPLETED}>交易成功</Option>
-                  <Option value={WithdrawalStatus.FAILED}>交易失败</Option>
-                  <Option value={WithdrawalStatus.CANCELLED}>已取消</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item name="symbol" label="币种">
-                <Select placeholder="选择币种" allowClear size="large">
-                  <Option value="USDT">USDT</Option>
-                  <Option value="USDC">USDC</Option>
-                  <Option value="ETH">ETH</Option>
-                  <Option value="BTC">BTC</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item name="dateRange" label="时间范围">
-                <RangePicker style={{ width: '100%' }} size="large" />
-              </Form.Item>
-
-              <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={loading} size="large" block>
+              <Row gutter={[12, 8]} align="bottom">
+                <Col xs={24} md={8}>
+                  <Form.Item name="status" label="状态" style={{ marginBottom: 12 }}>
+                    <Select placeholder="选择状态" allowClear size="large">
+                      <Option value={WithdrawalStatus.PENDING}>待审核</Option>
+                      <Option value={WithdrawalStatus.APPROVED}>审核成功</Option>
+                      <Option value={WithdrawalStatus.REJECTED}>审核失败</Option>
+                      <Option value={WithdrawalStatus.COMPLETED}>交易成功</Option>
+                      <Option value={WithdrawalStatus.FAILED}>交易失败</Option>
+                      <Option value={WithdrawalStatus.CANCELLED}>已取消</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="symbol" label="币种" style={{ marginBottom: 12 }}>
+                    <Select placeholder="选择币种" allowClear size="large">
+                      <Option value="USDT">USDT</Option>
+                      <Option value="USDC">USDC</Option>
+                      <Option value="ETH">ETH</Option>
+                      <Option value="BTC">BTC</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={10}>
+                  <Form.Item name="dateRange" label="时间范围" style={{ marginBottom: 12 }}>
+                    <RangePicker style={{ width: '100%' }} size="large" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <div className="flex flex-wrap gap-2">
+                <Button type="primary" htmlType="submit" icon={<SearchOutlined />} loading={loading} size="large">
                   应用筛选
                 </Button>
-                <Button size="large" block onClick={handleReset}>
+                <Button size="large" onClick={handleReset}>
                   重置条件
                 </Button>
-              </Space>
+              </div>
             </Form>
-
-            <Divider style={{ margin: '22px 0' }} />
-
-            <div style={sectionLabelStyle}>Risk Focus</div>
-            <div className="flex flex-col gap-3">
-              {[
-                { label: '待处理', value: stats?.pendingCount ?? 0, bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', color: '#1d4ed8' },
-                { label: '已完成', value: stats?.completedCount ?? 0, bg: 'linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%)', color: '#15803d' },
-                { label: '失败', value: stats?.failedCount ?? 0, bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', color: '#dc2626' },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    borderRadius: 18,
-                    padding: '16px 18px',
-                    background: item.bg,
-                    border: `1px solid ${item.color}22`,
-                    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.06)',
-                  }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <Text style={{ color: item.color, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</Text>
-                      <div className="mt-1">
-                        <Text style={{ color: '#111827', fontSize: 26, fontWeight: 700 }}>{item.value}</Text>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        minWidth: 44,
-                        height: 44,
-                        borderRadius: 14,
-                        background: 'rgba(255,255,255,0.66)',
-                        color: item.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 18,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {String(item.value).padStart(2, '0')}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </Card>
         </Col>
 
-        <Col xs={24} xxl={20}>
+        <Col xs={24} xl={9}>
+          <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 20 }}>
+            <div style={sectionLabelStyle}>Risk Focus</div>
+            <Row gutter={[12, 12]}>
+              {riskCards.map((item) => (
+                <Col xs={24} sm={8} key={item.label}>
+                  <div
+                    style={{
+                      borderRadius: 18,
+                      padding: '16px 14px',
+                      background: item.bg,
+                      border: `1px solid ${item.color}22`,
+                      boxShadow: '0 12px 24px rgba(15, 23, 42, 0.06)',
+                      minHeight: 96,
+                    }}
+                  >
+                    <div>
+                      <Text style={{ color: item.color, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {item.label}
+                      </Text>
+                      <div className="mt-2" style={{ lineHeight: 1 }}>
+                        <Text style={{ color: '#111827', fontSize: 28, fontWeight: 700 }}>
+                          {item.value}
+                        </Text>
+                      </div>
+                      <div className="mt-2">
+                        <Text style={{ color: '#64748b', fontSize: 12, lineHeight: 1.4 }}>
+                          {item.description}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </Card>
+        </Col>
+
+        <Col xs={24}>
           <Card bordered={false} style={softPanelStyle} bodyStyle={{ padding: 0 }}>
             <div
               style={{

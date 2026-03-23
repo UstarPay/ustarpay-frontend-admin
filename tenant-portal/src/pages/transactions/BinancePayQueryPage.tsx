@@ -28,7 +28,6 @@ import type {
 } from '@shared/types'
 
 const { Title, Paragraph, Text } = Typography
-const CURRENT_PROVIDER_LABEL = 'Binance Pay'
 
 type OrderFilters = {
   page: number
@@ -404,10 +403,7 @@ const BinancePayQueryPage: React.FC = () => {
                 支付管理查询台
               </Title>
               <Paragraph style={{ color: 'rgba(226,232,240,0.85)', marginBottom: 0 }}>
-                汇总支付订单进度、回调验签和处理状态。当前查询数据接入
-                {' '}
-                <Text code>{CURRENT_PROVIDER_LABEL}</Text>
-                ，页面结构与文案已按后续多渠道扩展整理。
+                汇总支付订单进度、回调验签和处理状态。
               </Paragraph>
               <Space wrap>
                 <Button
@@ -424,9 +420,6 @@ const BinancePayQueryPage: React.FC = () => {
                 >
                   刷新当前视图
                 </Button>
-                <Text style={{ color: '#93c5fd' }}>
-                  当前接入: {CURRENT_PROVIDER_LABEL} · {activeTab === 'orders' ? '订单视图' : '回调视图'}
-                </Text>
               </Space>
             </Space>
           </Col>
