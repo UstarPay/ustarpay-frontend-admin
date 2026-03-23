@@ -230,6 +230,16 @@ const menuTree: MenuNode[] = [
         label: "提现链配置",
         permissions: ["withdrawals:view"],
       },
+      {
+        key: "/transactions/binance-pay-config",
+        label: "支付渠道管理",
+        permissions: ["transactions:view"],
+      },
+      {
+        key: "/transactions/binance-pay-query",
+        label: "支付渠道订单",
+        permissions: ["transactions:view"],
+      },
     ],
   },
   {

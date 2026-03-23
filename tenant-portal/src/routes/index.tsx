@@ -32,6 +32,8 @@ import {
   TransactionDetailPage,
   TransactionListPage,
   TransactionStatsPage,
+  BinancePayConfigPage,
+  BinancePayQueryPage,
   TwoFactorAuthPage,
   UserListPage,
   WalletDetailPage,
@@ -243,6 +245,14 @@ export function AppRoutes() {
         <Route
           path="transactions/fund-flows"
           element={protect(<FundFlowListPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])}
+        />
+        <Route
+          path="transactions/binance-pay-config"
+          element={protect(<BinancePayConfigPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])}
+        />
+        <Route
+          path="transactions/binance-pay-query"
+          element={protect(<BinancePayQueryPage />, [TENANT_PERMISSION.TRANSACTIONS_VIEW])}
         />
         <Route
           path="transactions/stats"
