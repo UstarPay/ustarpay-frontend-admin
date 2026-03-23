@@ -4,10 +4,10 @@ import { AnonymousRoute, ProtectedRoute } from "@/components/ProtectedRoute";
 import { MainLayout } from "@/components/Layout";
 import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
+  AssetNetworkConfigPage,
   ApiLogPage,
   BalanceMonitorPage,
   DashboardPage,
-  DepositConfigPage,
   DepositHistoryPage,
   ForbiddenPage,
   FundAccountListPage,
@@ -42,7 +42,6 @@ import {
   WalletListPage,
   WebhookLogPage,
   WithdrawHistoryPage,
-  WithdrawalConfigPage,
   WithdrawalListPage,
   CardFundAccountListPage,
 } from "@/pages";
@@ -269,8 +268,8 @@ export function AppRoutes() {
           element={protect(<WithdrawalListPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])}
         />
         <Route
-          path="transactions/withdraw-config"
-          element={protect(<WithdrawalConfigPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])}
+          path="transactions/network-config"
+          element={<AssetNetworkConfigPage />}
         />
         <Route
           path="transactions/:id"
@@ -282,8 +281,12 @@ export function AppRoutes() {
           element={protect(<DepositHistoryPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])}
         />
         <Route
+          path="transactions/withdraw-config"
+          element={<Navigate to="/transactions/network-config" replace />}
+        />
+        <Route
           path="history/deposit-config"
-          element={protect(<DepositConfigPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])}
+          element={<Navigate to="/transactions/network-config" replace />}
         />
         <Route
           path="history/withdrawals"

@@ -207,18 +207,14 @@ const menuTree: MenuNode[] = [
     permissions: [
       "transactions:view",
       "internal_transfers:view",
+      "deposits:view",
       "withdrawals:view",
     ],
     children: [
       {
-        key: "/transactions/withdraw-config",
-        label: "提现网络配置",
-        permissions: ["withdrawals:view"],
-      },
-      {
-        key: "/history/deposit-config",
-        label: "充值网络配置",
-        permissions: ["deposits:view"],
+        key: "/transactions/network-config",
+        label: "充提网络配置",
+        permissions: ["deposits:view", "withdrawals:view"],
       },
       {
         key: "/transactions/withdraw",

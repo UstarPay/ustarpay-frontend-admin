@@ -148,11 +148,20 @@ const CardListPage: React.FC = () => {
       )
     },
     {
-      title: '卡号后四位',
-      dataIndex: 'card_number_last4',
-      key: 'card_number_last4',
-      width: 100,
-      render: (v: string) => v || '-'
+      title: '完整卡号',
+      dataIndex: 'card_number',
+      key: 'card_number',
+      width: 180,
+      render: (v: string, record: CardRecord) => {
+        const value = v || record.card_number_last4 || '-'
+        return value === '-' ? (
+          value
+        ) : (
+          <Typography.Text copyable={{ text: value }} className="font-mono text-xs">
+            {value}
+          </Typography.Text>
+        )
+      }
     },
     {
       title: '有效期',
