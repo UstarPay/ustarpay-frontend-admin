@@ -12,6 +12,7 @@ export { notificationService } from "./notificationService";
 export { notificationRecordService } from "./notificationRecordService";
 export { notificationTemplateService } from "./notificationTemplateService";
 export { paymentAdminService } from "./paymentAdminService";
+export { kycCountryFilterService } from "./kycCountryFilterService";
 export { statsService } from "./statsService";
 export { tenantService } from "./tenantService";
 export { tenantUserService } from "./tenantUserService";

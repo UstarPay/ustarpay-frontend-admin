@@ -23,6 +23,7 @@ import {
   NotificationTemplatePage,
   PasswordUpdatePage,
   ProfilePage,
+  KycCountryFilterPage,
   TransferFeeConfigPage,
   UsernamePolicyPage,
   SecondaryPasswordUpdatePage,
@@ -306,6 +307,10 @@ export function AppRoutes() {
         <Route
           path="settings/username-policy"
           element={protect(<UsernamePolicyPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
+        />
+        <Route
+          path="settings/kyc-country-filter"
+          element={protect(<KycCountryFilterPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
         />
         <Route
           path="settings/transfer-fee"

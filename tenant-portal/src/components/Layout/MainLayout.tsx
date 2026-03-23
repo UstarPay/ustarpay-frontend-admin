@@ -313,6 +313,11 @@ const menuTree: MenuNode[] = [
         permissions: ["config:view"],
       },
       {
+        key: "/settings/kyc-country-filter",
+        label: "L1国家过滤",
+        permissions: ["config:view"],
+      },
+      {
         key: "/settings/transfer-fee",
         label: "划转手续费",
         permissions: ["config:view"],
