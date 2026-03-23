@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ApartmentOutlined,
-  CheckCircleOutlined,
   CloseCircleOutlined,
   InfoCircleOutlined,
   ReloadOutlined,
@@ -54,8 +53,6 @@ const SCENE_META: Record<
   {
     heroLabel: string;
     heroGradient: string;
-    quickTitle: string;
-    quickDescription: string;
     infoBorder: string;
     infoBackground: string;
     infoIconBackground: string;
@@ -65,8 +62,6 @@ const SCENE_META: Record<
     heroLabel: "WITHDRAW NETWORK CENTER",
     heroGradient:
       "bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#38bdf8_100%)]",
-    quickTitle: "提现网络策略",
-    quickDescription: "控制提现入口、校验链路与币种开放范围，保存后立即同步到相关业务流程。",
     infoBorder: "border-sky-100",
     infoBackground: "bg-sky-50/90",
     infoIconBackground: "bg-sky-500",
@@ -75,8 +70,6 @@ const SCENE_META: Record<
     heroLabel: "DEPOSIT NETWORK CENTER",
     heroGradient:
       "bg-[linear-gradient(135deg,#134e4a_0%,#0f766e_52%,#14b8a6_100%)]",
-    quickTitle: "充值网络策略",
-    quickDescription: "统一管理充值链路与币种展示范围，确保用户入口与接口规则保持一致。",
     infoBorder: "border-emerald-100",
     infoBackground: "bg-emerald-50/90",
     infoIconBackground: "bg-emerald-500",
@@ -188,7 +181,6 @@ export default function AssetSupportConfigManager({
       ).length,
     [currencies, enabledMap],
   );
-  const totalDisabledCount = Math.max(totalPairCount - totalEnabledCount, 0);
   const filteredDisabledCount = Math.max(rows.length - enabledCount, 0);
 
   const heroStats = [
@@ -197,12 +189,14 @@ export default function AssetSupportConfigManager({
       label: "系统币种对",
       value: totalPairCount,
       description: "随系统币种列表同步更新",
+      className: "bg-white/10 border border-white/15",
     },
     {
       key: "enabled",
       label: "整体已启用",
       value: totalEnabledCount,
       description: "保存后按启用结果生效",
+      className: "bg-slate-950/20 border border-white/10",
     },
   ];
 
@@ -334,89 +328,64 @@ export default function AssetSupportConfigManager({
 
   return (
     <div className="space-y-6">
-      <div
-        className={`overflow-hidden rounded-[30px] ${sceneMeta.heroGradient} p-6 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)]`}
-      >
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_360px]">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-white/70">
-              {sceneMeta.heroLabel}
-            </div>
-            <div className="mt-4 flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-2xl backdrop-blur">
-                <SwapOutlined />
+      <div className="rounded-[28px] bg-[radial-gradient(circle_at_top_left,#dbeafe_0,#eff6ff_32%,#f8fafc_100%)] p-5">
+        <div
+          className={`overflow-hidden rounded-[24px] ${sceneMeta.heroGradient} px-7 py-6 text-white shadow-sm`}
+        >
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="text-xs uppercase tracking-[0.24em] text-white/75">
+                {sceneMeta.heroLabel}
               </div>
-              <div className="min-w-0">
-                <div className="text-3xl font-semibold tracking-tight md:text-4xl">
-                  {title}
-                </div>
-                <div className="mt-3 max-w-3xl text-sm leading-7 text-white/85">
-                  {description}
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/80">
-                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-                    统一入口管理
-                  </span>
-                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-                    基于系统币种列表同步
-                  </span>
-                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-                    保存后实时生效
-                  </span>
-                </div>
+              <div className="mt-3 text-[2.2rem] font-semibold leading-tight tracking-tight">
+                {title}
               </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4">
-            <div className="rounded-[24px] bg-white/95 p-5 text-slate-900 shadow-2xl shadow-slate-900/15">
-              <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                Quick Actions
-              </div>
-              <div className="mt-2 text-lg font-semibold">
-                {sceneMeta.quickTitle}
-              </div>
-              <div className="mt-2 text-sm leading-6 text-slate-500">
-                {sceneMeta.quickDescription}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Button
-                  size="large"
-                  icon={<ReloadOutlined />}
-                  onClick={loadData}
-                  loading={loading}
-                >
-                  刷新数据
-                </Button>
-                <Button
-                  size="large"
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={handleSave}
-                  loading={saving}
-                >
-                  保存配置
-                </Button>
+              <div className="mt-3 text-sm leading-6 text-white/85">
+                {description}
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {heroStats.map((item) => (
-                <div
-                  key={item.key}
-                  className="rounded-[22px] border border-white/12 bg-white/10 p-4 backdrop-blur"
-                >
-                  <div className="text-xs uppercase tracking-[0.18em] text-white/70">
-                    {item.label}
-                  </div>
-                  <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
-                    {item.value}
-                  </div>
-                  <div className="mt-2 text-sm text-white/75">
-                    {item.description}
-                  </div>
+            <div className="flex flex-col gap-3 lg:min-w-[360px]">
+              <div className="rounded-[22px] bg-white px-5 py-4 text-slate-900 shadow-lg shadow-slate-950/10">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    size="large"
+                    icon={<ReloadOutlined />}
+                    onClick={loadData}
+                    loading={loading}
+                  >
+                    刷新数据
+                  </Button>
+                  <Button
+                    size="large"
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSave}
+                    loading={saving}
+                  >
+                    保存配置
+                  </Button>
                 </div>
-              ))}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {heroStats.map((item) => (
+                  <div
+                    key={item.key}
+                    className={`rounded-2xl p-4 backdrop-blur ${item.className}`}
+                  >
+                    <div className="text-xs uppercase tracking-[0.2em] text-sky-100">
+                      {item.label}
+                    </div>
+                    <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                      {item.value}
+                    </div>
+                    <div className="mt-1 text-xs leading-5 text-sky-100">
+                      {item.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -444,14 +413,14 @@ export default function AssetSupportConfigManager({
         {overviewCards.map((item) => (
           <div
             key={item.key}
-            className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   {item.label}
                 </div>
-                <div className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
+                <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
                   {item.value}
                 </div>
                 <div className="mt-2 text-sm leading-6 text-slate-500">
@@ -468,17 +437,28 @@ export default function AssetSupportConfigManager({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm shadow-slate-200/70">
-        <div className="border-b border-slate-100 px-6 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
           <div className="text-2xl font-semibold tracking-tight text-slate-900">
             配置工作台
           </div>
-          <div className="mt-2 text-sm leading-6 text-slate-500">
-            支持按链、币种与名称快速筛选后逐条启用或停用。保存后，相关业务入口与接口会统一按当前配置生效。
+          <div className="mt-1 text-sm text-slate-500">
+            筛选网络与币种，批量调整启用状态并保存生效。
           </div>
         </div>
+        <Tag className="!m-0 rounded-full border-0 bg-amber-50 px-3 py-1 text-sm text-amber-600">
+          当前列表启用 {enabledCount} 项
+        </Tag>
+      </div>
 
-        <div className="border-b border-slate-100 px-6 py-5">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <div className="mb-3">
+            <div className="text-sm font-semibold text-slate-900">筛选与搜索</div>
+            <div className="mt-0.5 text-xs text-slate-500">
+              组合条件快速收敛可配置网络，并支持当前筛选结果批量操作。
+            </div>
+          </div>
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <Space wrap size={[12, 12]}>
               <Input.Search
@@ -499,9 +479,6 @@ export default function AssetSupportConfigManager({
             </Space>
 
             <Space wrap size={[12, 12]}>
-              <Tag className="!m-0 rounded-full border-0 bg-amber-50 px-3 py-1 text-sm text-amber-600">
-                当前列表启用 {enabledCount} 项
-              </Tag>
               <Button
                 size="large"
                 disabled={rows.length === 0 || saving}
@@ -545,17 +522,6 @@ export default function AssetSupportConfigManager({
             }}
             scroll={{ x: 960 }}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-        <div className="flex items-center gap-2">
-          <CheckCircleOutlined className="text-emerald-500" />
-          <span>整体已启用 {totalEnabledCount} 项</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CloseCircleOutlined className="text-rose-500" />
-          <span>整体停用 {totalDisabledCount} 项</span>
         </div>
       </div>
     </div>
