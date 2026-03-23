@@ -2,6 +2,7 @@
 import { Button, Card, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag, Typography, message } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { TENANT_PERMISSION } from '@/constants/rbac'
+import { usernamePolicyService, type TenantUsernamePolicy } from '@/services/usernamePolicyService'
 import { tenantUserService, type TenantAppUser, type TenantUserSavePayload } from '@/services/tenantUserService'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -26,6 +27,66 @@ const PASSWORD_SPECIAL_REGEX = /[^A-Za-z0-9]/
 const PIN_REGEX = /^\d{6}$/
 const COUNTRY_CODE_REGEX = /^[A-Za-z]{2}$/
 const BIRTHDAY_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const USER_NAME_ALLOWED_REGEX = /^[A-Za-z][A-Za-z0-9._-]{5,19}$/
+const USER_NAME_POLICY_REPLACER = /[._-\s]/g
+const USER_NAME_RESERVED_EXACT = new Set([
+  'admin',
+  'administrator',
+  'root',
+  'system',
+  'support',
+  'service',
+  'official',
+  'security',
+  'compliance',
+  'staff',
+  'team',
+  'moderator',
+  'government',
+  'gov',
+  'police',
+  'court',
+  'embassy',
+  'consulate',
+  'president',
+  'minister',
+  'centralbank',
+  'customerservice',
+])
+const USER_NAME_RESERVED_FRAGMENTS = [
+  'ustarpay',
+  'ustar',
+  'visa',
+  'mastercard',
+  'paypal',
+  'apple',
+  'google',
+  'meta',
+  'instagram',
+  'facebook',
+  'whatsapp',
+  'telegram',
+  'youtube',
+  'discord',
+  'tiktok',
+  'binance',
+  'coinbase',
+  'revolut',
+  'sumsub',
+  'stripe',
+  'openai',
+  'chatgpt',
+  'porn',
+  'nude',
+  'sex',
+  'fuck',
+  'bitch',
+  'shit',
+  'nazi',
+  'hitler',
+  'terror',
+  'isis',
+]
 const loginPasswordRuleLabels = [
   { key: 'length', label: '长度 8-20 位' },
   { key: 'letter', label: '至少包含 1 个字母' },
@@ -35,6 +96,27 @@ const loginPasswordRuleLabels = [
 
 function isValidEmail(value: string) {
   return EMAIL_REGEX.test(value.trim().toLowerCase())
+}
+
+function normalizeUserNamePolicyKey(value: string) {
+  return value.trim().toLowerCase().replace(USER_NAME_POLICY_REPLACER, '')
+}
+
+function isValidUserName(value: string, policy?: TenantUsernamePolicy | null) {
+  const trimmed = value.trim()
+  if (!USER_NAME_ALLOWED_REGEX.test(trimmed)) {
+    return false
+  }
+
+  const policyKey = normalizeUserNamePolicyKey(trimmed)
+  const exactTerms = policy?.effectiveExact?.length ? policy.effectiveExact : Array.from(USER_NAME_RESERVED_EXACT)
+  const fragmentTerms = policy?.effectiveFragments?.length ? policy.effectiveFragments : USER_NAME_RESERVED_FRAGMENTS
+
+  if (new Set(exactTerms.map((item) => normalizeUserNamePolicyKey(item))).has(policyKey)) {
+    return false
+  }
+
+  return !fragmentTerms.some((item) => policyKey.includes(normalizeUserNamePolicyKey(item)))
 }
 
 function getLoginPasswordRequirementState(password: string) {
@@ -71,6 +153,7 @@ const UserListPage: React.FC = () => {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<TenantAppUser | null>(null)
   const [search, setSearch] = useState('')
+  const [usernamePolicy, setUsernamePolicy] = useState<TenantUsernamePolicy | null>(null)
   const canManageUsers = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.TENANT_USERS_MANAGE))
   const loginPassword = Form.useWatch('loginPassword', form) || ''
   const loginPasswordRequirementState = useMemo(
@@ -92,6 +175,10 @@ const UserListPage: React.FC = () => {
 
   useEffect(() => {
     loadUsers()
+    usernamePolicyService
+      .getPolicy()
+      .then((response) => setUsernamePolicy(response.data || null))
+      .catch(() => setUsernamePolicy(null))
   }, [])
 
   const activeCount = useMemo(() => items.filter((item) => item.status === 1).length, [items])
@@ -227,6 +314,16 @@ const UserListPage: React.FC = () => {
     }
   }
 
+  const validateUserName = async (_: unknown, value?: string) => {
+    if (!value || !value.trim()) {
+      throw new Error('请输入用户名')
+    }
+
+    if (!isValidUserName(value, usernamePolicy)) {
+      throw new Error('用户名需 6-20 位，以字母开头，只能包含字母、数字、点、下划线和连字符，且不能使用受限名称')
+    }
+  }
+
   const loginPasswordRuleHint = (
     <div className="space-y-1 pt-1">
       {loginPasswordRuleLabels.map((item) => {
@@ -353,8 +450,7 @@ const UserListPage: React.FC = () => {
             name="userName"
             label="用户名"
             rules={[
-              { required: true, message: '请输入用户名' },
-              { whitespace: true, message: '用户名不能为空白字符' },
+              { validator: validateUserName },
             ]}
           >
             <Input autoComplete="new-password" />

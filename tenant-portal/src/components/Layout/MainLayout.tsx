@@ -300,12 +300,17 @@ const menuTree: MenuNode[] = [
     key: "/settings",
     icon: <SettingOutlined />,
     label: "\u7cfb\u7edf\u8bbe\u7f6e",
-    permissions: ["tenant:view"],
+    permissions: ["tenant:view", "config:view"],
     children: [
       {
         key: "/settings/profile",
         label: "\u8d26\u6237\u8d44\u6599",
         permissions: ["tenant:view"],
+      },
+      {
+        key: "/settings/username-policy",
+        label: "\u7528\u6237\u540d\u89c4\u5219",
+        permissions: ["config:view"],
       },
     ],
   },
