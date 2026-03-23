@@ -13,6 +13,7 @@ import {
   Input,
   Modal,
   Row,
+  Segmented,
   Select,
   Space,
   Table,
@@ -23,11 +24,9 @@ import {
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
-  DownOutlined,
   EyeOutlined,
   ReloadOutlined,
   SearchOutlined,
-  UpOutlined,
 } from "@ant-design/icons";
 import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
@@ -39,15 +38,10 @@ import {
 } from "@/services/tenantUserService";
 import { useAuthStore } from "@/stores/authStore";
 
-const { Title, Text, Paragraph } = Typography;
 const { RangePicker } = DatePicker;
+const { Paragraph, Text, Title } = Typography;
 
-const kycStatusOptions = [
-  { label: "待审核", value: "0" },
-  { label: "已通过", value: "1" },
-  { label: "已驳回", value: "2" },
-];
-
+type KycLevel = "l1" | "l2";
 type ReviewMode = "approve" | "reject";
 
 interface KycSearchFormValues {
@@ -73,23 +67,32 @@ interface PaginationState {
   total: number;
 }
 
+const levelOptions = [
+  { label: "L1 内部审核", value: "l1" },
+  { label: "L2 人脸核验", value: "l2" },
+] as const;
+
+const kycStatusOptions = [
+  { label: "待审核", value: "0" },
+  { label: "已通过", value: "1" },
+  { label: "已驳回", value: "2" },
+];
+
 function formatDateTime(value?: string) {
-  if (!value) return "-";
+  if (!value) {
+    return "-";
+  }
   const parsed = dayjs(value);
   return parsed.isValid() ? parsed.format("YYYY-MM-DD HH:mm:ss") : value;
 }
 
-function isPendingStatus(status: number) {
-  return Number(status) === 0;
-}
-
 function getStatusTag(status: number) {
-  const option = kycStatusOptions.find((item) => Number(item.value) === status);
+  const option = kycStatusOptions.find((item) => Number(item.value) === Number(status));
   const color = status === 1 ? "success" : status === 2 ? "error" : "processing";
   return <Tag color={color}>{option?.label || status}</Tag>;
 }
 
-function buildOperatorLabel(record: TenantAppUserKyc) {
+function buildOperatorLabel(record: Pick<TenantAppUserKyc, "operatorUsername" | "operatorDisplayName">) {
   if (!record.operatorUsername && !record.operatorDisplayName) {
     return "-";
   }
@@ -103,10 +106,12 @@ function buildQueryParams(
   values: KycSearchFormValues,
   page: number,
   pageSize: number,
+  level: KycLevel,
 ): TenantUserKycListParams {
   const params: TenantUserKycListParams = {
     page,
     pageSize,
+    level,
     search: values.search?.trim() || undefined,
     status: values.status || undefined,
     userName: values.userName?.trim() || undefined,
@@ -136,9 +141,18 @@ function buildQueryParams(
   return params;
 }
 
+function getLevelTitle(level: KycLevel) {
+  return level === "l1" ? "L1 内部审核" : "L2 人脸核验";
+}
+
+function isPendingStatus(status: number) {
+  return Number(status) === 0;
+}
+
 const KycListPage: React.FC = () => {
   const [filterForm] = Form.useForm<KycSearchFormValues>();
   const [reviewForm] = Form.useForm<{ rejectReason?: string }>();
+  const [level, setLevel] = useState<KycLevel>("l1");
   const [items, setItems] = useState<TenantAppUserKyc[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -147,7 +161,6 @@ const KycListPage: React.FC = () => {
   const [reviewMode, setReviewMode] = useState<ReviewMode>("approve");
   const [reviewingItem, setReviewingItem] = useState<TenantAppUserKyc | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [pagination, setPagination] = useState<PaginationState>({
     current: 1,
     pageSize: 10,
@@ -160,13 +173,11 @@ const KycListPage: React.FC = () => {
   const loadData = useCallback(
     async (page: number, pageSize: number) => {
       const values = filterForm.getFieldsValue();
-
       try {
         setLoading(true);
-        const response = await tenantUserService.getKycs(buildQueryParams(values, page, pageSize));
+        const response = await tenantUserService.getKycs(buildQueryParams(values, page, pageSize, level));
         const nextItems = response.data?.items || [];
         const nextPagination = response.data?.pagination;
-
         setItems(nextItems);
         setPagination({
           current: nextPagination?.page || page,
@@ -179,7 +190,7 @@ const KycListPage: React.FC = () => {
         setLoading(false);
       }
     },
-    [filterForm],
+    [filterForm, level],
   );
 
   useEffect(() => {
@@ -201,20 +212,19 @@ const KycListPage: React.FC = () => {
 
   const handleView = async (id: string) => {
     try {
-      const response = await tenantUserService.getKyc(id);
+      const response = await tenantUserService.getKyc(id, level);
       setDetailItem(response.data || null);
       setDetailOpen(true);
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "加载 KYC 详情失败");
+      message.error(error instanceof Error ? error.message : "加载详情失败");
     }
   };
 
   const openReviewModal = (mode: ReviewMode, item: TenantAppUserKyc) => {
     if (!canManageKyc) {
-      message.warning("当前账号只有查看权限");
+      message.warning("当前账号仅有查看权限");
       return;
     }
-
     setReviewMode(mode);
     setReviewingItem(item);
     reviewForm.resetFields();
@@ -232,10 +242,10 @@ const KycListPage: React.FC = () => {
       const payload: TenantUserKycReviewPayload = {
         action: reviewMode,
         rejectReason: values.rejectReason?.trim() || undefined,
+        level,
       };
-
       await tenantUserService.reviewKyc(reviewingItem.id, payload);
-      message.success(reviewMode === "approve" ? "KYC 审核已通过" : "KYC 已驳回");
+      message.success(reviewMode === "approve" ? "审核已通过" : "审核已驳回");
       setReviewOpen(false);
       setReviewingItem(null);
       await loadData(pagination.current, pagination.pageSize);
@@ -270,18 +280,10 @@ const KycListPage: React.FC = () => {
         render: (value?: string) => value || "-",
       },
       {
-        title: "名",
-        dataIndex: "firstName",
-        key: "firstName",
-        width: 120,
-        render: (value?: string) => value || "-",
-      },
-      {
-        title: "姓",
-        dataIndex: "lastName",
-        key: "lastName",
-        width: 120,
-        render: (value?: string) => value || "-",
+        title: "姓名",
+        key: "name",
+        width: 160,
+        render: (_value, record) => `${record.firstName || "-"} ${record.lastName || ""}`.trim(),
       },
       {
         title: "手机号",
@@ -294,11 +296,11 @@ const KycListPage: React.FC = () => {
         title: "国籍",
         dataIndex: "nationality",
         key: "nationality",
-        width: 110,
+        width: 120,
         render: (value?: string) => value || "-",
       },
       {
-        title: "居住国家",
+        title: "地址国家",
         dataIndex: "addressCountry",
         key: "addressCountry",
         width: 120,
@@ -337,7 +339,7 @@ const KycListPage: React.FC = () => {
         dataIndex: "failureReason",
         key: "failureReason",
         width: 220,
-        render: (value?: string) => value || "-",
+        render: (value: string | undefined, record: TenantAppUserKyc) => value || record.rejectReason || "-",
       },
       {
         title: "操作员",
@@ -348,7 +350,7 @@ const KycListPage: React.FC = () => {
       {
         title: "操作",
         key: "actions",
-        width: 280,
+        width: 260,
         fixed: "right",
         render: (_value, record) => (
           <Space wrap size={[4, 4]}>
@@ -381,216 +383,152 @@ const KycListPage: React.FC = () => {
         ),
       },
     ],
-    [canManageKyc],
+    [canManageKyc, level],
   );
 
   return (
     <div className="space-y-6 p-6">
-      <Card
-        bordered={false}
-        className="overflow-hidden rounded-[32px] border border-[#dbe8f6] bg-[linear-gradient(135deg,#f7fbff_0%,#eef6ff_48%,#ffffff_100%)] shadow-[0_24px_60px_rgba(59,130,246,0.10)]"
-        bodyStyle={{ padding: 0 }}
-      >
-        <div className="relative overflow-hidden px-6 py-6 lg:px-8">
-          <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f172a_0%,#2563eb_46%,#38bdf8_100%)]" />
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.34em] text-sky-700/70">KYC Review Desk</div>
-              <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">KYC 审核管理</div>
-              <Paragraph className="mt-3 !mb-0 max-w-2xl text-sm leading-6 text-slate-600">
-                统一查看认证记录、审核状态、操作员轨迹和失败原因。查询参数、分页逻辑和审核动作保持原有行为。
-              </Paragraph>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => void loadData(pagination.current, pagination.pageSize)}
-                  loading={loading}
-                >
-                  刷新列表
-                </Button>
+      <Card bordered={false} className="rounded-[32px] border border-slate-200 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <div className="text-xs uppercase tracking-[0.24em] text-sky-700/70">KYC Review Desk</div>
+            <Title level={2} style={{ marginTop: 12, marginBottom: 8 }}>
+              KYC 分层审核中心
+            </Title>
+            <Paragraph style={{ marginBottom: 0, color: "#475569" }}>
+              将 L1 内部审核和 L2 人脸核验拆开处理。当前列表、详情和审核动作都会跟随所选层级联动。
+            </Paragraph>
+          </div>
+          <Space direction="vertical" size="middle" style={{ minWidth: 280 }}>
+            <Segmented
+              block
+              options={levelOptions as any}
+              value={level}
+              onChange={(value) => setLevel(value as KycLevel)}
+            />
+            <Button icon={<ReloadOutlined />} onClick={() => void loadData(pagination.current, pagination.pageSize)} loading={loading}>
+              刷新列表
+            </Button>
+          </Space>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "当前层级", value: getLevelTitle(level), helper: "切换后会同步刷新列表" },
+            { label: "记录总数", value: String(summary.total), helper: "当前筛选结果" },
+            { label: "待审核", value: String(summary.pending), helper: "待人工处理" },
+            { label: "已通过 / 已驳回", value: `${summary.approved} / ${summary.rejected}`, helper: "本页状态分布" },
+          ].map((item, index) => (
+            <div
+              key={item.label}
+              className={`rounded-[24px] border px-4 py-4 ${
+                index === 0 ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-slate-50"
+              }`}
+            >
+              <div className={`text-xs uppercase tracking-[0.14em] ${index === 0 ? "text-slate-300" : "text-slate-500"}`}>
+                {item.label}
+              </div>
+              <div className={`mt-3 text-2xl font-semibold ${index === 0 ? "text-white" : "text-slate-900"}`}>
+                {item.value}
+              </div>
+              <div className={`mt-1 text-xs ${index === 0 ? "text-slate-300" : "text-slate-500"}`}>
+                {item.helper}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "记录总数", value: summary.total, helper: "当前筛选结果" },
-                { label: "待审核", value: summary.pending, helper: "当前页可处理项" },
-                { label: "已通过", value: summary.approved, helper: "当前页状态统计" },
-                { label: "已驳回", value: summary.rejected, helper: "当前页失败记录" },
-              ].map((item, index) => (
-                <div
-                  key={item.label}
-                  className={`rounded-[24px] border border-slate-200 px-4 py-4 ${
-                    index === 0
-                      ? "bg-slate-900 text-white"
-                      : index === 1
-                        ? "bg-amber-50"
-                        : index === 2
-                          ? "bg-emerald-50"
-                          : "bg-rose-50"
-                  }`}
-                >
-                  <div className={`text-xs uppercase tracking-[0.16em] ${index === 0 ? "text-slate-300" : "text-slate-500"}`}>
-                    {item.label}
-                  </div>
-                  <div className={`mt-3 text-3xl font-semibold ${index === 0 ? "text-white" : "text-slate-900"}`}>
-                    {item.value}
-                  </div>
-                  <div className={`mt-1 text-xs ${index === 0 ? "text-slate-300" : "text-slate-500"}`}>
-                    {item.helper}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </Card>
 
-      <Card
-        bordered={false}
-        className="rounded-[30px] border border-slate-200 bg-white shadow-sm"
-        bodyStyle={{ padding: 24 }}
-      >
+      <Card bordered={false} className="rounded-[30px] border border-slate-200 shadow-sm">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-sm font-medium text-slate-500">Filter Console</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">筛选条件</div>
-            <div className="mt-2 text-sm text-slate-600">
-              默认展示核心搜索和状态；高级项折叠收纳，避免顶部输入框过多影响浏览。
-            </div>
+            <div className="mt-2 text-sm text-slate-600">基础条件与时间范围共用同一套逻辑，仅按照当前层级生效。</div>
           </div>
           <div className="rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600">
-            查询逻辑未改动
+            当前审核层级：{getLevelTitle(level)}
           </div>
         </div>
 
         <Form form={filterForm} layout="vertical">
           <Row gutter={16}>
-            <Col xs={24} md={12} lg={10}>
+            <Col xs={24} md={12} lg={8}>
               <Form.Item name="search" label="综合搜索">
                 <Input
-                  placeholder="用户名、业务 ID、邮箱、姓名、手机号、操作员"
                   allowClear
                   prefix={<SearchOutlined className="text-slate-400" />}
+                  placeholder="用户名、业务 ID、邮箱、姓名、手机号、操作员"
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12} lg={6}>
+            <Col xs={24} md={12} lg={4}>
               <Form.Item name="status" label="审核状态">
                 <Select allowClear options={kycStatusOptions} placeholder="全部状态" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12} lg={4}>
-              <Form.Item label=" " colon={false}>
-                <Button
-                  type="link"
-                  icon={filtersExpanded ? <UpOutlined /> : <DownOutlined />}
-                  onClick={() => setFiltersExpanded((current) => !current)}
-                  className="!px-0"
-                >
-                  {filtersExpanded ? "收起高级筛选" : "展开高级筛选"}
-                </Button>
+              <Form.Item name="userName" label="用户名">
+                <Input allowClear />
               </Form.Item>
             </Col>
-            <Col xs={24} md={12} lg={4}>
-              <Form.Item label=" " colon={false}>
-                <div className="flex flex-wrap justify-end gap-2">
-                  <Button type="primary" icon={<SearchOutlined />} onClick={() => void handleSearch()}>
-                    搜索
-                  </Button>
-                  <Button onClick={() => void handleReset()}>重置</Button>
-                </div>
+            <Col xs={24} md={12} lg={8}>
+              <Form.Item name="submittedRange" label="提交时间">
+                <RangePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
 
-          {filtersExpanded ? (
-            <>
-              <Row gutter={16}>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="userName" label="用户名">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="businessId" label="业务 ID">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={6}>
-                  <Form.Item name="email" label="邮箱">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="firstName" label="名">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="lastName" label="姓">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={6}>
-                  <Form.Item name="phone" label="手机号">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-              </Row>
+          <Row gutter={16}>
+            <Col xs={24} md={12} lg={4}>
+              <Form.Item name="businessId" label="业务 ID">
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12} lg={6}>
+              <Form.Item name="email" label="邮箱">
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12} lg={4}>
+              <Form.Item name="phone" label="手机号">
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12} lg={4}>
+              <Form.Item name="nationality" label="国籍">
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12} lg={6}>
+              <Form.Item name="operator" label="操作员">
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+          </Row>
 
-              <Row gutter={16}>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="nationality" label="国籍">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="addressCountry" label="居住国家">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <Form.Item name="operator" label="操作员">
-                    <Input allowClear />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="submittedRange" label="提交时间">
-                    <RangePicker style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="approvedRange" label="通过时间">
-                    <RangePicker style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="rejectedRange" label="驳回时间">
-                    <RangePicker style={{ width: "100%" }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </>
-          ) : null}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => void handleSearch()}>
+              搜索
+            </Button>
+            <Button onClick={() => void handleReset()}>重置</Button>
+          </div>
         </Form>
       </Card>
 
-      <Card
-        bordered={false}
-        className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm"
-        bodyStyle={{ padding: 24 }}
-      >
+      <Card bordered={false} className="rounded-[30px] border border-slate-200 shadow-sm">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-sm font-medium text-slate-500">Review Queue</div>
-            <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">KYC 记录列表</div>
+            <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+              {getLevelTitle(level)}记录列表
+            </div>
             <div className="mt-2 text-sm text-slate-600">
-              详情查看、通过、驳回入口与原逻辑一致，仅调整为更清晰的工作台式布局。
+              列表、详情和审核按钮全部跟随当前层级切换，避免 L1 / L2 状态混看。
             </div>
           </div>
           <div className="rounded-full bg-sky-50 px-4 py-2 text-xs font-medium text-sky-700">
-            支持横向滚动查看全部字段
+            支持横向滚动查看完整字段
           </div>
         </div>
 
@@ -599,7 +537,7 @@ const KycListPage: React.FC = () => {
           loading={loading}
           columns={columns}
           dataSource={items}
-          scroll={{ x: 2400 }}
+          scroll={{ x: 2200 }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
@@ -611,7 +549,7 @@ const KycListPage: React.FC = () => {
       </Card>
 
       <Drawer
-        title="KYC 详情"
+        title={`${getLevelTitle(level)}详情`}
         open={detailOpen}
         width={760}
         destroyOnClose
@@ -624,18 +562,13 @@ const KycListPage: React.FC = () => {
           <Space direction="vertical" size="large" style={{ width: "100%" }}>
             <Card size="small">
               <Descriptions column={1} bordered size="small">
-                <Descriptions.Item label="审核状态">
-                  {getStatusTag(Number(detailItem.status))}
-                </Descriptions.Item>
+                <Descriptions.Item label="审核层级">{getLevelTitle(level)}</Descriptions.Item>
+                <Descriptions.Item label="审核状态">{getStatusTag(Number(detailItem.status))}</Descriptions.Item>
                 <Descriptions.Item label="提交时间">
                   {formatDateTime(detailItem.submittedAt || detailItem.createdAt)}
                 </Descriptions.Item>
-                <Descriptions.Item label="通过时间">
-                  {formatDateTime(detailItem.approvedAt)}
-                </Descriptions.Item>
-                <Descriptions.Item label="驳回时间">
-                  {formatDateTime(detailItem.rejectedAt)}
-                </Descriptions.Item>
+                <Descriptions.Item label="通过时间">{formatDateTime(detailItem.approvedAt)}</Descriptions.Item>
+                <Descriptions.Item label="驳回时间">{formatDateTime(detailItem.rejectedAt)}</Descriptions.Item>
                 <Descriptions.Item label="失败原因">
                   {detailItem.failureReason || detailItem.rejectReason || "-"}
                 </Descriptions.Item>
@@ -647,13 +580,16 @@ const KycListPage: React.FC = () => {
                 <Descriptions.Item label="用户名">{detailItem.userName || "-"}</Descriptions.Item>
                 <Descriptions.Item label="用户 ID">{detailItem.userId || "-"}</Descriptions.Item>
                 <Descriptions.Item label="业务 ID">{detailItem.businessId || "-"}</Descriptions.Item>
-                <Descriptions.Item label="名">{detailItem.firstName || "-"}</Descriptions.Item>
-                <Descriptions.Item label="姓">{detailItem.lastName || "-"}</Descriptions.Item>
+                <Descriptions.Item label="证件类型">{detailItem.documentType || "-"}</Descriptions.Item>
+                <Descriptions.Item label="证件国家">{detailItem.documentCountry || "-"}</Descriptions.Item>
+                <Descriptions.Item label="名字">{detailItem.firstName || "-"}</Descriptions.Item>
+                <Descriptions.Item label="姓氏">{detailItem.lastName || "-"}</Descriptions.Item>
                 <Descriptions.Item label="全名">{detailItem.fullName || "-"}</Descriptions.Item>
                 <Descriptions.Item label="性别">{detailItem.gender || "-"}</Descriptions.Item>
-                <Descriptions.Item label="生日">
+                <Descriptions.Item label="出生日期">
                   {detailItem.dob ? String(detailItem.dob).slice(0, 10) : "-"}
                 </Descriptions.Item>
+                <Descriptions.Item label="出生地">{detailItem.placeOfBirth || "-"}</Descriptions.Item>
                 <Descriptions.Item label="出生国家">{detailItem.countryOfBirth || "-"}</Descriptions.Item>
                 <Descriptions.Item label="国籍">{detailItem.nationality || "-"}</Descriptions.Item>
                 <Descriptions.Item label="邮箱">{detailItem.email || "-"}</Descriptions.Item>
@@ -661,9 +597,10 @@ const KycListPage: React.FC = () => {
               </Descriptions>
             </Card>
 
-            <Card title="地址信息" size="small">
+            <Card title="地址与税务信息" size="small">
               <Descriptions column={1} bordered size="small">
-                <Descriptions.Item label="居住国家">{detailItem.addressCountry || "-"}</Descriptions.Item>
+                <Descriptions.Item label="居住国家">{detailItem.residenceCountry || detailItem.addressCountry || "-"}</Descriptions.Item>
+                <Descriptions.Item label="税务居民国">{detailItem.taxResidenceCountry || "-"}</Descriptions.Item>
                 <Descriptions.Item label="街道">{detailItem.addressStreet || "-"}</Descriptions.Item>
                 <Descriptions.Item label="城市">{detailItem.addressTown || "-"}</Descriptions.Item>
                 <Descriptions.Item label="州 / 省">{detailItem.addressState || "-"}</Descriptions.Item>
@@ -675,7 +612,7 @@ const KycListPage: React.FC = () => {
               </Descriptions>
             </Card>
 
-            <Card title="证件资料" size="small">
+            <Card title="证件与核验资料" size="small">
               <Descriptions column={1} bordered size="small">
                 <Descriptions.Item label="证件正面">
                   {detailItem.idCardFrontUrl ? <Text copyable>{detailItem.idCardFrontUrl}</Text> : "-"}
@@ -683,9 +620,10 @@ const KycListPage: React.FC = () => {
                 <Descriptions.Item label="证件反面">
                   {detailItem.idCardBackUrl ? <Text copyable>{detailItem.idCardBackUrl}</Text> : "-"}
                 </Descriptions.Item>
-                <Descriptions.Item label="操作员">
-                  {buildOperatorLabel(detailItem)}
+                <Descriptions.Item label="L2 自拍 / 活体资源">
+                  {detailItem.selfieUrl ? <Text copyable>{detailItem.selfieUrl}</Text> : "-"}
                 </Descriptions.Item>
+                <Descriptions.Item label="操作员">{buildOperatorLabel(detailItem)}</Descriptions.Item>
               </Descriptions>
             </Card>
           </Space>
@@ -693,7 +631,7 @@ const KycListPage: React.FC = () => {
       </Drawer>
 
       <Modal
-        title={reviewMode === "approve" ? "审核通过" : "审核驳回"}
+        title={reviewMode === "approve" ? `通过${getLevelTitle(level)}` : `驳回${getLevelTitle(level)}`}
         open={reviewOpen}
         onCancel={() => {
           setReviewOpen(false);
@@ -710,6 +648,7 @@ const KycListPage: React.FC = () => {
               <Text strong>{reviewingItem?.userName || "-"}</Text>
               <Text type="secondary">业务 ID：{reviewingItem?.businessId || "-"}</Text>
               <Text type="secondary">当前状态：{reviewingItem ? getStatusTag(reviewingItem.status) : "-"}</Text>
+              <Text type="secondary">审核层级：{getLevelTitle(level)}</Text>
             </Space>
           </Card>
 

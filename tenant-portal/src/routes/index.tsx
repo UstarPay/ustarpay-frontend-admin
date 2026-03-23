@@ -23,6 +23,7 @@ import {
   NotificationTemplatePage,
   PasswordUpdatePage,
   ProfilePage,
+  UsernamePolicyPage,
   SecondaryPasswordUpdatePage,
   TenantInfoPage,
   TenantRbacPermissionPage,
@@ -290,6 +291,10 @@ export function AppRoutes() {
         <Route
           path="settings/profile"
           element={protect(<ProfilePage />, [TENANT_PERMISSION.TENANT_VIEW])}
+        />
+        <Route
+          path="settings/username-policy"
+          element={protect(<UsernamePolicyPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
         />
 
         <Route

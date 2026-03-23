@@ -60,6 +60,7 @@ export interface TenantInvitationDetail {
 
 export interface TenantAppUserKyc {
   id: string
+  level?: 'l1' | 'l2'
   userId: string
   userName: string
   email?: string
@@ -83,11 +84,15 @@ export interface TenantAppUserKyc {
 }
 
 export interface TenantAppUserKycDetail extends TenantAppUserKyc {
+  documentType?: string
+  documentCountry?: string
   fullName?: string
   gender?: string
   dob?: string
   placeOfBirth?: string
   countryOfBirth?: string
+  residenceCountry?: string
+  taxResidenceCountry?: string
   addressStreet?: string
   addressBuildingNumber?: string
   addressFlatNumber?: string
@@ -99,6 +104,7 @@ export interface TenantAppUserKycDetail extends TenantAppUserKyc {
   metadata?: Record<string, any>
   idCardFrontUrl?: string
   idCardBackUrl?: string
+  selfieUrl?: string
 }
 
 export interface TenantUserListParams {
@@ -112,6 +118,7 @@ export interface TenantUserListParams {
 export interface TenantUserKycListParams {
   page?: number
   pageSize?: number
+  level?: 'l1' | 'l2'
   search?: string
   status?: string
   userName?: string
@@ -192,6 +199,7 @@ export interface TenantUserKycSavePayload {
 export interface TenantUserKycReviewPayload {
   action: 'approve' | 'reject'
   rejectReason?: string
+  level?: 'l1' | 'l2'
 }
 
 export const tenantUserService = {
@@ -205,9 +213,12 @@ export const tenantUserService = {
   deleteUser: (id: string) => api.delete(`/app-users/${id}`),
 
   getKycs: (params?: TenantUserKycListParams) => api.get('/app-users/kyc', params),
-  getKyc: (id: string) => api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`),
+  getKyc: (id: string, level?: 'l1' | 'l2') =>
+    api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`, level ? { level } : undefined),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),
   updateKyc: (id: string, payload: Partial<TenantUserKycSavePayload>) => api.put(`/app-users/kyc/${id}`, payload),
-  reviewKyc: (id: string, payload: TenantUserKycReviewPayload) => api.post(`/app-users/kyc/${id}/review`, payload),
-  deleteKyc: (id: string) => api.delete(`/app-users/kyc/${id}`),
+  reviewKyc: (id: string, payload: TenantUserKycReviewPayload) =>
+    api.post(`/app-users/kyc/${id}/review`, payload, payload.level ? { config: { params: { level: payload.level } } } : undefined),
+  deleteKyc: (id: string, level?: 'l1' | 'l2') =>
+    api.delete(`/app-users/kyc/${id}`, level ? { config: { params: { level } } } : undefined),
 }

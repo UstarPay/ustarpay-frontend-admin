@@ -115,6 +115,36 @@ const EVENT_META: Record<
       en: "Your identity verification was not approved. Reason: {{.reason}}. Please update your details and resubmit.",
     },
   },
+  kyc_l2_approved: {
+    title: "L2 人脸核验通过",
+    description: "租户后台审核通过用户 L2 人脸 / 活体验证时触发。",
+    tagColor: "cyan",
+    variables: ["occurredAt"],
+    defaultRoute: "/settings/kyc-l2",
+    defaultTitle: {
+      zh: "L2 人脸核验已通过",
+      en: "L2 liveness approved",
+    },
+    defaultBody: {
+      zh: "你的人脸核验已通过，可使用需要 L1 与 L2 均通过后才开放的功能。",
+      en: "Your L2 liveness verification has been approved. Features requiring both L1 and L2 are now available.",
+    },
+  },
+  kyc_l2_rejected: {
+    title: "L2 浜鸿劯鏍搁獙椹冲洖",
+    description: "绉熸埛鍚庡彴椹冲洖鐢ㄦ埛 L2 浜鸿劯 / 娲讳綋楠岃瘉鏃惰Е鍙戙€?",
+    tagColor: "volcano",
+    variables: ["reason", "occurredAt"],
+    defaultRoute: "/settings/kyc-l2",
+    defaultTitle: {
+      zh: "L2 浜鸿劯鏍搁獙鏈€氳繃",
+      en: "L2 liveness not approved",
+    },
+    defaultBody: {
+      zh: "浣犵殑浜鸿劯鏍搁獙鏈€氳繃銆傚師鍥狅細{{.reason}}銆傝閲嶆柊寮€濮?L2 浜鸿劯鏍搁獙銆?",
+      en: "Your L2 liveness verification was not approved. Reason: {{.reason}}. Please restart L2 verification.",
+    },
+  },
 };
 
 const EVENT_OPTIONS = [
