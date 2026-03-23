@@ -23,6 +23,7 @@ import {
   NotificationTemplatePage,
   PasswordUpdatePage,
   ProfilePage,
+  TransferFeeConfigPage,
   UsernamePolicyPage,
   SecondaryPasswordUpdatePage,
   TenantInfoPage,
@@ -305,6 +306,10 @@ export function AppRoutes() {
         <Route
           path="settings/username-policy"
           element={protect(<UsernamePolicyPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
+        />
+        <Route
+          path="settings/transfer-fee"
+          element={protect(<TransferFeeConfigPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
         />
 
         <Route

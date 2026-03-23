@@ -312,6 +312,11 @@ const menuTree: MenuNode[] = [
         label: "\u7528\u6237\u540d\u89c4\u5219",
         permissions: ["config:view"],
       },
+      {
+        key: "/settings/transfer-fee",
+        label: "划转手续费",
+        permissions: ["config:view"],
+      },
     ],
   },
   {
