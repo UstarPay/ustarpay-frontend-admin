@@ -213,7 +213,7 @@ const menuTree: MenuNode[] = [
     children: [
       {
         key: "/transactions/network-config",
-        label: "\u7f51\u7edc\u914d\u7f6e",
+        label: "充提网络配置",
         permissions: ["deposits:view", "withdrawals:view"],
       },
       {

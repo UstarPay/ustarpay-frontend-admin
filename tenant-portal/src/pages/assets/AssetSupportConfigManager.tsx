@@ -1,16 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ReloadOutlined, SaveOutlined } from "@ant-design/icons";
 import {
-  Alert,
+  ApartmentOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  InfoCircleOutlined,
+  ReloadOutlined,
+  SaveOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
+import {
   Button,
-  Card,
   Input,
   Select,
   Space,
   Switch,
   Table,
   Tag,
-  Typography,
   message,
 } from "antd";
 
@@ -21,8 +26,6 @@ import {
   type AssetSupportScene,
 } from "@/services/assetSupportConfigService";
 import type { Currency } from "@shared/types/currency";
-
-const { Title, Text } = Typography;
 
 interface AssetSupportConfigManagerProps {
   scene: AssetSupportScene;
@@ -46,6 +49,40 @@ function buildPairKey(chainCode: string, symbol: string) {
   return `${chainCode.toUpperCase()}::${symbol.toUpperCase()}`;
 }
 
+const SCENE_META: Record<
+  AssetSupportScene,
+  {
+    heroLabel: string;
+    heroGradient: string;
+    quickTitle: string;
+    quickDescription: string;
+    infoBorder: string;
+    infoBackground: string;
+    infoIconBackground: string;
+  }
+> = {
+  withdrawal: {
+    heroLabel: "WITHDRAW NETWORK CENTER",
+    heroGradient:
+      "bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#38bdf8_100%)]",
+    quickTitle: "提现网络策略",
+    quickDescription: "控制提现入口、校验链路与币种开放范围，保存后立即同步到相关业务流程。",
+    infoBorder: "border-sky-100",
+    infoBackground: "bg-sky-50/90",
+    infoIconBackground: "bg-sky-500",
+  },
+  deposit: {
+    heroLabel: "DEPOSIT NETWORK CENTER",
+    heroGradient:
+      "bg-[linear-gradient(135deg,#134e4a_0%,#0f766e_52%,#14b8a6_100%)]",
+    quickTitle: "充值网络策略",
+    quickDescription: "统一管理充值链路与币种展示范围，确保用户入口与接口规则保持一致。",
+    infoBorder: "border-emerald-100",
+    infoBackground: "bg-emerald-50/90",
+    infoIconBackground: "bg-emerald-500",
+  },
+};
+
 export default function AssetSupportConfigManager({
   scene,
   title,
@@ -60,6 +97,7 @@ export default function AssetSupportConfigManager({
   const [chainFilter, setChainFilter] = useState<string>("all");
 
   const sceneLabel = scene === "deposit" ? "充值" : "提现";
+  const sceneMeta = SCENE_META[scene];
   const currentInfoDescription =
     infoDescription ??
     `当前${sceneLabel}网络和币种基于系统币种列表维护。保存后，App 端和相关接口会按这里的启用结果进行过滤。`;
@@ -142,6 +180,58 @@ export default function AssetSupportConfigManager({
   }, [chainFilter, currencies, enabledMap, search]);
 
   const enabledCount = useMemo(() => rows.filter((row) => row.enabled).length, [rows]);
+  const totalPairCount = currencies.length;
+  const totalEnabledCount = useMemo(
+    () =>
+      currencies.filter(
+        (item) => enabledMap[buildPairKey(item.chainCode, item.symbol)] !== false,
+      ).length,
+    [currencies, enabledMap],
+  );
+  const totalDisabledCount = Math.max(totalPairCount - totalEnabledCount, 0);
+  const filteredDisabledCount = Math.max(rows.length - enabledCount, 0);
+
+  const heroStats = [
+    {
+      key: "total",
+      label: "系统币种对",
+      value: totalPairCount,
+      description: "随系统币种列表同步更新",
+    },
+    {
+      key: "enabled",
+      label: "整体已启用",
+      value: totalEnabledCount,
+      description: "保存后按启用结果生效",
+    },
+  ];
+
+  const overviewCards = [
+    {
+      key: "networks",
+      label: "网络数量",
+      value: chainOptions.length,
+      description: "按链维度统一管理可见范围",
+      icon: <ApartmentOutlined />,
+      iconClassName: "bg-sky-50 text-sky-600",
+    },
+    {
+      key: "filtered",
+      label: "当前筛选结果",
+      value: rows.length,
+      description: "支持基于筛选结果批量处理",
+      icon: <SwapOutlined />,
+      iconClassName: "bg-violet-50 text-violet-600",
+    },
+    {
+      key: "disabled",
+      label: "当前列表停用",
+      value: filteredDisabledCount,
+      description: "便于快速确认需要隐藏的组合",
+      icon: <CloseCircleOutlined />,
+      iconClassName: "bg-rose-50 text-rose-600",
+    },
+  ];
 
   const setRowEnabled = (key: string, enabled: boolean) => {
     setEnabledMap((prev) => ({
@@ -189,7 +279,11 @@ export default function AssetSupportConfigManager({
       dataIndex: "enabled",
       width: 96,
       render: (_: boolean, record: SupportRow) => (
-        <Switch checked={record.enabled} onChange={(checked) => setRowEnabled(record.key, checked)} />
+        <Switch
+          checked={record.enabled}
+          disabled={saving}
+          onChange={(checked) => setRowEnabled(record.key, checked)}
+        />
       ),
     },
     {
@@ -197,17 +291,23 @@ export default function AssetSupportConfigManager({
       key: "chain",
       width: 180,
       render: (_: unknown, record: SupportRow) => (
-        <Space direction="vertical" size={2}>
-          <Text strong>{record.chainNetwork || record.chainCode}</Text>
-          <Text type="secondary">{record.chainCode}</Text>
-        </Space>
+        <div className="space-y-1">
+          <div className="font-medium text-slate-900">
+            {record.chainNetwork || record.chainCode}
+          </div>
+          <div className="text-xs text-slate-400">{record.chainCode}</div>
+        </div>
       ),
     },
     {
       title: "币种",
       dataIndex: "symbol",
       width: 120,
-      render: (value: string) => <Tag color="blue">{value}</Tag>,
+      render: (value: string) => (
+        <Tag className="!m-0 rounded-full border-0 bg-sky-50 px-3 py-1 text-sky-600">
+          {value}
+        </Tag>
+      ),
     },
     {
       title: "名称",
@@ -218,74 +318,246 @@ export default function AssetSupportConfigManager({
       title: "最小充值",
       dataIndex: "minDeposit",
       width: 120,
-      render: (value: number, record: SupportRow) => `${value} ${record.symbol}`,
+      render: (value: number, record: SupportRow) => (
+        <span className="font-medium text-slate-700">{`${value} ${record.symbol}`}</span>
+      ),
     },
     {
       title: "最小提现",
       dataIndex: "minWithdraw",
       width: 120,
-      render: (value: number, record: SupportRow) => `${value} ${record.symbol}`,
+      render: (value: number, record: SupportRow) => (
+        <span className="font-medium text-slate-700">{`${value} ${record.symbol}`}</span>
+      ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      <Card bordered={false} className="shadow-sm" bodyStyle={{ padding: 24 }}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div
+        className={`overflow-hidden rounded-[30px] ${sceneMeta.heroGradient} p-6 text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)]`}
+      >
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_360px]">
           <div>
-            <Title level={3} style={{ marginBottom: 8 }}>
-              {title}
-            </Title>
-            <Text type="secondary">{description}</Text>
+            <div className="text-xs uppercase tracking-[0.28em] text-white/70">
+              {sceneMeta.heroLabel}
+            </div>
+            <div className="mt-4 flex items-start gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-2xl backdrop-blur">
+                <SwapOutlined />
+              </div>
+              <div className="min-w-0">
+                <div className="text-3xl font-semibold tracking-tight md:text-4xl">
+                  {title}
+                </div>
+                <div className="mt-3 max-w-3xl text-sm leading-7 text-white/85">
+                  {description}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/80">
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+                    统一入口管理
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+                    基于系统币种列表同步
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+                    保存后实时生效
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <Space wrap>
-            <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
-              刷新
-            </Button>
-            <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
-              保存配置
-            </Button>
-          </Space>
+
+          <div className="grid gap-4">
+            <div className="rounded-[24px] bg-white/95 p-5 text-slate-900 shadow-2xl shadow-slate-900/15">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Quick Actions
+              </div>
+              <div className="mt-2 text-lg font-semibold">
+                {sceneMeta.quickTitle}
+              </div>
+              <div className="mt-2 text-sm leading-6 text-slate-500">
+                {sceneMeta.quickDescription}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Button
+                  size="large"
+                  icon={<ReloadOutlined />}
+                  onClick={loadData}
+                  loading={loading}
+                >
+                  刷新数据
+                </Button>
+                <Button
+                  size="large"
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={handleSave}
+                  loading={saving}
+                >
+                  保存配置
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {heroStats.map((item) => (
+                <div
+                  key={item.key}
+                  className="rounded-[22px] border border-white/12 bg-white/10 p-4 backdrop-blur"
+                >
+                  <div className="text-xs uppercase tracking-[0.18em] text-white/70">
+                    {item.label}
+                  </div>
+                  <div className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                    {item.value}
+                  </div>
+                  <div className="mt-2 text-sm text-white/75">
+                    {item.description}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
 
-      <Alert type="info" showIcon message="配置说明" description={currentInfoDescription} />
-
-      <Card bordered={false} className="shadow-sm" bodyStyle={{ padding: 20 }}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <Space wrap>
-            <Input.Search
-              allowClear
-              placeholder="搜索链、网络、币种、名称"
-              style={{ width: 280 }}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-            <Select
-              style={{ width: 220 }}
-              value={chainFilter}
-              onChange={setChainFilter}
-              options={[{ value: "all", label: "全部网络" }, ...chainOptions]}
-            />
-          </Space>
-          <Space wrap>
-            <Tag color="gold">当前列表启用 {enabledCount} 项</Tag>
-            <Button onClick={() => setCurrentRowsEnabled(true)}>全选当前筛选</Button>
-            <Button onClick={() => setCurrentRowsEnabled(false)}>清空当前筛选</Button>
-          </Space>
+      <div
+        className={`rounded-[24px] border ${sceneMeta.infoBorder} ${sceneMeta.infoBackground} p-5 shadow-sm`}
+      >
+        <div className="flex gap-4">
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${sceneMeta.infoIconBackground} text-lg text-white`}
+          >
+            <InfoCircleOutlined />
+          </div>
+          <div>
+            <div className="text-base font-semibold text-slate-900">配置说明</div>
+            <div className="mt-2 text-sm leading-7 text-slate-600">
+              {currentInfoDescription}
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
 
-      <Card bordered={false} className="shadow-sm" bodyStyle={{ padding: 0 }}>
-        <Table<SupportRow>
-          rowKey="key"
-          loading={loading}
-          columns={columns}
-          dataSource={rows}
-          pagination={{ pageSize: 12, showSizeChanger: true }}
-          scroll={{ x: 900 }}
-        />
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        {overviewCards.map((item) => (
+          <div
+            key={item.key}
+            className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  {item.label}
+                </div>
+                <div className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
+                  {item.value}
+                </div>
+                <div className="mt-2 text-sm leading-6 text-slate-500">
+                  {item.description}
+                </div>
+              </div>
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${item.iconClassName}`}
+              >
+                {item.icon}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm shadow-slate-200/70">
+        <div className="border-b border-slate-100 px-6 py-5">
+          <div className="text-2xl font-semibold tracking-tight text-slate-900">
+            配置工作台
+          </div>
+          <div className="mt-2 text-sm leading-6 text-slate-500">
+            支持按链、币种与名称快速筛选后逐条启用或停用。保存后，相关业务入口与接口会统一按当前配置生效。
+          </div>
+        </div>
+
+        <div className="border-b border-slate-100 px-6 py-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <Space wrap size={[12, 12]}>
+              <Input.Search
+                allowClear
+                size="large"
+                placeholder="搜索链、网络、币种、名称"
+                style={{ width: 320 }}
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+              <Select
+                size="large"
+                style={{ width: 240 }}
+                value={chainFilter}
+                onChange={setChainFilter}
+                options={[{ value: "all", label: "全部网络" }, ...chainOptions]}
+              />
+            </Space>
+
+            <Space wrap size={[12, 12]}>
+              <Tag className="!m-0 rounded-full border-0 bg-amber-50 px-3 py-1 text-sm text-amber-600">
+                当前列表启用 {enabledCount} 项
+              </Tag>
+              <Button
+                size="large"
+                disabled={rows.length === 0 || saving}
+                onClick={() => setCurrentRowsEnabled(true)}
+              >
+                全选当前筛选
+              </Button>
+              <Button
+                size="large"
+                disabled={rows.length === 0 || saving}
+                onClick={() => setCurrentRowsEnabled(false)}
+              >
+                清空当前筛选
+              </Button>
+            </Space>
+          </div>
+        </div>
+
+        <div className="px-2 pb-2 pt-4">
+          <Table<SupportRow>
+            rowKey="key"
+            loading={loading}
+            columns={columns}
+            dataSource={rows}
+            pagination={{
+              pageSize: 12,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 项`,
+            }}
+            locale={{
+              emptyText: (
+                <div className="py-10">
+                  <div className="text-base font-medium text-slate-500">
+                    暂无可配置的{sceneLabel}网络
+                  </div>
+                  <div className="mt-2 text-sm text-slate-400">
+                    请先检查系统币种列表或筛选条件。
+                  </div>
+                </div>
+              ),
+            }}
+            scroll={{ x: 960 }}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
+        <div className="flex items-center gap-2">
+          <CheckCircleOutlined className="text-emerald-500" />
+          <span>整体已启用 {totalEnabledCount} 项</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CloseCircleOutlined className="text-rose-500" />
+          <span>整体停用 {totalDisabledCount} 项</span>
+        </div>
+      </div>
     </div>
   );
 }

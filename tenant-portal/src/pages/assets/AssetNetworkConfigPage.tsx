@@ -71,20 +71,26 @@ export default function AssetNetworkConfigPage() {
       <Result
         status="403"
         title="403"
-        subTitle="抱歉，您没有权限访问网络配置页面。"
+        subTitle="抱歉，您没有权限访问充提网络配置页面。"
       />
     );
   }
 
   return (
-    <Tabs
-      activeKey={activeKey}
-      onChange={(key) => setActiveKey(key as TabKey)}
-      items={tabItems.map((item) => ({
-        key: item.key,
-        label: item.label,
-        children: item.content,
-      }))}
-    />
+    <div className="space-y-6">
+      <div className="rounded-[28px] border border-slate-200 bg-white px-6 pt-4 shadow-sm shadow-slate-200/70">
+        <Tabs
+          activeKey={activeKey}
+          onChange={(key) => setActiveKey(key as TabKey)}
+          tabBarGutter={32}
+          className="[&_.ant-tabs-nav]:mb-6 [&_.ant-tabs-tab]:px-0 [&_.ant-tabs-tab]:pb-4 [&_.ant-tabs-tab-btn]:text-base [&_.ant-tabs-tab-btn]:font-medium"
+          items={tabItems.map((item) => ({
+            key: item.key,
+            label: item.label,
+            children: item.content,
+          }))}
+        />
+      </div>
+    </div>
   );
 }
