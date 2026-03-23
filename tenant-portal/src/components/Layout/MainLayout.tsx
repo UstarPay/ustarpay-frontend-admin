@@ -83,7 +83,7 @@ const menuTree: MenuNode[] = [
     children: [
       {
         key: "/cards/merchants",
-        label: "\u5361\u5546\u5217\u8868",
+        label: "卡商配置",
         permissions: ["cards:view"],
       },
       {
@@ -136,17 +136,17 @@ const menuTree: MenuNode[] = [
     children: [
       {
         key: "/wallets/list",
-        label: "用户钱包管理",
+        label: "链上资产明细",
         permissions: ["wallets:view"],
       },
       {
         key: "/wallets/fund-accounts",
-        label: "用户资金管理",
+        label: "资金账户管理",
         permissions: ["wallets:view"],
       },
       {
         key: "/wallets/card-fund-accounts",
-        label: "用户卡账户管理",
+        label: "持卡账户档案",
         permissions: ["wallets:view"],
       },
     ],
@@ -211,24 +211,29 @@ const menuTree: MenuNode[] = [
     ],
     children: [
       {
+        key: "/transactions/withdraw-config",
+        label: "提现网络配置",
+        permissions: ["withdrawals:view"],
+      },
+      {
+        key: "/history/deposit-config",
+        label: "充值网络配置",
+        permissions: ["deposits:view"],
+      },
+      {
+        key: "/transactions/withdraw",
+        label: "提现管理中心",
+        permissions: ["withdrawals:view"],
+      },
+      {
         key: "/transactions/list",
-        label: "\u4ea4\u6613\u8bb0\u5f55",
+        label: "交易记录列表",
         permissions: ["transactions:view"],
       },
       {
         key: "/transactions/fund-flows",
-        label: "资金变动",
+        label: "资金变动明细",
         permissions: ["transactions:view"],
-      },
-      {
-        key: "/transactions/withdraw",
-        label: "提现管理",
-        permissions: ["withdrawals:view"],
-      },
-      {
-        key: "/transactions/withdraw-config",
-        label: "提现链配置",
-        permissions: ["withdrawals:view"],
       },
       {
         key: "/transactions/binance-pay-config",
@@ -251,11 +256,6 @@ const menuTree: MenuNode[] = [
       {
         key: "/history/deposits",
         label: "\u5145\u503c\u8bb0\u5f55",
-        permissions: ["deposits:view"],
-      },
-      {
-        key: "/history/deposit-config",
-        label: "充值链配置",
         permissions: ["deposits:view"],
       },
       {
