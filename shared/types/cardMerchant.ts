@@ -159,7 +159,7 @@ export interface CreateCardMerchantRequest {
   api_secret: string
   signature_key: string
   api_host: string
-  sub_account_id: string
+  sub_account_id?: string
   default_product_code?: string
   default_card_material?: number
   default_currency?: string
