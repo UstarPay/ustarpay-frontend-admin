@@ -15,6 +15,7 @@ export interface CardRecord {
   status_desc?: string
   cardholder_name?: string
   preferred_printed_name?: string
+  card_number?: string
   card_number_last4?: string
   expiry_date?: string
   email?: string

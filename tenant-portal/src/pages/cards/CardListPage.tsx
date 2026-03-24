@@ -14,6 +14,64 @@ import { getCardStatusMeta } from './cardDisplay'
 import { StatCard } from '@shared/components'
 import { CardFeeConfigModal } from './components/CardFeeConfigModal'
 
+function formatExpiryDate(value?: string) {
+  const raw = value?.trim()
+  if (!raw) {
+    return '-'
+  }
+
+  const monthYearMatch = raw.match(/^(\d{2})\/(\d{2})$/)
+  if (monthYearMatch) {
+    const [, month, year] = monthYearMatch
+    return `${month}/20${year}`
+  }
+
+  const fullMonthYearMatch = raw.match(/^(\d{2})\/(\d{4})$/)
+  if (fullMonthYearMatch) {
+    const [, month, year] = fullMonthYearMatch
+    return `${month}/${year}`
+  }
+
+  const isoMonthMatch = raw.match(/^(\d{4})-(\d{2})$/)
+  if (isoMonthMatch) {
+    const [, year, month] = isoMonthMatch
+    return `${month}/${year}`
+  }
+
+  const compactYearMonthMatch = raw.match(/^(\d{4})(\d{2})$/)
+  if (compactYearMonthMatch) {
+    const [, year, month] = compactYearMonthMatch
+    return `${month}/${year}`
+  }
+
+  return raw
+}
+
+function formatDateOnly(value?: string) {
+  const raw = value?.trim()
+  if (!raw) {
+    return '-'
+  }
+
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) {
+    return raw
+  }
+
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+}
+
+function formatCardExpiryDate(value?: string, createdAt?: string) {
+  const created = createdAt ? new Date(createdAt) : null
+  if (created && !Number.isNaN(created.getTime())) {
+    const expiry = new Date(created)
+    expiry.setFullYear(expiry.getFullYear() + 3)
+    return formatDateOnly(expiry.toISOString())
+  }
+
+  return formatExpiryDate(value)
+}
+
 const internalCardMaterialMap: Record<number, string> = {
   1: '虚拟卡',
   2: '实体卡',
@@ -148,18 +206,27 @@ const CardListPage: React.FC = () => {
       )
     },
     {
-      title: '卡号后四位',
-      dataIndex: 'card_number_last4',
-      key: 'card_number_last4',
-      width: 100,
-      render: (v: string) => v || '-'
+      title: '完整卡号',
+      dataIndex: 'card_number',
+      key: 'card_number',
+      width: 180,
+      render: (v: string, record: CardRecord) => {
+        const value = v || record.card_number_last4 || '-'
+        return value === '-' ? (
+          value
+        ) : (
+          <Typography.Text copyable={{ text: value }} className="font-mono text-xs">
+            {value}
+          </Typography.Text>
+        )
+      }
     },
     {
       title: '有效期',
       dataIndex: 'expiry_date',
       key: 'expiry_date',
-      width: 90,
-      render: (v: string) => v || '-'
+      width: 120,
+      render: (v: string, record: CardRecord) => formatCardExpiryDate(v, record.created_at)
     },
     {
       title: '余额',
@@ -181,7 +248,7 @@ const CardListPage: React.FC = () => {
       key: 'status',
       width: 140,
       render: (v: number, record: CardRecord) => {
-        const meta = getCardStatusMeta(v, record.status_desc)
+        const meta = getCardStatusMeta(v, record.status_desc, record.card_material)
         return (
           <div className="space-y-1">
             <Tag color={meta.color}>{meta.label}</Tag>
@@ -219,7 +286,7 @@ const CardListPage: React.FC = () => {
       dataIndex: 'created_at',
       key: 'created_at',
       width: 160,
-      render: (v: string) => (v ? new Date(v).toLocaleString('zh-CN') : '-')
+      render: (v: string) => formatDateOnly(v)
     }
   ]
 

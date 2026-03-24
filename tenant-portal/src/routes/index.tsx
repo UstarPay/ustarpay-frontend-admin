@@ -4,10 +4,10 @@ import { AnonymousRoute, ProtectedRoute } from "@/components/ProtectedRoute";
 import { MainLayout } from "@/components/Layout";
 import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
+  AssetNetworkConfigPage,
   ApiLogPage,
   BalanceMonitorPage,
   DashboardPage,
-  DepositConfigPage,
   DepositHistoryPage,
   ForbiddenPage,
   FundAccountListPage,
@@ -15,6 +15,7 @@ import {
   GasTaskPage,
   HotWalletListPage,
   InternalTransferPage,
+  InviteRebatePage,
   InvitationListPage,
   KycListPage,
   LoginPage,
@@ -23,6 +24,8 @@ import {
   NotificationTemplatePage,
   PasswordUpdatePage,
   ProfilePage,
+  KycCountryFilterPage,
+  TransferFeeConfigPage,
   UsernamePolicyPage,
   SecondaryPasswordUpdatePage,
   TenantInfoPage,
@@ -40,7 +43,6 @@ import {
   WalletListPage,
   WebhookLogPage,
   WithdrawHistoryPage,
-  WithdrawalConfigPage,
   WithdrawalListPage,
   CardFundAccountListPage,
 } from "@/pages";
@@ -267,8 +269,28 @@ export function AppRoutes() {
           element={protect(<WithdrawalListPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])}
         />
         <Route
-          path="transactions/withdraw-config"
-          element={protect(<WithdrawalConfigPage />, [TENANT_PERMISSION.WITHDRAWALS_VIEW])}
+          path="transactions/network-config"
+          element={<AssetNetworkConfigPage />}
+        />
+        <Route
+          path="invite-rebates"
+          element={<Navigate to="/invite-rebates/config" replace />}
+        />
+        <Route
+          path="invite-rebates/config"
+          element={protect(<InviteRebatePage section="config" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/profiles"
+          element={protect(<InviteRebatePage section="profiles" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/events"
+          element={protect(<InviteRebatePage section="events" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/settlements"
+          element={protect(<InviteRebatePage section="settlements" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
         />
         <Route
           path="transactions/:id"
@@ -280,8 +302,12 @@ export function AppRoutes() {
           element={protect(<DepositHistoryPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])}
         />
         <Route
+          path="transactions/withdraw-config"
+          element={<Navigate to="/transactions/network-config" replace />}
+        />
+        <Route
           path="history/deposit-config"
-          element={protect(<DepositConfigPage />, [TENANT_PERMISSION.DEPOSITS_VIEW])}
+          element={<Navigate to="/transactions/network-config" replace />}
         />
         <Route
           path="history/withdrawals"
@@ -305,6 +331,14 @@ export function AppRoutes() {
         <Route
           path="settings/username-policy"
           element={protect(<UsernamePolicyPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
+        />
+        <Route
+          path="settings/kyc-country-filter"
+          element={protect(<KycCountryFilterPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
+        />
+        <Route
+          path="settings/transfer-fee"
+          element={protect(<TransferFeeConfigPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
         />
 
         <Route

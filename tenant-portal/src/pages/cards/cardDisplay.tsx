@@ -2,9 +2,9 @@ import React from 'react'
 import { Tag } from 'antd'
 
 export const cardStatusLabelMap: Record<number, { label: string; color: string; helper: string }> = {
-  0: { label: '未激活', color: 'default', helper: '卡片未激活' },
+  0: { label: '未激活', color: 'default', helper: '卡片尚未激活，暂不可用于消费' },
   1: { label: '已激活', color: 'success', helper: '卡片已激活，可正常使用' },
-  2: { label: '已冻结', color: 'blue', helper: '卡片已冻结，暂不可用' },
+  2: { label: '已冻结', color: 'blue', helper: '卡片已被冻结，暂时不可使用' },
   3: { label: '已终止', color: 'volcano', helper: '卡片已终止，不可继续使用' },
   4: { label: '已注销', color: 'default', helper: '卡片申请或卡片状态已取消' },
   99: { label: '待审核', color: 'gold', helper: '卡片仍在审核或待处理阶段' },
@@ -19,10 +19,10 @@ const transactionTypeMap: Record<string, string> = {
 
 const transactionStatusMap: Record<string, { label: string; color: string; desc: string }> = {
   AUTH_APPROVED: { label: '授权通过', color: 'success', desc: '授权已通过，等待后续结算或状态同步' },
-  AUTH_REJECTED: { label: '授权拒绝', color: 'error', desc: '授权已拒绝，本次交易未通过' },
+  AUTH_REJECTED: { label: '授权拒绝', color: 'error', desc: '授权已被拒绝，本次交易未通过' },
   SETTLEMENT_PENDING: { label: '待结算', color: 'processing', desc: '交易已进入待结算阶段' },
   SETTLED: { label: '已结算', color: 'default', desc: '交易已完成最终结算' },
-  EXCEPTION: { label: '异常', color: 'volcano', desc: '交易存在异常，需人工关注' },
+  EXCEPTION: { label: '异常', color: 'volcano', desc: '交易存在异常，需要人工关注' },
   PENDING: { label: '处理中', color: 'processing', desc: '交易通知已接收，仍在处理中' },
   APPROVED: { label: '已批准', color: 'success', desc: '上游通知状态为已批准' },
   UNKNOWN: { label: '未知', color: 'default', desc: '未识别的交易状态' },
@@ -66,8 +66,15 @@ const providerEventMap: Record<string, { label: string; desc: string }> = {
   CARD_TRANSACTION: { label: '卡交易通知', desc: '消费授权、结算、同步等交易类通知' },
 }
 
-export function getCardStatusMeta(status: number, fallback?: string) {
-  return cardStatusLabelMap[status] || { label: `状态${status}`, color: 'default', helper: fallback || '未知状态' }
+export function getCardStatusMeta(status: number, fallback?: string, cardMaterial?: number) {
+  if (status === 99 && cardMaterial === 2) {
+    return {
+      label: '待激活',
+      color: 'gold',
+      helper: '实体卡已绑定成功，等待用户完成激活',
+    }
+  }
+  return cardStatusLabelMap[status] || { label: `状态 ${status}`, color: 'default', helper: fallback || '未知状态' }
 }
 
 export function getTransactionTypeLabel(type?: string) {

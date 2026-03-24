@@ -11,6 +11,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  ShareAltOutlined,
   SecurityScanOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -207,18 +208,14 @@ const menuTree: MenuNode[] = [
     permissions: [
       "transactions:view",
       "internal_transfers:view",
+      "deposits:view",
       "withdrawals:view",
     ],
     children: [
       {
-        key: "/transactions/withdraw-config",
-        label: "提现网络配置",
-        permissions: ["withdrawals:view"],
-      },
-      {
-        key: "/history/deposit-config",
-        label: "充值网络配置",
-        permissions: ["deposits:view"],
+        key: "/transactions/network-config",
+        label: "充提网络配置",
+        permissions: ["deposits:view", "withdrawals:view"],
       },
       {
         key: "/transactions/withdraw",
@@ -244,6 +241,34 @@ const menuTree: MenuNode[] = [
         key: "/transactions/binance-pay-query",
         label: "支付渠道订单",
         permissions: ["transactions:view"],
+      },
+    ],
+  },
+  {
+    key: "/invite-rebates",
+    icon: <ShareAltOutlined />,
+    label: "邀请返佣",
+    permissions: ["invite_rebates:view"],
+    children: [
+      {
+        key: "/invite-rebates/config",
+        label: "返佣配置",
+        permissions: ["invite_rebates:view"],
+      },
+      {
+        key: "/invite-rebates/profiles",
+        label: "专属档案",
+        permissions: ["invite_rebates:view"],
+      },
+      {
+        key: "/invite-rebates/events",
+        label: "返佣事件",
+        permissions: ["invite_rebates:view"],
+      },
+      {
+        key: "/invite-rebates/settlements",
+        label: "结算记录",
+        permissions: ["invite_rebates:view"],
       },
     ],
   },
@@ -310,6 +335,16 @@ const menuTree: MenuNode[] = [
       {
         key: "/settings/username-policy",
         label: "\u7528\u6237\u540d\u89c4\u5219",
+        permissions: ["config:view"],
+      },
+      {
+        key: "/settings/kyc-country-filter",
+        label: "L1国家过滤",
+        permissions: ["config:view"],
+      },
+      {
+        key: "/settings/transfer-fee",
+        label: "划转手续费",
         permissions: ["config:view"],
       },
     ],
