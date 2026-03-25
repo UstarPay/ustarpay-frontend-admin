@@ -61,6 +61,7 @@ export interface TenantInvitationDetail {
 export interface TenantAppUserKyc {
   id: string
   level?: 'l1' | 'l2'
+  recordSource?: 'local' | 'sumsub'
   userId: string
   userName: string
   email?: string
@@ -81,6 +82,11 @@ export interface TenantAppUserKyc {
   operatorId?: string
   operatorUsername?: string
   operatorDisplayName?: string
+  providerStatus?: string
+  reviewAnswer?: string
+  applicantId?: string
+  actionId?: string
+  externalActionId?: string
 }
 
 export interface TenantAppUserKycDetail extends TenantAppUserKyc {
@@ -107,6 +113,18 @@ export interface TenantAppUserKycDetail extends TenantAppUserKyc {
   selfieUrl?: string
 }
 
+export interface TenantAppUserKycUserSummary {
+  userId: string
+  userName: string
+  email?: string
+  phone?: string
+  latestStatus: number
+  latestSubmittedAt?: string
+  latestApprovedAt?: string
+  latestRejectedAt?: string
+  submissionCount: number
+}
+
 export interface TenantUserListParams {
   page?: number
   pageSize?: number
@@ -119,6 +137,7 @@ export interface TenantUserKycListParams {
   page?: number
   pageSize?: number
   level?: 'l1' | 'l2'
+  userId?: string
   search?: string
   status?: string
   userName?: string
@@ -136,6 +155,14 @@ export interface TenantUserKycListParams {
   approvedTo?: string
   rejectedFrom?: string
   rejectedTo?: string
+}
+
+export interface TenantUserKycUserListParams {
+  page?: number
+  pageSize?: number
+  level?: 'l1' | 'l2'
+  search?: string
+  status?: string
 }
 
 export interface TenantInvitationListParams {
@@ -213,6 +240,11 @@ export const tenantUserService = {
   deleteUser: (id: string) => api.delete(`/app-users/${id}`),
 
   getKycs: (params?: TenantUserKycListParams) => api.get('/app-users/kyc', params),
+  getKycUsers: (params?: TenantUserKycUserListParams) => api.get('/app-users/kyc/users', params),
+  getUserKycSubmissions: (userId: string, params?: TenantUserKycListParams) =>
+    api.get(`/app-users/kyc/users/${userId}/submissions`, params),
+  getKycSubmissionDetail: (id: string, level?: 'l1' | 'l2') =>
+    api.get<TenantAppUserKycDetail>(`/app-users/kyc/submissions/${id}`, level ? { level } : undefined),
   getKyc: (id: string, level?: 'l1' | 'l2') =>
     api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`, level ? { level } : undefined),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),
