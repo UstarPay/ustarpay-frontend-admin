@@ -39,8 +39,6 @@ interface SupportRow {
   chainNetwork?: string;
   symbol: string;
   name: string;
-  minDeposit: number;
-  minWithdraw: number;
   enabled: boolean;
 }
 
@@ -160,8 +158,6 @@ export default function AssetSupportConfigManager({
         chainNetwork: item.chainNetwork,
         symbol: item.symbol,
         name: item.name,
-        minDeposit: Number(item.minDeposit ?? 0),
-        minWithdraw: Number(item.minWithdraw ?? 0),
         enabled: enabledMap[buildPairKey(item.chainCode, item.symbol)] !== false,
       }))
       .sort((a, b) => {
@@ -325,6 +321,14 @@ export default function AssetSupportConfigManager({
       ),
     },
   ];
+
+  // Network config only manages enablement. Threshold rules stay in dedicated withdrawal management pages.
+  const visibleColumns = columns.filter((column) => {
+    const dataIndex = typeof column === "object" && column && "dataIndex" in column
+      ? String(column.dataIndex ?? "")
+      : "";
+    return dataIndex !== "minDeposit" && dataIndex !== "minWithdraw";
+  });
 
   return (
     <div className="space-y-6">
@@ -501,7 +505,7 @@ export default function AssetSupportConfigManager({
           <Table<SupportRow>
             rowKey="key"
             loading={loading}
-            columns={columns}
+            columns={visibleColumns}
             dataSource={rows}
             pagination={{
               pageSize: 12,
