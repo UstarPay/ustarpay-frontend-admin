@@ -15,6 +15,7 @@ import {
   GasTaskPage,
   HotWalletListPage,
   InternalTransferPage,
+  InviteRebatePage,
   InvitationListPage,
   KycListPage,
   LoginPage,
@@ -270,6 +271,26 @@ export function AppRoutes() {
         <Route
           path="transactions/network-config"
           element={<AssetNetworkConfigPage />}
+        />
+        <Route
+          path="invite-rebates"
+          element={<Navigate to="/invite-rebates/config" replace />}
+        />
+        <Route
+          path="invite-rebates/config"
+          element={protect(<InviteRebatePage section="config" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/profiles"
+          element={protect(<InviteRebatePage section="profiles" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/events"
+          element={protect(<InviteRebatePage section="events" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
+        />
+        <Route
+          path="invite-rebates/settlements"
+          element={protect(<InviteRebatePage section="settlements" />, [TENANT_PERMISSION.INVITE_REBATES_VIEW])}
         />
         <Route
           path="transactions/:id"

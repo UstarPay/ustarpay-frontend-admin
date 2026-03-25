@@ -35,10 +35,6 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`
         }
 
-        // 添加请求ID用于追踪
-        config.headers['X-Request-ID'] =
-          `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-
         // 显示全局加载状态
         useAppStore.getState().setGlobalLoading(true)
 

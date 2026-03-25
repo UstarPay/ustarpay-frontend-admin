@@ -440,9 +440,9 @@ const CardMerchantListPage: React.FC = () => {
           <Form.Item
             name="sub_account_id"
             label="D-SUB-ACCOUNT-ID"
-            rules={[{ required: true, message: '请输入子账户ID' }, { max: 50 }]}
+            rules={[{ max: 50 }]}
           >
-            <Input placeholder="主账户下注册的子账户标识" />
+            <Input placeholder="主账户下注册的子账户标识，不填则留空" />
           </Form.Item>
           <Form.Item label="产品代码策略">
             <Input value="实体卡固定 4101，虚拟卡固定 4102" disabled />
