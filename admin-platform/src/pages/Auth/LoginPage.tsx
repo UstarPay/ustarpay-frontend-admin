@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { useAppStore } from '@/stores/appStore'
-import type { LoginForm, LoginResponse, Permission } from '@shared/types'
+import type { LoginForm, LoginResponse } from '@shared/types'
 import { adminApi } from '@/services/apis/adminApi'
 
 /**
@@ -73,6 +73,24 @@ const LoginPage: React.FC = () => {
     loginMutation.mutate(values)
   }
 
+  const syncAutofilledValues = (event: React.FormEvent<HTMLFormElement>) => {
+    const formElement = event.currentTarget
+    if (!formElement) {
+      return
+    }
+
+    const usernameInput = formElement.querySelector<HTMLInputElement>('input[name="username"]')
+    const passwordInput = formElement.querySelector<HTMLInputElement>('input[name="password"]')
+    const rememberInput = formElement.querySelector<HTMLInputElement>('input[name="remember"]')
+
+    form.setFieldsValue({
+      username: usernameInput?.value?.trim() || form.getFieldValue('username'),
+      password: passwordInput?.value || form.getFieldValue('password'),
+      remember: rememberInput?.checked ?? form.getFieldValue('remember'),
+      userType: 'platform',
+    })
+  }
+
   return (
     <div className="w-full">
       <div className="text-center mb-8">
@@ -99,7 +117,8 @@ const LoginPage: React.FC = () => {
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        autoComplete="off"
+        onSubmitCapture={syncAutofilledValues}
+        autoComplete="on"
         size="large"
         initialValues={{ userType: 'platform' }}
       >
@@ -114,6 +133,7 @@ const LoginPage: React.FC = () => {
           <Input
             prefix={<UserOutlined />}
             placeholder="请输入用户名"
+            name="username"
             autoComplete="username"
           />
         </Form.Item>
@@ -129,6 +149,7 @@ const LoginPage: React.FC = () => {
           <Input.Password
             prefix={<LockOutlined />}
             placeholder="请输入密码"
+            name="password"
             autoComplete="current-password"
           />
         </Form.Item>
@@ -179,6 +200,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-2">
             <Button
               size="small"
+              htmlType="button"
               onClick={() => {
                 form.setFieldsValue({
                   username: 'admin',
