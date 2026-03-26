@@ -155,12 +155,12 @@ const menuTree: MenuNode[] = [
   {
     key: "/hot-wallets",
     icon: <WalletOutlined />,
-    label: "\u70ed\u94b1\u5305\u7ba1\u7406",
+    label: "\u63d0\u73b0\u94b1\u5305\u7ba1\u7406",
     permissions: ["hot_wallets:view"],
     children: [
       {
         key: "/hot-wallets/list",
-        label: "\u70ed\u94b1\u5305\u5217\u8868",
+        label: "\u63d0\u73b0\u94b1\u5305\u5217\u8868",
         permissions: ["hot_wallets:view"],
       },
     ],
@@ -168,12 +168,12 @@ const menuTree: MenuNode[] = [
   {
     key: "/cold-wallets",
     icon: <WalletOutlined />,
-    label: "\u51b7\u94b1\u5305\u7ba1\u7406",
+    label: "\u5f52\u96c6\u94b1\u5305\u7ba1\u7406",
     permissions: ["cold_wallets:view"],
     children: [
       {
         key: "/cold-wallets/list",
-        label: "\u51b7\u94b1\u5305\u5217\u8868",
+        label: "\u5f52\u96c6\u94b1\u5305\u5217\u8868",
         permissions: ["cold_wallets:view"],
       },
     ],

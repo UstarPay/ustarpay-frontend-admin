@@ -240,10 +240,10 @@ const ColdWalletDetail: React.FC<ColdWalletDetailProps> = ({
         </Space>
       </div>
 
-      {/* 冷钱包特性提示 */}
+      {/* 归集钱包特性提示 */}
       <Alert
-        message="冷钱包特性"
-        description="冷钱包不存储私钥，仅用于监控地址余额和交易记录。请确保地址输入正确。"
+        message="归集钱包特性"
+        description="归集钱包不存储私钥，仅用于监控地址余额和交易记录。请确保地址输入正确。"
         type="info"
         showIcon
         icon={<SafetyOutlined />}
@@ -331,7 +331,7 @@ const ColdWalletDetail: React.FC<ColdWalletDetailProps> = ({
           message="重要提醒"
           description={
             <div>
-              <p>• 冷钱包不存储私钥，仅用于监控地址</p>
+              <p>• 归集钱包不存储私钥，仅用于监控地址</p>
               <p>• 请确保输入的地址准确无误</p>
               <p>• 定期检查地址余额和交易记录</p>
               <p>• 如发现异常活动，请及时处理</p>

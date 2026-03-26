@@ -5,6 +5,7 @@ export interface WithdrawalRiskConfig {
   tenantId: string
   chainCode: string
   symbol: string
+  minWithdraw?: string | null
   singleLimit: string
   dailyLimit: string
   dailyTxCountLimit: number
@@ -28,6 +29,7 @@ export interface WithdrawalRiskConfig {
 export interface UpsertRiskConfigRequest {
   chainCode: string
   symbol: string
+  minWithdraw?: string | number | null
   singleLimit: string | number
   dailyLimit: string | number
   dailyTxCountLimit?: number

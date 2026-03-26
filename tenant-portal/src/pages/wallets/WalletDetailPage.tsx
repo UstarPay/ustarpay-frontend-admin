@@ -223,8 +223,8 @@ const WalletDetailPage: React.FC = () => {
 
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'hot': return '热钱包'
-      case 'cold': return '冷钱包'
+      case 'hot': return '提现钱包'
+      case 'cold': return '归集钱包'
       default: return type
     }
   }
