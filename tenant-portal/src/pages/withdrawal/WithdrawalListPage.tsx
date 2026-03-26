@@ -176,6 +176,7 @@ const WithdrawalListPage: React.FC = () => {
   const selectedRiskChain = Form.useWatch('chainCode', riskForm)
   const selectedRiskSymbol = Form.useWatch('symbol', riskForm)
   const selectedRiskRequireApproval = Form.useWatch('requireApproval', riskForm)
+  const selectedRiskMinWithdraw = Form.useWatch('minWithdraw', riskForm)
   const selectedRiskSingleLimit = Form.useWatch('singleLimit', riskForm)
   const selectedRiskDailyLimit = Form.useWatch('dailyLimit', riskForm)
   const selectedRiskDailyTxCountLimit = Form.useWatch('dailyTxCountLimit', riskForm)
@@ -223,6 +224,7 @@ const WithdrawalListPage: React.FC = () => {
     ? allCurrencies.find(item => item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol) ?? null
     : null
   const previewRequireApproval = selectedRiskRequireApproval ?? currentRiskConfig?.requireApproval ?? false
+  const previewMinWithdraw = selectedRiskMinWithdraw ?? currentRiskConfig?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null
   const previewSingleLimit = selectedRiskSingleLimit ?? (currentRiskConfig ? Number(currentRiskConfig.singleLimit) || null : null)
   const previewDailyLimit = selectedRiskDailyLimit ?? (currentRiskConfig ? Number(currentRiskConfig.dailyLimit) || null : null)
   const previewDailyTxCountLimit = selectedRiskDailyTxCountLimit ?? currentRiskConfig?.dailyTxCountLimit ?? 0
@@ -403,6 +405,7 @@ const WithdrawalListPage: React.FC = () => {
       const nextValues = {
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
+        minWithdraw: config?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null,
         singleLimit: config ? (Number(config.singleLimit) || null) : null,
         dailyLimit: config ? (Number(config.dailyLimit) || null) : null,
         dailyTxCountLimit: config?.dailyTxCountLimit ?? 0,
@@ -420,6 +423,7 @@ const WithdrawalListPage: React.FC = () => {
       riskForm.setFieldsValue({
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
+        minWithdraw: currentRiskCurrency?.minWithdraw ?? null,
         singleLimit: null,
         dailyLimit: null,
         dailyTxCountLimit: 0,
@@ -431,7 +435,7 @@ const WithdrawalListPage: React.FC = () => {
       if (!cancelled) setRiskPairLoading(false)
     })
     return () => { cancelled = true }
-  }, [riskModalVisible, selectedRiskChain, selectedRiskSymbol, riskForm])
+  }, [riskModalVisible, selectedRiskChain, selectedRiskSymbol, riskForm, currentRiskCurrency])
 
   useEffect(() => {
     if (!feeModalVisible || !selectedFeeChain || !selectedFeeSymbol) return
@@ -552,10 +556,11 @@ const WithdrawalListPage: React.FC = () => {
 
   const openRiskModal = () => {
     const firstChain = chains[0]?.chainCode
-    const firstSymbol = allCurrencies.find(item => item.chainCode === firstChain)?.symbol
+    const firstCurrency = allCurrencies.find(item => item.chainCode === firstChain)
     riskForm.setFieldsValue({
       chainCode: firstChain,
-      symbol: firstSymbol,
+      symbol: firstCurrency?.symbol,
+      minWithdraw: firstCurrency?.minWithdraw ?? null,
       singleLimit: null,
       dailyLimit: null,
       dailyTxCountLimit: 0,
@@ -648,6 +653,7 @@ const WithdrawalListPage: React.FC = () => {
       await withdrawalRiskConfigService.upsertRiskConfig({
         chainCode: values.chainCode,
         symbol: values.symbol,
+        minWithdraw: values.minWithdraw ?? 0,
         singleLimit: values.singleLimit ?? 0,
         dailyLimit: values.dailyLimit ?? 0,
         dailyTxCountLimit: values.dailyTxCountLimit ?? 0,
@@ -676,6 +682,7 @@ const WithdrawalListPage: React.FC = () => {
       riskForm.setFieldsValue({
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
+        minWithdraw: currentRiskCurrency?.minWithdraw ?? null,
         singleLimit: null,
         dailyLimit: null,
         dailyTxCountLimit: 0,
@@ -1259,6 +1266,7 @@ const WithdrawalListPage: React.FC = () => {
                           onClick={() => riskForm.setFieldsValue({
                             chainCode: item.chainCode,
                             symbol: item.symbol,
+                            minWithdraw: item.minWithdraw ?? null,
                             singleLimit: null,
                             dailyLimit: null,
                             dailyTxCountLimit: 0,
@@ -1307,7 +1315,7 @@ const WithdrawalListPage: React.FC = () => {
               <Form
                 form={riskForm}
                 layout="vertical"
-                initialValues={{ requireApproval: false, singleLimit: null, dailyLimit: null, dailyTxCountLimit: 0, kycCooldownHours: 0, userFrequencyLimitMins: 0 }}
+                initialValues={{ requireApproval: false, minWithdraw: null, singleLimit: null, dailyLimit: null, dailyTxCountLimit: 0, kycCooldownHours: 0, userFrequencyLimitMins: 0 }}
               >
                 <Row gutter={16}>
                   <Col xs={24} md={12}>
@@ -1319,7 +1327,7 @@ const WithdrawalListPage: React.FC = () => {
                       <Select
                         placeholder="请选择链"
                         options={chains.map(item => ({ value: item.chainCode, label: item.label }))}
-                        onChange={() => riskForm.setFieldValue('symbol', undefined)}
+                        onChange={() => riskForm.setFieldsValue({ symbol: undefined, minWithdraw: null })}
                       />
                     </Form.Item>
                   </Col>
@@ -1337,12 +1345,18 @@ const WithdrawalListPage: React.FC = () => {
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
-                    <Form.Item label="单笔最低提现额度">
+                    <Form.Item
+                      name="minWithdraw"
+                      label="单笔最低提现额度"
+                      tooltip="当前提现最小金额门槛，建议与实际风控口径保持一致"
+                    >
                       <InputNumber
-                        value={currentRiskCurrency ? Number(currentRiskCurrency.minWithdraw ?? 0) : 0}
+                        min={0}
+                        precision={8}
                         style={{ width: '100%' }}
-                        disabled
                         stringMode
+                        placeholder="请输入最低提现额度"
+                        disabled={!canManageRiskConfig || riskPairLoading}
                         addonAfter={selectedRiskSymbol || currentRiskCurrency?.symbol || ''}
                       />
                     </Form.Item>
@@ -1448,9 +1462,9 @@ const WithdrawalListPage: React.FC = () => {
               <Card size="small" className="border-0 bg-slate-50 shadow-none">
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔最低提现额度</div>
                 <div className="mt-2 text-base font-semibold text-slate-900">
-                  {currentRiskCurrency ? currentRiskCurrency.minWithdraw : '未设置'}
+                  {previewMinWithdraw ?? '未设置'}
                 </div>
-                <div className="mt-1 text-xs text-slate-500">当前继承币种基础配置，当前页面暂为只读展示</div>
+                <div className="mt-1 text-xs text-slate-500">提现预览和正式提交都会优先按这里的配置校验</div>
               </Card>
               <Card size="small" className="border-0 bg-slate-50 shadow-none">
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔限额校验</div>
