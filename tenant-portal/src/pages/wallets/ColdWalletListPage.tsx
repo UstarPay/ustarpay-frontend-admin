@@ -399,7 +399,7 @@ const ColdWalletListPage: React.FC = () => {
           <div className="relative h-full overflow-hidden px-6 py-6">
             <div className="absolute inset-x-0 top-0 h-[5px] bg-[linear-gradient(90deg,#0f172a_0%,#1d4ed8_50%,#38bdf8_100%)]" />
             <div className="text-[11px] uppercase tracking-[0.34em] text-sky-700/70">Cold Vault Registry</div>
-            <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">冷钱包列表</div>
+            <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">归集钱包列表</div>
             <div className="mt-3 text-sm leading-6 text-slate-600">
               查看托管范围、状态与余额快照。
             </div>
@@ -450,7 +450,7 @@ const ColdWalletListPage: React.FC = () => {
                 onClick={handleCreate}
                 className="h-10 rounded-full border-0 bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#0ea5e9_100%)] px-5 shadow-none hover:!bg-sky-700"
               >
-                新建冷钱包
+                新建归集钱包
               </Button>
             </div>
           </div>
@@ -516,7 +516,7 @@ const ColdWalletListPage: React.FC = () => {
                     </div>
                     <AlertOutlined className="text-2xl text-slate-600" />
                   </div>
-                  <div className="mt-1 text-xs leading-5 text-slate-500">统计当日涉及冷钱包的链上交易。</div>
+                  <div className="mt-1 text-xs leading-5 text-slate-500">统计当日涉及归集钱包的链上交易。</div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3">
@@ -540,7 +540,7 @@ const ColdWalletListPage: React.FC = () => {
         dataSource={wallets}
         columns={columns}
         searchFields={searchFields}
-        title="冷钱包列表"
+        title="归集钱包列表"
         loading={isLoading}
         scroll={{ x: 1450 }}
         showPagination

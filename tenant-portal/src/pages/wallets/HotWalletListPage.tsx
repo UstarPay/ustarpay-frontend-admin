@@ -181,7 +181,7 @@ const HotWalletListPage: React.FC = () => {
   const columns: TableColumn[] = [
     {
       key: 'name',
-      title: '热钱包档案',
+      title: '提现钱包档案',
       width: 260,
       fixed: 'left',
       render: (_: unknown, record: ActualHotWalletWithBalance) => {
@@ -362,9 +362,9 @@ const HotWalletListPage: React.FC = () => {
           <div className="relative grid gap-6 xl:grid-cols-[0.92fr_1.08fr] xl:items-start">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.32em] text-[#dbeafe]">
-                Hot Wallet Network
+                Withdrawal Wallet Network
               </div>
-              <div className="mt-4 text-3xl font-semibold tracking-tight text-white">热钱包列表</div>
+              <div className="mt-4 text-3xl font-semibold tracking-tight text-white">提现钱包列表</div>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Button
                   icon={<ReloadOutlined />}
@@ -380,7 +380,7 @@ const HotWalletListPage: React.FC = () => {
                   onClick={handleCreate}
                   className="h-10 rounded-full border-0 bg-[#2563eb] px-5 shadow-none hover:!bg-[#1d4ed8]"
                 >
-                  新建热钱包
+                  新建提现钱包
                 </Button>
               </div>
               <div className="mt-5 rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
@@ -427,7 +427,7 @@ const HotWalletListPage: React.FC = () => {
                   <div className="mt-2 break-all text-xl font-semibold leading-snug text-white">
                     {stats.totalBalance || '0'}
                   </div>
-                  <div className="mt-2 text-xs text-[#93c5fd]">实时汇总当前热钱包余额结构</div>
+                  <div className="mt-2 text-xs text-[#93c5fd]">实时汇总当前提现钱包余额结构</div>
                 </div>
 
                 <div className="grid gap-3">
@@ -460,7 +460,7 @@ const HotWalletListPage: React.FC = () => {
         dataSource={wallets}
         columns={columns}
         searchFields={searchFields}
-        title="热钱包列表"
+        title="提现钱包列表"
         searchCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(239,246,255,0.92)_100%)] shadow-sm"
         tableCardClassName="border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(239,246,255,0.92)_72%,rgba(219,234,254,0.90)_100%)] shadow-sm"
         loading={isLoading}

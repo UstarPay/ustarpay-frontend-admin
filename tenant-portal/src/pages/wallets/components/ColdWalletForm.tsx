@@ -122,7 +122,7 @@ const ColdWalletForm: React.FC<ColdWalletFormProps> = ({
   const createWalletMutation = useMutation({
     mutationFn: coldWalletService.createColdWallet,
     onSuccess: () => {
-      message.success(editingWallet ? '冷钱包更新成功' : '冷钱包创建成功')
+      message.success(editingWallet ? '归集钱包更新成功' : '归集钱包创建成功')
       onSuccess()
       form.setFieldsValue({
         name: '',
@@ -147,7 +147,7 @@ const ColdWalletForm: React.FC<ColdWalletFormProps> = ({
       return coldWalletService.updateColdWalletStatus(id, { status })
     },
     onSuccess: () => {
-      message.success('冷钱包更新成功')
+      message.success('归集钱包更新成功')
       onSuccess()
     },
     onError: (error: any) => {
@@ -213,7 +213,7 @@ const ColdWalletForm: React.FC<ColdWalletFormProps> = ({
 
 
 
-  const modalTitle = editingWallet ? '编辑冷钱包' : '创建冷钱包'
+  const modalTitle = editingWallet ? '编辑归集钱包' : '创建归集钱包'
 
   return (
     <Modal
@@ -308,10 +308,10 @@ const ColdWalletForm: React.FC<ColdWalletFormProps> = ({
               <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <InfoCircleOutlined style={{ color: '#52c41a' }} />
-                  <span className="text-sm font-medium text-green-700">冷钱包说明</span>
+                  <span className="text-sm font-medium text-green-700">归集钱包说明</span>
                 </div>
                 <Text type="secondary" className="text-xs text-green-600">
-                  冷钱包不存储私钥，需要用户手动输入地址。请确保地址格式正确且属于您控制的钱包。
+                  归集钱包不存储私钥，需要用户手动输入地址。请确保地址格式正确且属于您控制的钱包。
                 </Text>
               </div>
             </Col>

@@ -236,7 +236,7 @@ const HotWalletDetail: React.FC<HotWalletDetailProps> = ({
           </Descriptions.Item>
           <Descriptions.Item label="钱包类型">
             <Tag color="orange" icon={<FireOutlined />}>
-              热钱包
+              提现钱包
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="总余额">

@@ -145,7 +145,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
   const createWalletMutation = useMutation({
     mutationFn: hotWalletService.createHotWallet,
     onSuccess: () => {
-      message.success('热钱包创建成功')
+      message.success('提现钱包创建成功')
       onSuccess()
       form.setFieldsValue({
         name: '',
@@ -170,7 +170,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
       return hotWalletService.updateHotWallet(id, data)
     },
     onSuccess: () => {
-      message.success('热钱包更新成功')
+      message.success('提现钱包更新成功')
       onSuccess()
     },
     onError: (error: any) => {
@@ -243,7 +243,7 @@ const HotWalletForm: React.FC<HotWalletFormProps> = ({
     }
   }, [visible, editingWallet, form])
 
-  const modalTitle = editingWallet ? '热钱包更新' : '创建热钱包'
+  const modalTitle = editingWallet ? '提现钱包更新' : '创建提现钱包'
   const isEditing = !!editingWallet
 
   return (
