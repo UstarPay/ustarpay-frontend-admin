@@ -72,6 +72,13 @@ function validateAddress(chainCode: string, address: string): string | null {
   return re.test(address.trim()) ? null : `当前链(${chainCode})地址格式不正确`
 }
 
+function formatAmountForDisplay(value: string | number | null | undefined, fractionDigits = 2): string | null {
+  if (value == null || value === '') return null
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return String(value)
+  return numeric.toFixed(fractionDigits)
+}
+
 interface WithdrawalRecord {
   id: string
   userId?: string
@@ -224,7 +231,9 @@ const WithdrawalListPage: React.FC = () => {
     ? allCurrencies.find(item => item.chainCode === selectedFeeChain && item.symbol === selectedFeeSymbol) ?? null
     : null
   const previewRequireApproval = selectedRiskRequireApproval ?? currentRiskConfig?.requireApproval ?? false
-  const previewMinWithdraw = selectedRiskMinWithdraw ?? currentRiskConfig?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null
+  const previewMinWithdraw = formatAmountForDisplay(
+    selectedRiskMinWithdraw ?? currentRiskConfig?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null
+  )
   const previewSingleLimit = selectedRiskSingleLimit ?? (currentRiskConfig ? Number(currentRiskConfig.singleLimit) || null : null)
   const previewDailyLimit = selectedRiskDailyLimit ?? (currentRiskConfig ? Number(currentRiskConfig.dailyLimit) || null : null)
   const previewDailyTxCountLimit = selectedRiskDailyTxCountLimit ?? currentRiskConfig?.dailyTxCountLimit ?? 0
@@ -405,7 +414,7 @@ const WithdrawalListPage: React.FC = () => {
       const nextValues = {
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
-        minWithdraw: config?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null,
+        minWithdraw: formatAmountForDisplay(config?.minWithdraw ?? currentRiskCurrency?.minWithdraw ?? null),
         singleLimit: config ? (Number(config.singleLimit) || null) : null,
         dailyLimit: config ? (Number(config.dailyLimit) || null) : null,
         dailyTxCountLimit: config?.dailyTxCountLimit ?? 0,
@@ -423,7 +432,7 @@ const WithdrawalListPage: React.FC = () => {
       riskForm.setFieldsValue({
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
-        minWithdraw: currentRiskCurrency?.minWithdraw ?? null,
+        minWithdraw: formatAmountForDisplay(currentRiskCurrency?.minWithdraw ?? null),
         singleLimit: null,
         dailyLimit: null,
         dailyTxCountLimit: 0,
@@ -560,7 +569,7 @@ const WithdrawalListPage: React.FC = () => {
     riskForm.setFieldsValue({
       chainCode: firstChain,
       symbol: firstCurrency?.symbol,
-      minWithdraw: firstCurrency?.minWithdraw ?? null,
+      minWithdraw: formatAmountForDisplay(firstCurrency?.minWithdraw ?? null),
       singleLimit: null,
       dailyLimit: null,
       dailyTxCountLimit: 0,
@@ -682,7 +691,7 @@ const WithdrawalListPage: React.FC = () => {
       riskForm.setFieldsValue({
         chainCode: selectedRiskChain,
         symbol: selectedRiskSymbol,
-        minWithdraw: currentRiskCurrency?.minWithdraw ?? null,
+        minWithdraw: formatAmountForDisplay(currentRiskCurrency?.minWithdraw ?? null),
         singleLimit: null,
         dailyLimit: null,
         dailyTxCountLimit: 0,
@@ -1266,7 +1275,7 @@ const WithdrawalListPage: React.FC = () => {
                           onClick={() => riskForm.setFieldsValue({
                             chainCode: item.chainCode,
                             symbol: item.symbol,
-                            minWithdraw: item.minWithdraw ?? null,
+                            minWithdraw: formatAmountForDisplay(item.minWithdraw ?? null),
                             singleLimit: null,
                             dailyLimit: null,
                             dailyTxCountLimit: 0,
@@ -1352,7 +1361,7 @@ const WithdrawalListPage: React.FC = () => {
                     >
                       <InputNumber
                         min={0}
-                        precision={8}
+                        precision={2}
                         style={{ width: '100%' }}
                         stringMode
                         placeholder="请输入最低提现额度"
@@ -1648,7 +1657,7 @@ const WithdrawalListPage: React.FC = () => {
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <div className="text-xs uppercase tracking-[0.16em] text-slate-400">单笔最低提现额度</div>
                   <div className="mt-2 text-lg font-semibold text-slate-900">
-                    {currentFeeCurrency?.minWithdraw ?? '-'}
+                    {formatAmountForDisplay(currentFeeCurrency?.minWithdraw) ?? '-'}
                   </div>
                   <div className="mt-1 text-xs text-slate-500">低于该金额不可发起提现</div>
                 </div>
