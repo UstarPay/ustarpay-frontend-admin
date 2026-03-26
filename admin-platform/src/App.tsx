@@ -26,6 +26,7 @@ import CurrencyListPage from '@/pages/Currency/CurrencyListPage'
 import AWSKMSConfigPage from '@/pages/KMS/AWSKMSConfigPage'
 import LoginLogPage from '@/pages/LoginLog/LoginLogPage'
 import SystemSettingsPage from '@/pages/System/SystemSettingsPage'
+import SumsubConfigPage from '@/pages/System/SumsubConfigPage'
 import SecuritySettingsPage from '@/pages/Security/SecuritySettingsPage'
 import NotFoundPage from '@/pages/Error/NotFoundPage'
 import ForbiddenPage from '@/pages/Error/ForbiddenPage'
@@ -232,6 +233,14 @@ function App() {
                       element={
                         <ProtectedRoute requiredPermission="system:settings">
                           <SystemSettingsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/system/sumsub"
+                      element={
+                        <ProtectedRoute requiredPermission="system:settings">
+                          <SumsubConfigPage />
                         </ProtectedRoute>
                       }
                     />

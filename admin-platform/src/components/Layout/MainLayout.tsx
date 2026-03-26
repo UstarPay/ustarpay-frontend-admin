@@ -142,6 +142,11 @@ const getMenuItems = (): MenuItem[] => [
         permission: 'system:settings',
       },
       {
+        key: '/system/sumsub',
+        label: <Link to="/system/sumsub">Sumsub 閰嶇疆</Link>,
+        permission: 'system:settings',
+      },
+      {
         key: '/security',
         label: <Link to="/security">安全设置</Link>,
         permission: 'security:settings',
