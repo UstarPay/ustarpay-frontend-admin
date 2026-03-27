@@ -110,7 +110,7 @@ export function LoginPage() {
 
   const handleDemoLogin = () => {
     form.setFieldsValue({
-      email: 'tenant-admin@ustarpay.local',
+      email: 'tenant@example.com',
       password: 'admin123',
     })
     setRememberMe(true)
@@ -263,7 +263,7 @@ export function LoginPage() {
                           fontFamily: 'monospace',
                         }}
                       >
-                        <div><strong>邮箱:</strong> tenant-admin@ustarpay.local</div>
+                        <div><strong>邮箱:</strong> tenant@example.com</div>
                         <div><strong>密码:</strong> admin123</div>
                       </div>
                       <Button
