@@ -339,7 +339,7 @@ const menuTree: MenuNode[] = [
       },
       {
         key: "/settings/transfer-fee",
-        label: "划转手续费",
+        label: "转账配置",
         permissions: ["config:view"],
       },
     ],
