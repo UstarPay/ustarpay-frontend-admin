@@ -60,7 +60,7 @@ const DashboardPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>仪表盘 - NH资产钱包托管系统</title>
+        <title>仪表盘 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="space-y-6">
@@ -69,7 +69,7 @@ const DashboardPage: React.FC = () => {
           <Title level={2} className="mb-2">
             仪表盘
           </Title>
-          <Text type="secondary">欢迎使用NH资产钱包托管系统管理平台</Text>
+          <Text type="secondary">欢迎使用U卡服务管理系统管理平台</Text>
         </div>
 
         {/* 统计卡片 */}

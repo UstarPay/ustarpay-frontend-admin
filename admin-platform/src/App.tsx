@@ -17,6 +17,7 @@ import TenantListPage from '@/pages/Tenant/TenantListPage'
 import TenantCreatePage from '@/pages/Tenant/TenantCreatePage'
 import TenantDetailPage from '@/pages/Tenant/TenantDetailPage'
 import { TenantEditPage } from '@/pages/Tenant'
+import { CardMerchantListPage } from '@/pages/Tenant'
 import { TenantPlanListPage, TenantPlanSubscriptionListPage } from '@/pages/TenantPlan'
 import UserListPage from '@/pages/User/UserListPage'
 import RoleListPage from '@/pages/Role/RoleListPage'
@@ -61,7 +62,7 @@ function App() {
   return (
     <>
       <Helmet>
-        <title>NH资产钱包托管系统 - 平台管理</title>
+        <title>U卡服务管理系统 - 平台管理</title>
         <meta name="description" content="企业级数字资产钱包托管平台管理后台" />
       </Helmet>
 
@@ -120,6 +121,14 @@ function App() {
                       element={
                         <ProtectedRoute requiredPermission="tenant:create">
                           <TenantCreatePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/tenants/card-merchants"
+                      element={
+                        <ProtectedRoute requiredPermission="tenant:list">
+                          <CardMerchantListPage />
                         </ProtectedRoute>
                       }
                     />

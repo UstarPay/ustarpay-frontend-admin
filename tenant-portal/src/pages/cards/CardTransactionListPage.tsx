@@ -12,9 +12,11 @@ import { cardService } from '@/services'
 import type { CardTransaction } from '@shared/types'
 import {
   getProviderEventMeta,
+  getProviderTransactionStateMeta,
+  getProviderTransactionTypeMeta,
   getReconcileStatusMeta,
   getTransactionStatusMeta,
-  getTransactionTypeLabel,
+  getTransactionTypeMeta,
   renderMappedTag,
 } from './cardDisplay'
 
@@ -107,7 +109,17 @@ const CardTransactionListPage: React.FC = () => {
       title: '类型',
       dataIndex: 'type',
       width: 140,
-      render: (value: string) => getTransactionTypeLabel(value),
+      render: (value: string) => {
+        const meta = getTransactionTypeMeta(value)
+        return (
+          <div className="space-y-1">
+            <div>
+              <Tag color="blue">{meta.label}</Tag>
+            </div>
+            <div className="text-xs text-slate-500">{meta.desc}</div>
+          </div>
+        )
+      },
     },
     {
       title: '授权金额',
@@ -169,8 +181,34 @@ const CardTransactionListPage: React.FC = () => {
         )
       },
     },
-    { title: '上游交易类型', dataIndex: 'provider_transaction_type', width: 150, render: (value: string) => value || '-' },
-    { title: '上游交易状态', dataIndex: 'provider_transaction_state', width: 150, render: (value: string) => value || '-' },
+    {
+      title: '上游交易类型',
+      dataIndex: 'provider_transaction_type',
+      width: 180,
+      render: (value: string) => {
+        const meta = getProviderTransactionTypeMeta(value)
+        return (
+          <div className="space-y-1">
+            <Tag color="blue">{meta.label}</Tag>
+            <div className="text-xs text-slate-500">{meta.desc}</div>
+          </div>
+        )
+      },
+    },
+    {
+      title: '上游交易状态',
+      dataIndex: 'provider_transaction_state',
+      width: 180,
+      render: (value: string) => {
+        const meta = getProviderTransactionStateMeta(value)
+        return (
+          <div className="space-y-1">
+            <Tag color="purple">{meta.label}</Tag>
+            <div className="text-xs text-slate-500">{meta.desc}</div>
+          </div>
+        )
+      },
+    },
     { title: '结算批次', dataIndex: 'provider_batch_id', width: 160, render: (value: string) => value || '-' },
     { title: '商户名称', dataIndex: 'merchant_name', width: 160, render: (value: string) => value || '-' },
     { title: '卡商名称', dataIndex: 'merchant_name_from_card', width: 160, render: (value: string) => value || '-' },

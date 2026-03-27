@@ -11,7 +11,7 @@ const NotFoundPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>页面未找到 - NH资产钱包托管系统</title>
+        <title>页面未找到 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="flex items-center justify-center min-h-[60vh]">

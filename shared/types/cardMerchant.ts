@@ -136,7 +136,6 @@ export interface CountryFeeConfig {
 
 export interface CardMerchant {
   id: string
-  tenant_id: string
   merchant_name: string
   api_key: string
   api_secret_masked: string
@@ -152,6 +151,38 @@ export interface CardMerchant {
   updated_at: string
   last_token_refresh?: string | null
   notes?: string | null
+}
+
+export interface CardWebhookMockCardInfo {
+  external_card_id: string
+  reference_no: string
+  card_number_last4?: string
+  user_id: string
+  currency: string
+  status: number
+  merchant_id?: string
+  merchant_name?: string
+  merchant_environment?: 'prod' | 'sandbox' | string
+  has_card_account: boolean
+  account_amount: string
+  account_held_amount: string
+}
+
+export interface CardWebhookMockSubmitRequest {
+  card_id: string
+  event: 'CARD_STATUS_CHANGE' | 'CARD_DELIVERY' | 'CARD_SETTING' | 'CARD_TRANSACTION'
+  payload: Record<string, unknown>
+}
+
+export interface CardWebhookMockSubmitResponse {
+  event: string
+  card_id: string
+  reference_no: string
+  merchant_id?: string
+  merchant_environment?: string
+  request_payload: Record<string, unknown>
+  message: string
+  submitted_at: string
 }
 
 export interface CreateCardMerchantRequest {

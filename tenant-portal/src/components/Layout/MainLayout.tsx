@@ -83,11 +83,6 @@ const menuTree: MenuNode[] = [
     permissions: ["cards:view"],
     children: [
       {
-        key: "/cards/merchants",
-        label: "卡商配置",
-        permissions: ["cards:view"],
-      },
-      {
         key: "/cards/list",
         label: "\u5361\u7247\u5217\u8868",
         permissions: ["cards:view"],

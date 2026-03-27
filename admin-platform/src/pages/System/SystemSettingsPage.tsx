@@ -11,7 +11,7 @@ const SystemSettingsPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>系统设置 - NH资产钱包托管系统</title>
+        <title>系统设置 - U卡服务管理系统</title>
       </Helmet>
 
       <div>

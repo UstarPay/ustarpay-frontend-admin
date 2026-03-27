@@ -168,7 +168,7 @@ const CurrencyListPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>代币管理 - NH Wallet Admin</title>
+        <title>代币管理 - U卡服务管理系统</title>
       </Helmet>
 
       <div style={{ padding: '24px' }}>

@@ -55,7 +55,6 @@ import {
   CardAccountFlowPage,
   CardFundFlowPage,
   CardListPage,
-  CardMerchantListPage,
   CardReconcileDiffPage,
   CardSettlementBatchPage,
   CardTransactionListPage,
@@ -170,10 +169,6 @@ export function AppRoutes() {
         <Route
           path="cards/list"
           element={protect(<CardListPage />, [TENANT_PERMISSION.CARDS_VIEW])}
-        />
-        <Route
-          path="cards/merchants"
-          element={protect(<CardMerchantListPage />, [TENANT_PERMISSION.CARDS_VIEW])}
         />
         <Route
           path="cards/physical-inventories"

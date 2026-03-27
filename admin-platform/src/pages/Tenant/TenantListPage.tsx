@@ -268,7 +268,7 @@ const TenantListPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>租户管理 - NH资产钱包托管系统</title>
+        <title>租户管理 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="space-y-4">

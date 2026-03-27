@@ -11,7 +11,6 @@ import {
   AppstoreOutlined,
   DatabaseOutlined,
   SafetyOutlined,
-  CreditCardOutlined,
   KeyOutlined,
 } from '@ant-design/icons'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -59,19 +58,14 @@ const getMenuItems = (): MenuItem[] => [
     ],
   },
   {
-    key: 'tenant-plan-management',
-    icon: <CreditCardOutlined />,
-    label: '租户计划管理',
+    key: 'card-merchant-management',
+    icon: <ShopOutlined />,
+    label: '卡商配置',
     children: [
       {
-        key: '/tenant-plans',
-        label: <Link to="/tenant-plans">计划管理</Link>,
-        permission: 'tenant:plans:list',
-      },
-      {
-        key: '/tenant-plan-subscriptions',
-        label: <Link to="/tenant-plan-subscriptions">订阅管理</Link>,
-        permission: 'tenant:plans:subscription:list',
+        key: '/tenants/card-merchants',
+        label: <Link to="/tenants/card-merchants">卡商管理</Link>,
+        permission: 'tenant:list',
       },
     ],
   },
@@ -185,31 +179,42 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, [menuItems, hasPermission])
 
   const findMenuPath = (items: MenuItem[], targetPath: string, parents: string[] = []): string[] => {
+    let bestMatch: { parents: string[]; matchedKey: string } | null = null
+
     for (const item of items) {
       if (item.children && item.children.length > 0) {
         const matched = findMenuPath(item.children, targetPath, [...parents, item.key])
         if (matched.length > 0) {
-          return matched
+          const selectedKey = findSelectedKey(item.children, targetPath)
+          if (selectedKey && (!bestMatch || selectedKey.length > bestMatch.matchedKey.length)) {
+            bestMatch = { parents: matched, matchedKey: selectedKey }
+          }
         }
       } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
-        return parents
+        if (!bestMatch || item.key.length > bestMatch.matchedKey.length) {
+          bestMatch = { parents, matchedKey: item.key }
+        }
       }
     }
-    return []
+    return bestMatch?.parents || []
   }
 
   const findSelectedKey = (items: MenuItem[], targetPath: string): string | null => {
+    let bestMatch: string | null = null
+
     for (const item of items) {
       if (item.children && item.children.length > 0) {
         const matched = findSelectedKey(item.children, targetPath)
-        if (matched) {
-          return matched
+        if (matched && (!bestMatch || matched.length > bestMatch.length)) {
+          bestMatch = matched
         }
       } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
-        return item.key
+        if (!bestMatch || item.key.length > bestMatch.length) {
+          bestMatch = item.key
+        }
       }
     }
-    return null
+    return bestMatch
   }
 
   // 根据当前路由自动展开对应的子菜单
@@ -270,7 +275,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex items-center justify-center h-16 border-b border-gray-700">
           <h1 className={`text-white font-bold transition-all duration-200 ${sidebarCollapsed ? 'text-lg' : 'text-xl'
             }`}>
-            {sidebarCollapsed ? 'DAW' : '数字资产钱包'}
+            {sidebarCollapsed ? 'U卡' : 'U卡服务管理系统'}
           </h1>
         </div>
 

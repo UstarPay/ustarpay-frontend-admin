@@ -66,7 +66,7 @@ const LoginLogPage: React.FC = () => {
     return (
       <>
         <Helmet>
-          <title>登录日志 - NH资产钱包托管系统</title>
+          <title>登录日志 - U卡服务管理系统</title>
         </Helmet>
         <Alert
           message="权限不足"
@@ -83,7 +83,7 @@ const LoginLogPage: React.FC = () => {
     return (
       <>
         <Helmet>
-          <title>登录日志 - NH资产钱包托管系统</title>
+          <title>登录日志 - U卡服务管理系统</title>
         </Helmet>
         <Alert
           message="加载失败"
@@ -316,7 +316,7 @@ const LoginLogPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>登录日志 - NH资产钱包托管系统</title>
+        <title>登录日志 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="space-y-6">

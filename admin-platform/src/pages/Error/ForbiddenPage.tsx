@@ -11,7 +11,7 @@ const ForbiddenPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>访问被拒绝 - NH资产钱包托管系统</title>
+        <title>访问被拒绝 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="flex items-center justify-center min-h-[60vh]">

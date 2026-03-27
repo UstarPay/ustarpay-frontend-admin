@@ -10,11 +10,17 @@ export const cardStatusLabelMap: Record<number, { label: string; color: string; 
   99: { label: '待审核', color: 'gold', helper: '卡片仍在审核或待处理阶段' },
 }
 
-const transactionTypeMap: Record<string, string> = {
-  AUTHORIZATION: '交易授权',
-  SETTLEMENT: '资金结算',
-  SYNC: '交易同步',
-  CARD_TRANSACTION: '交易通知',
+const transactionTypeMap: Record<string, { label: string; desc: string }> = {
+  AUTHORIZATION: { label: '交易授权', desc: '台账主单为授权阶段记录' },
+  SETTLEMENT: { label: '资金结算', desc: '台账主单为结算阶段记录' },
+  SYNC: { label: '交易同步', desc: '台账主单由上游同步通知驱动更新' },
+  CARD_TRANSACTION: { label: '交易通知', desc: '卡交易 webhook 通知记录' },
+  AUTH: { label: '交易授权', desc: '兼容旧枚举的授权阶段记录' },
+  PURCHASE: { label: '消费授权', desc: '上游消费授权交易' },
+  PRESENTMENT: { label: '结算请款', desc: '上游请款结算交易' },
+  CAPTURE: { label: '消费结算', desc: '上游结算入账交易' },
+  REVERSAL: { label: '冲正撤销', desc: '交易发生冲正或撤销' },
+  REFUND: { label: '退款交易', desc: '原交易发生退款' },
 }
 
 const transactionStatusMap: Record<string, { label: string; color: string; desc: string }> = {
@@ -66,6 +72,27 @@ const providerEventMap: Record<string, { label: string; desc: string }> = {
   CARD_TRANSACTION: { label: '卡交易通知', desc: '消费授权、结算、同步等交易类通知' },
 }
 
+const providerTransactionTypeMap: Record<string, { label: string; desc: string }> = {
+  AUTHORIZATION: { label: '授权交易', desc: '上游原始交易类型为授权' },
+  PRESENTMENT: { label: '结算请款', desc: '上游原始交易类型为请款结算' },
+  PURCHASE: { label: '消费授权', desc: '标准化后的消费授权交易' },
+  CAPTURE: { label: '消费结算', desc: '标准化后的结算入账交易' },
+  REVERSAL: { label: '冲正撤销', desc: '授权或结算发生冲正撤销' },
+  REFUND: { label: '退款交易', desc: '原交易发生退款' },
+}
+
+const providerTransactionStateMap: Record<string, { label: string; desc: string }> = {
+  APPROVED: { label: '已批准', desc: '上游原始状态为批准通过' },
+  DECLINED: { label: '已拒绝', desc: '上游原始状态为拒绝' },
+  PENDING: { label: '处理中', desc: '上游交易仍在处理中' },
+  SETTLED: { label: '已结算', desc: '上游原始状态为已结算' },
+  REVERSED: { label: '已冲正', desc: '上游交易已冲正或撤回' },
+  REFUNDED: { label: '已退款', desc: '上游交易已退款' },
+  AUTHORIZED: { label: '已授权', desc: '标准化后的授权通过状态' },
+  DENIED: { label: '授权拒绝', desc: '标准化后的授权拒绝状态' },
+  CAPTURED: { label: '已入账', desc: '标准化后的结算入账状态' },
+}
+
 export function getCardStatusMeta(status: number, fallback?: string, cardMaterial?: number) {
   if (status === 99 && cardMaterial === 2) {
     return {
@@ -79,7 +106,12 @@ export function getCardStatusMeta(status: number, fallback?: string, cardMateria
 
 export function getTransactionTypeLabel(type?: string) {
   if (!type) return '-'
-  return transactionTypeMap[type] || `交易通知 (${type})`
+  return transactionTypeMap[type]?.label || `其他类型 (${type})`
+}
+
+export function getTransactionTypeMeta(type?: string) {
+  if (!type) return { label: '-', desc: '' }
+  return transactionTypeMap[type] || { label: `其他类型 (${type})`, desc: '未纳入当前已确认的交易类型映射，请结合原始 type 排查' }
 }
 
 export function getTransactionStatusMeta(status?: string) {
@@ -115,6 +147,26 @@ export function getReconcileDiffStatusMeta(status?: string) {
 export function getProviderEventMeta(event?: string) {
   if (!event) return { label: '-', desc: '' }
   return providerEventMap[event] || { label: `其他事件 (${event})`, desc: '未纳入当前已确认事件映射，请结合原始 event 排查' }
+}
+
+export function getProviderTransactionTypeMeta(type?: string) {
+  if (!type) return { label: '-', desc: '' }
+  return (
+    providerTransactionTypeMap[type] || {
+      label: `其他类型 (${type})`,
+      desc: '未纳入当前已确认的上游交易类型映射，请结合原始 type 排查',
+    }
+  )
+}
+
+export function getProviderTransactionStateMeta(state?: string) {
+  if (!state) return { label: '-', desc: '' }
+  return (
+    providerTransactionStateMap[state] || {
+      label: `其他状态 (${state})`,
+      desc: '未纳入当前已确认的上游交易状态映射，请结合原始 state 排查',
+    }
+  )
 }
 
 export function renderMappedTag(label: string, color: string, raw?: string) {

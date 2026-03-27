@@ -33,7 +33,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <>
       <Helmet>
-        <title>管理员登录 - NHNH资产钱包托管系统</title>
+        <title>管理员登录 - U卡服务管理系统</title>
       </Helmet>
       
       <Layout className="min-h-screen overflow-hidden relative">
@@ -69,10 +69,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                     </div>
                   </div>
                   <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    NH Wallet
+                    U卡服务
                   </h1>
                   <h2 className="text-2xl font-light mb-6 text-blue-100">
-                    NH资产钱包托管系统
+                    U卡服务管理系统
                   </h2>
                   <p className="text-lg text-blue-200 leading-relaxed">
                     企业级数字资产管理平台，为您提供安全、可靠、专业的数字资产托管服务
@@ -124,10 +124,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                     </div>
                   </div>
                   <h1 className="text-3xl font-bold text-white mb-2">
-                    NH Wallet
+                    U卡服务
                   </h1>
                   <p className="text-blue-200">
-                    NH资产钱包托管系统
+                    U卡服务管理系统
                   </p>
                 </div>
                 

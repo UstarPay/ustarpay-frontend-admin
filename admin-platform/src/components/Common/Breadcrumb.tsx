@@ -19,6 +19,7 @@ const routeConfig: Record<string, BreadcrumbItem> = {
   // 租户管理
   '/tenants': { title: '租户列表' },
   '/tenants/create': { title: '创建租户' },
+  '/tenants/card-merchants': { title: '卡商管理' },
   '/tenants/:id': { title: '租户详情' },
   '/tenants/:id/edit': { title: '编辑租户' },
   
@@ -65,6 +66,7 @@ const routeConfig: Record<string, BreadcrumbItem> = {
  */
 const routeGroups: Record<string, BreadcrumbItem> = {
   'tenant-management': { title: '租户管理' },
+  'card-merchant-management': { title: '卡商配置' },
   'tenant-plan-management': { title: '租户计划管理' },
   'rbac-management': { title: 'RBAC管理' },
   'blockchain-management': { title: '区块链管理' },
@@ -98,6 +100,9 @@ const matchRoute = (pathname: string): BreadcrumbItem | null => {
  * 根据路径获取分组
  */
 const getRouteGroup = (pathname: string): BreadcrumbItem | null => {
+  if (pathname.startsWith('/tenants/card-merchants')) {
+    return routeGroups['card-merchant-management']
+  }
   if (pathname.startsWith('/tenants')) {
     return routeGroups['tenant-management']
   }
@@ -125,6 +130,7 @@ const getRouteGroup = (pathname: string): BreadcrumbItem | null => {
 const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
   const pathSegments = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItem[] = []
+  const skipTenantListCrumb = pathname.startsWith('/tenants/card-merchants')
 
   // 添加首页
   if (pathname !== '/dashboard') {
@@ -151,6 +157,9 @@ const generateBreadcrumbs = (pathname: string): BreadcrumbItem[] => {
   let currentPath = ''
   pathSegments.forEach((segment, index) => {
     currentPath += `/${segment}`
+    if (skipTenantListCrumb && currentPath === '/tenants') {
+      return
+    }
     const matchedRoute = matchRoute(currentPath)
     
     if (matchedRoute) {

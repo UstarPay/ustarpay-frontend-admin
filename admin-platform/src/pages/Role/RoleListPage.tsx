@@ -146,7 +146,7 @@ const RoleListPage: React.FC = () => {
     return (
       <>
         <Helmet>
-          <title>角色管理 - NH资产钱包托管系统</title>
+          <title>角色管理 - U卡服务管理系统</title>
         </Helmet>
         <Alert
           message="权限不足"
@@ -163,7 +163,7 @@ const RoleListPage: React.FC = () => {
     return (
       <>
         <Helmet>
-          <title>角色管理 - NH资产钱包托管系统</title>
+          <title>角色管理 - U卡服务管理系统</title>
         </Helmet>
         <Alert
           message="加载失败"
@@ -368,7 +368,7 @@ const RoleListPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>角色管理 - NH资产钱包托管系统</title>
+        <title>角色管理 - U卡服务管理系统</title>
       </Helmet>
 
       <div className="space-y-6">
