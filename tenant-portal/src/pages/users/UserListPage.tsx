@@ -481,9 +481,6 @@ const UserListPage: React.FC = () => {
               <Input placeholder="输入上级邀请码" autoComplete="off" />
             </Form.Item>
           ) : null}
-          <Form.Item name="phone" label="手机号">
-            <Input />
-          </Form.Item>
           <Form.Item
             name="countryCode"
             label="国家代码(alpha-2)"

@@ -28,6 +28,7 @@ import AWSKMSConfigPage from '@/pages/KMS/AWSKMSConfigPage'
 import LoginLogPage from '@/pages/LoginLog/LoginLogPage'
 import SystemSettingsPage from '@/pages/System/SystemSettingsPage'
 import SumsubConfigPage from '@/pages/System/SumsubConfigPage'
+import EmailDeliveryPage from '@/pages/System/EmailDeliveryPage'
 import SecuritySettingsPage from '@/pages/Security/SecuritySettingsPage'
 import NotFoundPage from '@/pages/Error/NotFoundPage'
 import ForbiddenPage from '@/pages/Error/ForbiddenPage'
@@ -250,6 +251,14 @@ function App() {
                       element={
                         <ProtectedRoute requiredPermission="system:settings">
                           <SumsubConfigPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/system/email-delivery"
+                      element={
+                        <ProtectedRoute requiredPermission="system:settings">
+                          <EmailDeliveryPage />
                         </ProtectedRoute>
                       }
                     />
