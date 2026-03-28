@@ -43,7 +43,9 @@ const DEFAULT_VALUES: WalletTransferConfigPayload = {
   maxCreditedAmount: "0",
   dailyCreditedLimit: "0",
   supportedCurrencies: [],
-  exchangeRates: {},
+  exchangeRates: {
+    USDT_USD: "1",
+  },
 };
 
 function parseFeeRatePercent(raw?: string | number) {
