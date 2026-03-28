@@ -36,6 +36,10 @@ type FormValues = {
   exchangeRatesText: string;
 };
 
+const DEFAULT_EXCHANGE_RATES: Record<string, string> = {
+  USDT: "1",
+};
+
 const DEFAULT_VALUES: WalletTransferConfigPayload = {
   enabled: true,
   feeRate: "0.010000",
@@ -43,9 +47,7 @@ const DEFAULT_VALUES: WalletTransferConfigPayload = {
   maxCreditedAmount: "0",
   dailyCreditedLimit: "0",
   supportedCurrencies: [],
-  exchangeRates: {
-    USDT_USD: "1",
-  },
+  exchangeRates: { ...DEFAULT_EXCHANGE_RATES },
 };
 
 function parseFeeRatePercent(raw?: string | number) {
@@ -63,6 +65,18 @@ function parseConfigValue(raw?: string): WalletTransferConfigPayload {
 
   try {
     const parsed = JSON.parse(raw) as Partial<WalletTransferConfigPayload> & { feeRate?: string | number };
+    const normalizedExchangeRates =
+      typeof parsed.exchangeRates === "object" && parsed.exchangeRates
+        ? Object.fromEntries(
+            Object.entries(parsed.exchangeRates)
+              .map(([key, value]) => [
+                key.trim().toUpperCase().replace(/-/g, "_"),
+                String(value).trim(),
+              ])
+              .filter(([key, value]) => key && value),
+          )
+        : {};
+
     return {
       enabled: parsed.enabled ?? true,
       feeRate: String(parsed.feeRate ?? DEFAULT_VALUES.feeRate),
@@ -73,16 +87,9 @@ function parseConfigValue(raw?: string): WalletTransferConfigPayload {
         ? parsed.supportedCurrencies.map((item) => String(item).trim().toUpperCase()).filter(Boolean)
         : [],
       exchangeRates:
-        typeof parsed.exchangeRates === "object" && parsed.exchangeRates
-          ? Object.fromEntries(
-              Object.entries(parsed.exchangeRates)
-                .map(([key, value]) => [
-                  key.trim().toUpperCase().replace(/-/g, "_"),
-                  String(value).trim(),
-                ])
-                .filter(([key, value]) => key && value),
-            )
-          : {},
+        Object.keys(normalizedExchangeRates).length > 0
+          ? normalizedExchangeRates
+          : { ...DEFAULT_EXCHANGE_RATES },
     };
   } catch {
     return {
@@ -389,9 +396,9 @@ export default function TransferFeeConfigPage() {
               <Form.Item
                 label="汇率配置"
                 name="exchangeRatesText"
-                extra="每行一条，格式为 币种 或 币种对=汇率。示例：USDT_USD=1 或 BTC_USD=65000。若钱包币种与卡币种相同，会自动按 1 处理。"
+                extra="每行一条，格式为 币种=汇率 或 币种对=汇率。默认建议保留 USDT=1；若钱包币种与卡币种相同，会自动按 1 处理。"
               >
-                <Input.TextArea rows={6} placeholder={"USDT_USD=1\nUSDC_USD=1\nBTC_USD=65000"} />
+                <Input.TextArea rows={6} placeholder={"USDT=1\nUSDC=1\nBTC_USD=65000"} />
               </Form.Item>
             </Form>
           </div>

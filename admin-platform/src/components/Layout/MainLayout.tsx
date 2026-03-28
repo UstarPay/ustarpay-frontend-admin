@@ -141,6 +141,11 @@ const getMenuItems = (): MenuItem[] => [
         permission: 'system:settings',
       },
       {
+        key: '/system/email-delivery',
+        label: <Link to="/system/email-delivery">邮件投递</Link>,
+        permission: 'system:settings',
+      },
+      {
         key: '/security',
         label: <Link to="/security">安全设置</Link>,
         permission: 'security:settings',
