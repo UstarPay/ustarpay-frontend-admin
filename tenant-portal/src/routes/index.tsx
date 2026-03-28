@@ -56,7 +56,7 @@ import {
   CardFundFlowPage,
   CardListPage,
   CardReconcileDiffPage,
-  CardSettlementBatchPage,
+  CardTransactionRiskPage,
   CardTransactionListPage,
   PhysicalCardApplicationPage,
   PhysicalCardInventoryPage,
@@ -191,12 +191,12 @@ export function AppRoutes() {
           element={protect(<CardFundFlowPage />, [TENANT_PERMISSION.CARDS_VIEW])}
         />
         <Route
-          path="cards/settlement-batches"
-          element={protect(<CardSettlementBatchPage />, [TENANT_PERMISSION.CARDS_VIEW])}
-        />
-        <Route
           path="cards/reconcile-diffs"
           element={protect(<CardReconcileDiffPage />, [TENANT_PERMISSION.CARDS_VIEW])}
+        />
+        <Route
+          path="cards/transaction-risk"
+          element={protect(<CardTransactionRiskPage />, [TENANT_PERMISSION.CARDS_VIEW])}
         />
 
         <Route

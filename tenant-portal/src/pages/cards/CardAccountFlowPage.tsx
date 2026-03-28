@@ -38,6 +38,37 @@ const formatAmount = (value: number) => value.toLocaleString('zh-CN', { maximumF
 
 const formatDateTime = (value?: string) => (value ? new Date(value).toLocaleString('zh-CN') : '-')
 
+const getFlowSummaryKey = (item: CardAccountFlow) => item.external_transaction_id || item.reference_id || item.id
+
+const summarizeFlowAmount = (group: CardAccountFlow[]) => {
+  const sumByTypes = (types: string[]) =>
+    group
+      .filter((item) => types.includes(item.flow_type))
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0)
+
+  const settledAmount = sumByTypes(['SETTLE', 'ADJUST'])
+  if (settledAmount > 0) {
+    return settledAmount
+  }
+
+  const reversedAmount = sumByTypes(['REVERSE'])
+  if (reversedAmount > 0) {
+    return reversedAmount
+  }
+
+  const releasedAmount = sumByTypes(['RELEASE'])
+  if (releasedAmount > 0) {
+    return releasedAmount
+  }
+
+  const heldAmount = sumByTypes(['HOLD'])
+  if (heldAmount > 0) {
+    return heldAmount
+  }
+
+  return group.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+}
+
 const CardAccountFlowPage: React.FC = () => {
   const [params, setParams] = useState<QueryParams>(defaultParams)
 
@@ -53,7 +84,14 @@ const CardAccountFlowPage: React.FC = () => {
     const holdCount = items.filter((item) => item.flow_type === 'HOLD').length
     const settleCount = items.filter((item) => item.flow_type === 'SETTLE').length
     const releaseCount = items.filter((item) => item.flow_type === 'RELEASE').length
-    const totalAmount = items.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+    const groupedItems = new Map<string, CardAccountFlow[]>()
+    items.forEach((item) => {
+      const key = getFlowSummaryKey(item)
+      const current = groupedItems.get(key) || []
+      current.push(item)
+      groupedItems.set(key, current)
+    })
+    const totalAmount = Array.from(groupedItems.values()).reduce((sum, group) => sum + summarizeFlowAmount(group), 0)
     return { holdCount, settleCount, releaseCount, totalAmount }
   }, [items])
 

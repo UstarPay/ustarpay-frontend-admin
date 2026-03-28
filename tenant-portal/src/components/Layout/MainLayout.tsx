@@ -113,13 +113,13 @@ const menuTree: MenuNode[] = [
         permissions: ["cards:view"],
       },
       {
-        key: "/cards/settlement-batches",
-        label: "\u5361\u7ed3\u7b97\u6279\u6b21",
+        key: "/cards/reconcile-diffs",
+        label: "\u5361\u5bf9\u8d26\u5dee\u5f02",
         permissions: ["cards:view"],
       },
       {
-        key: "/cards/reconcile-diffs",
-        label: "\u5361\u5bf9\u8d26\u5dee\u5f02",
+        key: "/cards/transaction-risk",
+        label: "\u5361\u4ea4\u6613\u98ce\u63a7",
         permissions: ["cards:view"],
       },
     ],

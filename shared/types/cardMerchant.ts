@@ -170,7 +170,7 @@ export interface CardWebhookMockCardInfo {
 
 export interface CardWebhookMockSubmitRequest {
   card_id: string
-  event: 'CARD_STATUS_CHANGE' | 'CARD_DELIVERY' | 'CARD_SETTING' | 'CARD_TRANSACTION'
+  event: 'CARD_STATUS_CHANGE' | 'CARD_DELIVERY' | 'CARD_SETTING' | 'CARD_TRANSACTION' | 'CARD_AUTHORIZATION'
   payload: Record<string, unknown>
 }
 
@@ -181,6 +181,7 @@ export interface CardWebhookMockSubmitResponse {
   merchant_id?: string
   merchant_environment?: string
   request_payload: Record<string, unknown>
+  response_payload?: Record<string, unknown>
   message: string
   submitted_at: string
 }
@@ -217,7 +218,6 @@ export interface CardTransaction {
   currency: string
   status: string
   reconcile_status?: string
-  provider_batch_id?: string
   provider_event?: string
   provider_transaction_type?: string
   provider_transaction_state?: string
@@ -252,22 +252,6 @@ export interface CardAccountFlow {
   reference_id: string
   remark?: string
   created_at: string
-}
-
-export interface CardSettlementBatch {
-  id: string
-  tenant_id: string
-  provider: string
-  batch_id: string
-  currency: string
-  total_count: number
-  total_amount: string
-  matched_count: number
-  diff_count: number
-  status: string
-  last_settled_at?: string
-  created_at: string
-  updated_at: string
 }
 
 export interface CardReconcileDiff {

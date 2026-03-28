@@ -7,6 +7,7 @@ import {
   Form,
   Input,
   Modal,
+  Radio,
   Select,
   Space,
   Table,
@@ -39,11 +40,14 @@ const { Title, Text } = Typography
 const { Search } = Input
 
 const EVENT_OPTIONS = [
+  { label: '获取交易授权', value: 'CARD_AUTHORIZATION' },
   { label: '卡状态变更', value: 'CARD_STATUS_CHANGE' },
   { label: '卡片配送通知', value: 'CARD_DELIVERY' },
   { label: '卡设置变更', value: 'CARD_SETTING' },
   { label: '卡交易通知', value: 'CARD_TRANSACTION' },
 ] as const
+
+const EVENT_LABEL_MAP = Object.fromEntries(EVENT_OPTIONS.map(item => [item.value, item.label])) as Record<string, string>
 
 const TX_TYPE_OPTIONS = [
   { label: '交易授权', value: 'AUTHORIZATION' },
@@ -51,6 +55,29 @@ const TX_TYPE_OPTIONS = [
   { label: '交易撤销', value: 'REVERSAL' },
   { label: '交易退款', value: 'REFUND' },
 ]
+
+const TX_TYPE_LABEL_MAP = Object.fromEntries(TX_TYPE_OPTIONS.map(item => [item.value, item.label])) as Record<string, string>
+
+const TX_STATE_LABEL_MAP: Record<string, string> = {
+  APPROVED: '授权通过',
+  DECLINED: '授权拒绝',
+  PENDING: '处理中',
+  SETTLED: '已结算',
+  REVERSED: '已撤销',
+  REFUNDED: '已退款',
+}
+
+const DECISION_LABEL_MAP: Record<string, string> = {
+  APPROVE: '通过',
+  DECLINE: '拒绝',
+}
+
+const AUTH_CALLBACK_SCENARIO_OPTIONS = [
+  { label: '不自动回调', value: 'NONE' },
+  { label: '授权通过后自动回调“交易授权”', value: 'APPROVED_AUTH' },
+  { label: '授权通过后自动回调“交易授权 + 交易结算”', value: 'APPROVED_AUTH_SETTLEMENT' },
+  { label: '授权失败后自动回调“交易失败”', value: 'DECLINED_AUTH_FAILED' },
+] as const
 
 const TX_STATE_OPTIONS_BY_TYPE: Record<string, Array<{ label: string; value: string }>> = {
   AUTHORIZATION: [
@@ -94,6 +121,11 @@ const cardStatusLabelMap: Record<number, { label: string; color: string }> = {
 }
 
 const getCardStatusMeta = (status: number) => cardStatusLabelMap[status] || { label: `状态 ${status}`, color: 'default' }
+
+const getEventLabel = (value?: string) => (value ? EVENT_LABEL_MAP[value] || value : '-')
+const getTxTypeLabel = (value?: string) => (value ? TX_TYPE_LABEL_MAP[value] || value : '-')
+const getTxStateLabel = (value?: string) => (value ? TX_STATE_LABEL_MAP[value] || value : '-')
+const getDecisionLabel = (value?: string) => (value ? DECISION_LABEL_MAP[value] || value : '-')
 
 const formatNow = () => {
   const now = new Date()
@@ -162,7 +194,6 @@ const CardMerchantListPage: React.FC = () => {
     mutationFn: (cardId: string) => cardMerchantApi.getWebhookMockCard(cardId),
     onSuccess: (result) => {
       setCardInfo(result)
-      setMockResult(null)
       mockForm.setFieldsValue({
         cardId: result.external_card_id,
         referenceNo: result.reference_no,
@@ -181,7 +212,7 @@ const CardMerchantListPage: React.FC = () => {
     mutationFn: cardMerchantApi.submitWebhookMock,
     onSuccess: (result) => {
       setMockResult(result)
-      message.success('Webhook Mock 提交成功')
+      message.success(result.event === 'CARD_AUTHORIZATION' ? '交易授权接口调用成功' : 'Webhook Mock 提交成功')
       if (cardInfo) {
         queryCardMutation.mutate(cardInfo.external_card_id)
       }
@@ -225,18 +256,27 @@ const CardMerchantListPage: React.FC = () => {
       return
     }
     mockForm.setFieldsValue({
-      event: 'CARD_TRANSACTION',
-      transactionType: 'AUTHORIZATION',
-      transactionState: 'APPROVED',
-      indicator: 'debit',
+      event: 'CARD_AUTHORIZATION',
+      transactionAmount: '10.00',
+      transactionCurrency: cardInfo?.currency || 'USD',
+      authorizationCallbackScenario: undefined,
       externalTransactionId: createMockTxID(),
       createdDate: formatNow(),
       confirmedTime: formatNow(),
     })
-  }, [mockForm, mockVisible])
+  }, [cardInfo?.currency, mockForm, mockVisible])
 
   const selectedEvent = Form.useWatch('event', mockForm)
   const selectedTransactionType = Form.useWatch('transactionType', mockForm)
+
+  useEffect(() => {
+    if (!mockVisible || selectedEvent !== 'CARD_AUTHORIZATION') {
+      return
+    }
+    if (!mockForm.getFieldValue('transactionCurrency')) {
+      mockForm.setFieldValue('transactionCurrency', cardInfo?.currency || 'USD')
+    }
+  }, [cardInfo?.currency, mockForm, mockVisible, selectedEvent])
 
   useEffect(() => {
     if (!mockVisible || selectedEvent !== 'CARD_TRANSACTION') {
@@ -260,6 +300,10 @@ const CardMerchantListPage: React.FC = () => {
   }, [cardInfo?.currency, mockForm, mockVisible, selectedEvent, selectedTransactionType])
 
   const merchants = data?.items || []
+  const requestPayloadData =
+    mockResult && mockResult.request_payload && typeof mockResult.request_payload.data === 'object' && mockResult.request_payload.data !== null
+      ? (mockResult.request_payload.data as Record<string, unknown>)
+      : null
 
   const columns: ColumnsType<CardMerchant> = [
     {
@@ -411,6 +455,7 @@ const CardMerchantListPage: React.FC = () => {
       message.warning('请先输入卡ID')
       return
     }
+    setMockResult(null)
     await queryCardMutation.mutateAsync(cardId)
   }
 
@@ -444,6 +489,18 @@ const CardMerchantListPage: React.FC = () => {
           transactionLimit: values.transactionLimit,
           monthlyLimit: values.monthlyLimit,
           truncatedCardNumber: values.truncatedCardNumber,
+          referenceNo: values.referenceNo,
+        }
+      case 'CARD_AUTHORIZATION':
+        const callbackScenario = values.authorizationCallbackScenario || 'NONE'
+        return {
+          transactionAmount: values.transactionAmount,
+          transactionCurrency: values.transactionCurrency,
+          merchantName: values.merchantName,
+          mcc: values.mcc,
+          autoCallbackAuthApproved: callbackScenario === 'APPROVED_AUTH' || callbackScenario === 'APPROVED_AUTH_SETTLEMENT',
+          autoCallbackSettlement: callbackScenario === 'APPROVED_AUTH_SETTLEMENT',
+          autoCallbackAuthFailed: callbackScenario === 'DECLINED_AUTH_FAILED',
           referenceNo: values.referenceNo,
         }
       case 'CARD_TRANSACTION':
@@ -532,6 +589,40 @@ const CardMerchantListPage: React.FC = () => {
             <Form.Item name="truncatedCardNumber" label="脱敏卡号">
               <Input placeholder="例如 ****1234" />
             </Form.Item>
+          </>
+        )
+      case 'CARD_AUTHORIZATION':
+        return (
+          <>
+            <Space className="w-full" size="large" align="start">
+              <Form.Item
+                name="transactionAmount"
+                label="交易金额"
+                rules={[{ required: true, message: '请输入交易金额' }]}
+                className="min-w-[220px]"
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="transactionCurrency"
+                label="交易币种"
+                rules={[{ required: true, message: '请输入交易币种' }]}
+                className="min-w-[180px]"
+              >
+                <Input />
+              </Form.Item>
+            </Space>
+            <Form.Item name="merchantName" label="商户名称">
+              <Input />
+            </Form.Item>
+            <Form.Item name="mcc" label="MCC（商户类别码）" className="min-w-[220px]">
+              <Input placeholder="例如 5411" />
+            </Form.Item>
+            <Card size="small" className="border-dashed bg-slate-50" title="自动回调">
+              <Form.Item name="authorizationCallbackScenario" className="!mb-0">
+                <Radio.Group options={AUTH_CALLBACK_SCENARIO_OPTIONS as any} className="flex flex-col gap-3" />
+              </Form.Item>
+            </Card>
           </>
         )
       case 'CARD_TRANSACTION':
@@ -834,12 +925,50 @@ const CardMerchantListPage: React.FC = () => {
           {mockResult ? (
             <Card size="small" title="提交结果" className="mt-4">
               <Descriptions size="small" column={2}>
-                <Descriptions.Item label="事件类型">{mockResult.event}</Descriptions.Item>
+                <Descriptions.Item label="事件类型">{getEventLabel(mockResult.event)}</Descriptions.Item>
                 <Descriptions.Item label="卡ID">{mockResult.card_id}</Descriptions.Item>
                 <Descriptions.Item label="参考号">{mockResult.reference_no}</Descriptions.Item>
                 <Descriptions.Item label="卡商环境">{mockResult.merchant_environment || '-'}</Descriptions.Item>
                 <Descriptions.Item label="结果">{mockResult.message}</Descriptions.Item>
                 <Descriptions.Item label="提交时间">{mockResult.submitted_at}</Descriptions.Item>
+                {mockResult.event === 'CARD_AUTHORIZATION' ? (
+                  <>
+                    <Descriptions.Item label="授权决策">
+                      {getDecisionLabel(String(mockResult.response_payload?.decision || ''))}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="决策编码">
+                      {String(mockResult.response_payload?.decisionCode || '-')}
+                    </Descriptions.Item>
+                  </>
+                ) : null}
+                {mockResult.event === 'CARD_TRANSACTION' ? (
+                  <>
+                    <Descriptions.Item label="交易类型">
+                      {getTxTypeLabel(String(requestPayloadData?.transactionType || mockResult.request_payload?.transactionType || ''))}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="交易状态">
+                      {getTxStateLabel(String(requestPayloadData?.transactionState || mockResult.request_payload?.transactionState || ''))}
+                    </Descriptions.Item>
+                  </>
+                ) : null}
+                {Array.isArray(mockResult.response_payload?.autoCallbacks) && mockResult.response_payload?.autoCallbacks.length > 0 ? (
+                  <Descriptions.Item label="自动回调">
+                    <Space wrap>
+                      {(mockResult.response_payload?.autoCallbacks as Array<Record<string, unknown>>).map((item, index) => {
+                        const event = getEventLabel(String(item.event || ''))
+                        const txType = getTxTypeLabel(String(item.type || ''))
+                        const txState = getTxStateLabel(String(item.state || ''))
+                        const result = String(item.result || '')
+                        const extra = [String(item.ledgerStatus || ''), String(item.reconcileStatus || '')].filter(value => value).join(' / ')
+                        return (
+                          <Tag key={`${item.event}-${item.type}-${item.state}-${index}`} color={result === 'FAILED' ? 'red' : 'blue'}>
+                            {[event, txType, txState, result, extra].filter(value => value && value !== '-').join(' / ')}
+                          </Tag>
+                        )
+                      })}
+                    </Space>
+                  </Descriptions.Item>
+                ) : null}
               </Descriptions>
               <div className="mt-3">
                 <Text strong>请求 Payload</Text>
@@ -847,6 +976,14 @@ const CardMerchantListPage: React.FC = () => {
                   {JSON.stringify(mockResult.request_payload, null, 2)}
                 </pre>
               </div>
+              {mockResult.response_payload ? (
+                <div className="mt-3">
+                  <Text strong>响应 Payload</Text>
+                  <pre className="mt-2 max-h-80 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">
+                    {JSON.stringify(mockResult.response_payload, null, 2)}
+                  </pre>
+                </div>
+              ) : null}
             </Card>
           ) : null}
         </Modal>

@@ -5,17 +5,97 @@ import type {
   PhysicalCardInventory,
   CardRecord,
   CardReconcileDiff,
-  CardSettlementBatch,
   CardTransaction,
 } from '@shared/types'
 import { api } from './api'
+
+export interface CardTransactionRiskAlertReceivers {
+  emails?: string[]
+  phones?: string[]
+  [key: string]: unknown
+}
+
+export interface CardTransactionRiskConfig {
+  id: string
+  tenantId: string
+  status: 'ENABLED' | 'DISABLED'
+  riskEnabled: boolean
+  blacklistHitAction: 'DECLINE'
+  maxTransactionAmount: string
+  dailyAmountLimit: string
+  monthlyAmountLimit: string
+  dailyCountLimit: number
+  monthlyCountLimit: number
+  feeEnabled: boolean
+  feeMode: 'FIXED' | 'RATE'
+  feeFixedAmount: string
+  feeRateBps: number
+  feeMinAmount: string
+  feeMaxAmount: string
+  feeRoundMode: string
+  feeRefundEnabled: boolean
+  feeRefundScope: 'FAILED_ONLY' | 'FAILED_AND_REFUND' | 'NONE'
+  alertEnabled: boolean
+  alertScene: string[]
+  alertReceivers: CardTransactionRiskAlertReceivers
+  configVersion: number
+  effectiveAt: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CardTransactionRiskConfigUpsertPayload {
+  status: 'ENABLED' | 'DISABLED'
+  riskEnabled: boolean
+  blacklistHitAction: 'DECLINE'
+  maxTransactionAmount: string
+  dailyAmountLimit: string
+  monthlyAmountLimit: string
+  dailyCountLimit: number
+  monthlyCountLimit: number
+  feeEnabled: boolean
+  feeMode: 'FIXED' | 'RATE'
+  feeFixedAmount: string
+  feeRateBps: number
+  feeMinAmount: string
+  feeMaxAmount: string
+  feeRoundMode: string
+  feeRefundEnabled: boolean
+  feeRefundScope: 'FAILED_ONLY' | 'FAILED_AND_REFUND' | 'NONE'
+  alertEnabled: boolean
+  alertScene: string[]
+  alertReceivers: CardTransactionRiskAlertReceivers
+}
+
+export interface CardTransactionRiskBlacklistItem {
+  id: string
+  tenantId: string
+  userId: string
+  status: 'ACTIVE' | 'INACTIVE'
+  reason?: string
+  sourceType?: string
+  effectiveAt: string
+  expiredAt?: string
+  createdBy?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CardTransactionRiskBlacklistUpsertPayload {
+  userId: string
+  status: 'ACTIVE' | 'INACTIVE'
+  reason?: string
+  sourceType?: string
+  effectiveAt?: string
+  expiredAt?: string
+}
 
 export const cardService = {
   getCards: async (params?: { page?: number; pageSize?: number; search?: string }) => {
     return api.getPaginated<CardRecord>('/cards', params)
   },
 
-  getCardTransactions: async (params?: { page?: number; pageSize?: number; search?: string; status?: string; type?: string; reconcileStatus?: string; batchId?: string; userId?: string }) => {
+  getCardTransactions: async (params?: { page?: number; pageSize?: number; search?: string; status?: string; type?: string; reconcileStatus?: string; userId?: string }) => {
     return api.getPaginated<CardTransaction>('/cards/transactions', params)
   },
 
@@ -28,10 +108,6 @@ export const cardService = {
       items: any[]
       pagination: { page: number; pageSize: number; total: number; totalPages: number }
     }>('/cards/fund-flows', { ...params, bizType: 'card_consume' })
-  },
-
-  getSettlementBatches: async (params?: { page?: number; pageSize?: number; search?: string; status?: string; currency?: string }) => {
-    return api.getPaginated<CardSettlementBatch>('/cards/settlement-batches', params)
   },
 
   getReconcileDiffs: async (params?: { page?: number; pageSize?: number; search?: string; status?: string; diffType?: string }) => {
@@ -49,6 +125,45 @@ export const cardService = {
 
   updateFeeConfig: async (config: CardFeeConfig): Promise<void> => {
     await api.put<void>('/cards/fee-config', { configValue: config })
+  },
+
+  getTransactionRiskConfig: async (): Promise<CardTransactionRiskConfig | null> => {
+    const response = await api.get<CardTransactionRiskConfig | null>('/cards/transaction-risk-config')
+    return response.data
+  },
+
+  updateTransactionRiskConfig: async (
+    payload: CardTransactionRiskConfigUpsertPayload
+  ): Promise<CardTransactionRiskConfig | null> => {
+    const response = await api.put<CardTransactionRiskConfig | null>('/cards/transaction-risk-config', payload)
+    return response.data
+  },
+
+  getTransactionRiskBlacklist: async (params?: {
+    page?: number
+    pageSize?: number
+    search?: string
+  }) => {
+    return api.getPaginated<CardTransactionRiskBlacklistItem>('/cards/transaction-risk-blacklist', params)
+  },
+
+  createTransactionRiskBlacklist: async (
+    payload: CardTransactionRiskBlacklistUpsertPayload
+  ): Promise<CardTransactionRiskBlacklistItem | null> => {
+    const response = await api.post<CardTransactionRiskBlacklistItem | null>('/cards/transaction-risk-blacklist', payload)
+    return response.data
+  },
+
+  updateTransactionRiskBlacklist: async (
+    id: string,
+    payload: CardTransactionRiskBlacklistUpsertPayload
+  ): Promise<CardTransactionRiskBlacklistItem | null> => {
+    const response = await api.put<CardTransactionRiskBlacklistItem | null>(`/cards/transaction-risk-blacklist/${id}`, payload)
+    return response.data
+  },
+
+  deleteTransactionRiskBlacklist: async (id: string): Promise<void> => {
+    await api.delete<void>(`/cards/transaction-risk-blacklist/${id}`)
   },
 
   getPhysicalInventories: async (params?: { page?: number; pageSize?: number; search?: string; status?: number }) => {

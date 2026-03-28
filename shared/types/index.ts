@@ -26,6 +26,9 @@ export interface DashboardStats {
   totalVolume: string;
   dailyTransactions: number;
   dailyVolume: string;
+  systemHealth?: number;
+  alertCount?: number;
+  timestamp?: number;
 }
 
 export interface TenantStats {

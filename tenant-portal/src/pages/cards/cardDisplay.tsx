@@ -49,11 +49,6 @@ const cardFlowTypeMap: Record<string, { label: string; color: string; desc: stri
   REVERSE: { label: '冲正回退', color: 'default', desc: '交易被冲正或执行回退处理' },
 }
 
-const settlementBatchStatusMap: Record<string, { label: string; color: string; desc: string }> = {
-  PENDING: { label: '处理中', color: 'processing', desc: '批次已接收，仍在归集或对账中' },
-  PROCESSED: { label: '已处理', color: 'success', desc: '批次已完成归集处理' },
-}
-
 const reconcileDiffTypeMap: Record<string, { label: string; color: string; desc: string }> = {
   AUTH_MISSING: { label: '授权缺失', color: 'volcano', desc: '未找到对应授权交易' },
   AMOUNT_MISMATCH: { label: '金额不一致', color: 'gold', desc: '授权金额与结算金额不一致' },
@@ -66,6 +61,7 @@ const reconcileDiffStatusMap: Record<string, { label: string; color: string; des
 }
 
 const providerEventMap: Record<string, { label: string; desc: string }> = {
+  SYNC_AUTH: { label: '同步授权', desc: '我方同步授权阶段生成的本地台账事件' },
   CARD_STATUS_CHANGE: { label: '卡状态变更', desc: '卡片状态发生变更时的通知事件' },
   CARD_DELIVERY: { label: '卡配送通知', desc: '卡片配送、物流状态更新通知' },
   CARD_SETTING: { label: '卡设置通知', desc: '卡片设置、限额、自动扣款等变更通知' },
@@ -127,11 +123,6 @@ export function getReconcileStatusMeta(status?: string) {
 export function getCardFlowTypeMeta(type?: string) {
   if (!type) return { label: '-', color: 'default', desc: '' }
   return cardFlowTypeMap[type] || { label: `未知类型 (${type})`, color: 'default', desc: '请结合原始流水类型排查' }
-}
-
-export function getSettlementBatchStatusMeta(status?: string) {
-  if (!status) return { label: '-', color: 'default', desc: '' }
-  return settlementBatchStatusMap[status] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始批次状态排查' }
 }
 
 export function getReconcileDiffTypeMeta(type?: string) {

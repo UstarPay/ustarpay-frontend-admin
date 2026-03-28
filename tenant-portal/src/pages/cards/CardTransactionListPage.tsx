@@ -29,6 +29,8 @@ type QueryParams = {
   reconcileStatus: string
 }
 
+type RawCardTransaction = CardTransaction & Record<string, unknown>
+
 const defaultParams: QueryParams = {
   page: 1,
   pageSize: 20,
@@ -58,9 +60,48 @@ const reconcileOptions = [
   { value: 'PENDING', label: '待核对' },
 ]
 
+const settlementSummaryTypes = new Set([
+  'CAPTURE',
+  'REFUND',
+  'DEPOSIT',
+  'REVERSAL_TO_ACCOUNT',
+])
+
 const formatAmount = (value: number) => value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
 
 const formatDateTime = (value?: string) => (value ? new Date(value).toLocaleString('zh-CN') : '-')
+
+const firstNonEmpty = (...values: Array<unknown>) => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+  return ''
+}
+
+const normalizeCardTransaction = (raw: RawCardTransaction): CardTransaction => ({
+  ...raw,
+  external_transaction_id: firstNonEmpty(raw.external_transaction_id, raw.externalTransactionId),
+  reference_no: firstNonEmpty(raw.reference_no, raw.referenceNo),
+  authorization_amount: firstNonEmpty(raw.authorization_amount, raw.authorizationAmount, raw.amount),
+  settlement_amount: firstNonEmpty(raw.settlement_amount, raw.settlementAmount),
+  diff_amount: firstNonEmpty(raw.diff_amount, raw.diffAmount),
+  reconcile_status: firstNonEmpty(raw.reconcile_status, raw.reconcileStatus),
+  provider_event: firstNonEmpty(raw.provider_event, raw.providerEvent),
+  provider_transaction_type: firstNonEmpty(raw.provider_transaction_type, raw.providerTransactionType),
+  provider_transaction_state: firstNonEmpty(raw.provider_transaction_state, raw.providerTransactionState),
+  merchant_name: firstNonEmpty(raw.merchant_name, raw.merchantName),
+  merchant_category: firstNonEmpty(raw.merchant_category, raw.merchantCategory),
+  merchant_country: firstNonEmpty(raw.merchant_country, raw.merchantCountry),
+  authorization_code: firstNonEmpty(raw.authorization_code, raw.authorizationCode),
+  merchant_id: firstNonEmpty(raw.merchant_id, raw.merchantId),
+  merchant_name_from_card: firstNonEmpty(raw.merchant_name_from_card, raw.merchantNameFromCard),
+  authorized_at: firstNonEmpty(raw.authorized_at, raw.authorizedAt),
+  settled_at: firstNonEmpty(raw.settled_at, raw.settledAt),
+  created_at: firstNonEmpty(raw.created_at, raw.createdAt),
+  updated_at: firstNonEmpty(raw.updated_at, raw.updatedAt),
+})
 
 const CardTransactionListPage: React.FC = () => {
   const [params, setParams] = useState<QueryParams>(defaultParams)
@@ -70,7 +111,7 @@ const CardTransactionListPage: React.FC = () => {
     queryFn: () => cardService.getCardTransactions(params),
   })
 
-  const items: CardTransaction[] = (data as any)?.data?.items || []
+  const items: CardTransaction[] = ((data as any)?.data?.items || []).map((item: RawCardTransaction) => normalizeCardTransaction(item))
   const total = (data as any)?.data?.total || 0
 
   const summary = useMemo(() => {
@@ -78,7 +119,9 @@ const CardTransactionListPage: React.FC = () => {
     const exception = items.filter((item) => item.status === 'EXCEPTION').length
     const matched = items.filter((item) => item.reconcile_status === 'MATCHED').length
     const pending = items.filter((item) => item.reconcile_status === 'PENDING').length
-    const settledAmount = settled.reduce((sum, item) => sum + Number(item.settlement_amount || item.amount || 0), 0)
+    const settledSummaryItems = settled.filter((item) => settlementSummaryTypes.has(item.type))
+    const settledAmountSource = settledSummaryItems.length > 0 ? settledSummaryItems : settled
+    const settledAmount = settledAmountSource.reduce((sum, item) => sum + Number(item.settlement_amount || item.amount || 0), 0)
     const authAmount = items.reduce((sum, item) => sum + Number(item.authorization_amount || item.amount || 0), 0)
     return { exception, matched, pending, settledAmount, authAmount }
   }, [items])
@@ -209,7 +252,6 @@ const CardTransactionListPage: React.FC = () => {
         )
       },
     },
-    { title: '结算批次', dataIndex: 'provider_batch_id', width: 160, render: (value: string) => value || '-' },
     { title: '商户名称', dataIndex: 'merchant_name', width: 160, render: (value: string) => value || '-' },
     { title: '卡商名称', dataIndex: 'merchant_name_from_card', width: 160, render: (value: string) => value || '-' },
     { title: '授权时间', dataIndex: 'authorized_at', width: 180, render: (value: string) => formatDateTime(value) },
@@ -316,7 +358,7 @@ const CardTransactionListPage: React.FC = () => {
             事件口径：授权、结算、同步统一归集在同一台账
           </div>
           <div className="rounded-full bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
-            排查顺序：优先看外部交易 ID、卡 ID、结算批次
+            排查顺序：优先看外部交易 ID、卡 ID、上游事件与状态
           </div>
           <div className="rounded-full bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
             重复通知：结合授权时间、结算时间与创建时间确认最终状态
@@ -384,7 +426,7 @@ const CardTransactionListPage: React.FC = () => {
           <div>
             <div className="text-sm font-medium text-slate-500">明细列表</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">交易台账记录</div>
-            <div className="mt-2 text-sm text-slate-600">共 {total} 条记录，支持查看金额、状态、上游事件、结算批次和时间轴。</div>
+            <div className="mt-2 text-sm text-slate-600">共 {total} 条记录，支持查看金额、状态、上游事件和时间轴。</div>
           </div>
           <div className="rounded-full bg-sky-50 px-4 py-2 text-xs font-medium text-sky-700">
             上游事件与对账状态联动展示
