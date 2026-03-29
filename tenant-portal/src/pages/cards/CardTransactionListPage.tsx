@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Button, Card, Input, Select, Table, Tag, Typography } from 'antd'
+import { Button, Card, Input, Select, Table, Typography } from 'antd'
 import {
   CheckCircleOutlined,
   ExceptionOutlined,
@@ -134,12 +134,15 @@ const CardTransactionListPage: React.FC = () => {
     {
       title: '外部交易ID',
       dataIndex: 'external_transaction_id',
-      width: 200,
+      width: 'max-content',
+      fixed: 'left' as const,
       render: (value: string) =>
         value ? (
-          <Typography.Text copyable={{ text: value }} className="font-mono text-xs">
-            {value}
-          </Typography.Text>
+          <div className="inline-flex max-w-none whitespace-nowrap">
+            <Typography.Text copyable={{ text: value }} className="font-mono text-xs whitespace-nowrap">
+              {value}
+            </Typography.Text>
+          </div>
         ) : '-',
     },
     {
@@ -218,7 +221,7 @@ const CardTransactionListPage: React.FC = () => {
         const meta = getProviderEventMeta(value)
         return (
           <div className="space-y-1">
-            <Tag color="blue">{meta.label}</Tag>
+            {renderMappedTag(meta.label, 'blue', value)}
             <div className="text-xs text-slate-500">{meta.desc}</div>
           </div>
         )
@@ -232,7 +235,7 @@ const CardTransactionListPage: React.FC = () => {
         const meta = getProviderTransactionTypeMeta(value)
         return (
           <div className="space-y-1">
-            <Tag color="blue">{meta.label}</Tag>
+            {renderMappedTag(meta.label, 'blue', value)}
             <div className="text-xs text-slate-500">{meta.desc}</div>
           </div>
         )
@@ -246,7 +249,7 @@ const CardTransactionListPage: React.FC = () => {
         const meta = getProviderTransactionStateMeta(value)
         return (
           <div className="space-y-1">
-            <Tag color="purple">{meta.label}</Tag>
+            {renderMappedTag(meta.label, 'purple', value)}
             <div className="text-xs text-slate-500">{meta.desc}</div>
           </div>
         )
@@ -273,7 +276,7 @@ const CardTransactionListPage: React.FC = () => {
               <div className="text-[11px] uppercase tracking-[0.34em] text-sky-100/80">Card Transaction Ledger</div>
               <div className="mt-3 text-3xl font-semibold tracking-tight text-white">卡交易台账</div>
               <div className="mt-3 max-w-3xl text-sm leading-6 text-sky-100">
-                统一查看授权、结算、交易同步和对账状态，快速定位异常订单、金额差异与上游回调结果。
+                统一查看同步授权写入、上游交易回调更新、结算推进和对账状态，快速区分“本地已授权冻结”与“上游回调已落库”。
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button
@@ -426,10 +429,10 @@ const CardTransactionListPage: React.FC = () => {
           <div>
             <div className="text-sm font-medium text-slate-500">明细列表</div>
             <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">交易台账记录</div>
-            <div className="mt-2 text-sm text-slate-600">共 {total} 条记录，支持查看金额、状态、上游事件和时间轴。</div>
+            <div className="mt-2 text-sm text-slate-600">共 {total} 条记录，支持查看金额、状态、上游事件、回调推进阶段和关键时间轴。</div>
           </div>
           <div className="rounded-full bg-sky-50 px-4 py-2 text-xs font-medium text-sky-700">
-            上游事件与对账状态联动展示
+            先看“上游事件”区分同步授权写入或上游回调更新
           </div>
         </div>
 
@@ -437,7 +440,7 @@ const CardTransactionListPage: React.FC = () => {
           rowKey="id"
           loading={isLoading}
           dataSource={items}
-          scroll={{ x: 2300 }}
+          scroll={{ x: 'max-content' }}
           rowClassName={() => 'hover:!bg-slate-50'}
           columns={columns}
           pagination={{

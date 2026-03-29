@@ -24,7 +24,7 @@ const transactionTypeMap: Record<string, { label: string; desc: string }> = {
 }
 
 const transactionStatusMap: Record<string, { label: string; color: string; desc: string }> = {
-  AUTH_APPROVED: { label: '授权通过', color: 'success', desc: '授权已通过，等待后续结算或状态同步' },
+  AUTH_APPROVED: { label: '授权通过', color: 'success', desc: '授权已通过；若上游事件仍为“同步授权写入”，表示仅完成本地授权与冻结，尚未收到上游交易回调' },
   AUTH_REJECTED: { label: '授权拒绝', color: 'error', desc: '授权已被拒绝，本次交易未通过' },
   SETTLEMENT_PENDING: { label: '待结算', color: 'processing', desc: '交易已进入待结算阶段' },
   SETTLED: { label: '已结算', color: 'default', desc: '交易已完成最终结算' },
@@ -61,15 +61,15 @@ const reconcileDiffStatusMap: Record<string, { label: string; color: string; des
 }
 
 const providerEventMap: Record<string, { label: string; desc: string }> = {
-  SYNC_AUTH: { label: '同步授权', desc: '我方同步授权阶段生成的本地台账事件' },
+  SYNC_AUTH: { label: '同步授权写入', desc: '该记录由我方同步授权接口直接写入，表示本地已完成授权决策；若授权通过，资金已冻结，但这不代表已收到上游交易 webhook' },
   CARD_STATUS_CHANGE: { label: '卡状态变更', desc: '卡片状态发生变更时的通知事件' },
   CARD_DELIVERY: { label: '卡配送通知', desc: '卡片配送、物流状态更新通知' },
   CARD_SETTING: { label: '卡设置通知', desc: '卡片设置、限额、自动扣款等变更通知' },
-  CARD_TRANSACTION: { label: '卡交易通知', desc: '消费授权、结算、同步等交易类通知' },
+  CARD_TRANSACTION: { label: '上游交易回调更新', desc: '该记录已经收到并处理了上游 CARD_TRANSACTION 回调，可能是授权结果、结算、撤销或退款等交易状态推进' },
 }
 
 const providerTransactionTypeMap: Record<string, { label: string; desc: string }> = {
-  AUTHORIZATION: { label: '授权交易', desc: '上游原始交易类型为授权' },
+  AUTHORIZATION: { label: '授权交易', desc: '授权阶段交易。若上游事件为“同步授权写入”，表示本地授权写入；若为“上游交易回调更新”，表示已收到上游授权结果回调' },
   PRESENTMENT: { label: '结算请款', desc: '上游原始交易类型为请款结算' },
   PURCHASE: { label: '消费授权', desc: '标准化后的消费授权交易' },
   CAPTURE: { label: '消费结算', desc: '标准化后的结算入账交易' },
@@ -89,6 +89,11 @@ const providerTransactionStateMap: Record<string, { label: string; desc: string 
   CAPTURED: { label: '已入账', desc: '标准化后的结算入账状态' },
 }
 
+function normalizeMappingKey(value?: string) {
+  if (!value) return ''
+  return value.trim().toUpperCase().replace(/[\s-]+/g, '_')
+}
+
 export function getCardStatusMeta(status: number, fallback?: string, cardMaterial?: number) {
   if (status === 99 && cardMaterial === 2) {
     return {
@@ -102,48 +107,57 @@ export function getCardStatusMeta(status: number, fallback?: string, cardMateria
 
 export function getTransactionTypeLabel(type?: string) {
   if (!type) return '-'
-  return transactionTypeMap[type]?.label || `其他类型 (${type})`
+  const normalizedType = normalizeMappingKey(type)
+  return transactionTypeMap[normalizedType]?.label || `其他类型 (${type})`
 }
 
 export function getTransactionTypeMeta(type?: string) {
   if (!type) return { label: '-', desc: '' }
-  return transactionTypeMap[type] || { label: `其他类型 (${type})`, desc: '未纳入当前已确认的交易类型映射，请结合原始 type 排查' }
+  const normalizedType = normalizeMappingKey(type)
+  return transactionTypeMap[normalizedType] || { label: `其他类型 (${type})`, desc: '未纳入当前已确认的交易类型映射，请结合原始 type 排查' }
 }
 
 export function getTransactionStatusMeta(status?: string) {
   if (!status) return { label: '-', color: 'default', desc: '' }
-  return transactionStatusMap[status] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始上游状态码排查' }
+  const normalizedStatus = normalizeMappingKey(status)
+  return transactionStatusMap[normalizedStatus] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始上游状态码排查' }
 }
 
 export function getReconcileStatusMeta(status?: string) {
   if (!status) return { label: '-', color: 'default', desc: '' }
-  return reconcileStatusMap[status] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始对账状态码排查' }
+  const normalizedStatus = normalizeMappingKey(status)
+  return reconcileStatusMap[normalizedStatus] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始对账状态码排查' }
 }
 
 export function getCardFlowTypeMeta(type?: string) {
   if (!type) return { label: '-', color: 'default', desc: '' }
-  return cardFlowTypeMap[type] || { label: `未知类型 (${type})`, color: 'default', desc: '请结合原始流水类型排查' }
+  const normalizedType = normalizeMappingKey(type)
+  return cardFlowTypeMap[normalizedType] || { label: `未知类型 (${type})`, color: 'default', desc: '请结合原始流水类型排查' }
 }
 
 export function getReconcileDiffTypeMeta(type?: string) {
   if (!type) return { label: '-', color: 'default', desc: '' }
-  return reconcileDiffTypeMap[type] || { label: `未知类型 (${type})`, color: 'default', desc: '请结合原始差异类型排查' }
+  const normalizedType = normalizeMappingKey(type)
+  return reconcileDiffTypeMap[normalizedType] || { label: `未知类型 (${type})`, color: 'default', desc: '请结合原始差异类型排查' }
 }
 
 export function getReconcileDiffStatusMeta(status?: string) {
   if (!status) return { label: '-', color: 'default', desc: '' }
-  return reconcileDiffStatusMap[status] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始状态码排查' }
+  const normalizedStatus = normalizeMappingKey(status)
+  return reconcileDiffStatusMap[normalizedStatus] || { label: `未知状态 (${status})`, color: 'default', desc: '请结合原始状态码排查' }
 }
 
 export function getProviderEventMeta(event?: string) {
   if (!event) return { label: '-', desc: '' }
-  return providerEventMap[event] || { label: `其他事件 (${event})`, desc: '未纳入当前已确认事件映射，请结合原始 event 排查' }
+  const normalizedEvent = normalizeMappingKey(event)
+  return providerEventMap[normalizedEvent] || { label: `其他事件 (${event})`, desc: '未纳入当前已确认事件映射，请结合原始 event 排查' }
 }
 
 export function getProviderTransactionTypeMeta(type?: string) {
   if (!type) return { label: '-', desc: '' }
+  const normalizedType = normalizeMappingKey(type)
   return (
-    providerTransactionTypeMap[type] || {
+    providerTransactionTypeMap[normalizedType] || {
       label: `其他类型 (${type})`,
       desc: '未纳入当前已确认的上游交易类型映射，请结合原始 type 排查',
     }
@@ -152,8 +166,9 @@ export function getProviderTransactionTypeMeta(type?: string) {
 
 export function getProviderTransactionStateMeta(state?: string) {
   if (!state) return { label: '-', desc: '' }
+  const normalizedState = normalizeMappingKey(state)
   return (
-    providerTransactionStateMap[state] || {
+    providerTransactionStateMap[normalizedState] || {
       label: `其他状态 (${state})`,
       desc: '未纳入当前已确认的上游交易状态映射，请结合原始 state 排查',
     }

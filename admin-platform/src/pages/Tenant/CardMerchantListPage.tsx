@@ -79,33 +79,6 @@ const AUTH_CALLBACK_SCENARIO_OPTIONS = [
   { label: '授权失败后自动回调“交易失败”', value: 'DECLINED_AUTH_FAILED' },
 ] as const
 
-const TX_STATE_OPTIONS_BY_TYPE: Record<string, Array<{ label: string; value: string }>> = {
-  AUTHORIZATION: [
-    { label: '授权通过', value: 'APPROVED' },
-    { label: '授权拒绝', value: 'DECLINED' },
-    { label: '处理中', value: 'PENDING' },
-  ],
-  PRESENTMENT: [
-    { label: '已结算', value: 'SETTLED' },
-    { label: '处理中', value: 'PENDING' },
-  ],
-  REVERSAL: [
-    { label: '已撤销', value: 'REVERSED' },
-    { label: '处理中', value: 'PENDING' },
-  ],
-  REFUND: [
-    { label: '已退款', value: 'REFUNDED' },
-    { label: '处理中', value: 'PENDING' },
-  ],
-}
-
-const TX_INDICATOR_META_BY_TYPE: Record<string, { label: string; value: string; color: string }> = {
-  AUTHORIZATION: { label: '借记', value: 'debit', color: 'blue' },
-  PRESENTMENT: { label: '借记', value: 'debit', color: 'blue' },
-  REVERSAL: { label: '借记', value: 'debit', color: 'blue' },
-  REFUND: { label: '贷记', value: 'credit', color: 'green' },
-}
-
 const yesNoOptions = [
   { label: '开启', value: 1 },
   { label: '关闭', value: 0 },
@@ -126,14 +99,6 @@ const getEventLabel = (value?: string) => (value ? EVENT_LABEL_MAP[value] || val
 const getTxTypeLabel = (value?: string) => (value ? TX_TYPE_LABEL_MAP[value] || value : '-')
 const getTxStateLabel = (value?: string) => (value ? TX_STATE_LABEL_MAP[value] || value : '-')
 const getDecisionLabel = (value?: string) => (value ? DECISION_LABEL_MAP[value] || value : '-')
-
-const formatNow = () => {
-  const now = new Date()
-  const pad = (value: number) => `${value}`.padStart(2, '0')
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-}
-
-const createMockTxID = () => `mock_tx_${Date.now()}`
 
 const CardMerchantListPage: React.FC = () => {
   const queryClient = useQueryClient()
@@ -260,14 +225,11 @@ const CardMerchantListPage: React.FC = () => {
       transactionAmount: '10.00',
       transactionCurrency: cardInfo?.currency || 'USD',
       authorizationCallbackScenario: undefined,
-      externalTransactionId: createMockTxID(),
-      createdDate: formatNow(),
-      confirmedTime: formatNow(),
+      externalTransactionId: undefined,
     })
   }, [cardInfo?.currency, mockForm, mockVisible])
 
   const selectedEvent = Form.useWatch('event', mockForm)
-  const selectedTransactionType = Form.useWatch('transactionType', mockForm)
 
   useEffect(() => {
     if (!mockVisible || selectedEvent !== 'CARD_AUTHORIZATION') {
@@ -277,27 +239,6 @@ const CardMerchantListPage: React.FC = () => {
       mockForm.setFieldValue('transactionCurrency', cardInfo?.currency || 'USD')
     }
   }, [cardInfo?.currency, mockForm, mockVisible, selectedEvent])
-
-  useEffect(() => {
-    if (!mockVisible || selectedEvent !== 'CARD_TRANSACTION') {
-      return
-    }
-    const options = TX_STATE_OPTIONS_BY_TYPE[selectedTransactionType || 'AUTHORIZATION'] || []
-    const currentState = mockForm.getFieldValue('transactionState')
-    if (!options.some(option => option.value === currentState)) {
-      mockForm.setFieldValue('transactionState', options[0]?.value)
-    }
-    const indicatorMeta = TX_INDICATOR_META_BY_TYPE[selectedTransactionType || 'AUTHORIZATION']
-    if (indicatorMeta) {
-      mockForm.setFieldValue('indicator', indicatorMeta.value)
-    }
-    if (cardInfo?.currency) {
-      mockForm.setFieldValue('currency', cardInfo.currency)
-    }
-    if (selectedTransactionType === 'AUTHORIZATION') {
-      mockForm.setFieldValue('originalExternalTransactionId', undefined)
-    }
-  }, [cardInfo?.currency, mockForm, mockVisible, selectedEvent, selectedTransactionType])
 
   const merchants = data?.items || []
   const requestPayloadData =
@@ -506,19 +447,7 @@ const CardMerchantListPage: React.FC = () => {
       case 'CARD_TRANSACTION':
       default:
         return {
-          transactionType: values.transactionType,
-          transactionState: values.transactionState,
-          amount: values.amount,
-          currency: values.currency,
-          referenceNo: values.referenceNo,
           externalTransactionId: values.externalTransactionId,
-          originalExternalTransactionId: values.originalExternalTransactionId,
-          indicator: values.indicator,
-          merchantName: values.merchantName,
-          transactionDesc: values.transactionDesc,
-          acquirerReferenceNo: values.acquirerReferenceNo,
-          confirmedTime: values.confirmedTime,
-          createdDate: values.createdDate,
         }
     }
   }
@@ -627,79 +556,23 @@ const CardMerchantListPage: React.FC = () => {
         )
       case 'CARD_TRANSACTION':
       default:
-        const stateOptions = TX_STATE_OPTIONS_BY_TYPE[selectedTransactionType || 'AUTHORIZATION'] || []
-        const indicatorMeta = TX_INDICATOR_META_BY_TYPE[selectedTransactionType || 'AUTHORIZATION']
-        const showOriginalExternalTransactionId = selectedTransactionType === 'PRESENTMENT' || selectedTransactionType === 'REVERSAL' || selectedTransactionType === 'REFUND'
-        const showAmountAndCurrency = selectedTransactionType === 'AUTHORIZATION' || selectedTransactionType === 'PRESENTMENT' || selectedTransactionType === 'REFUND'
-        const showMerchantInfo = selectedTransactionType === 'AUTHORIZATION' || selectedTransactionType === 'PRESENTMENT' || selectedTransactionType === 'REFUND'
         return (
           <>
-            <Space className="w-full" size="large" align="start">
-              <Form.Item name="transactionType" label="交易类型" rules={[{ required: true, message: '请选择交易类型' }]} className="min-w-[220px]">
-                <Select options={TX_TYPE_OPTIONS} />
-              </Form.Item>
-              <Form.Item name="transactionState" label="交易状态" rules={[{ required: true, message: '请选择交易状态' }]} className="min-w-[220px]">
-                <Select options={stateOptions} />
-              </Form.Item>
-              <Form.Item label="借贷方向" className="min-w-[180px]">
-                <Tag color={indicatorMeta?.color || 'default'}>{indicatorMeta?.label || '-'}</Tag>
-              </Form.Item>
-            </Space>
-            <Form.Item name="indicator" hidden>
-              <Input />
-            </Form.Item>
-            {showAmountAndCurrency ? (
-              <Space className="w-full" size="large" align="start">
-                <Form.Item name="amount" label="交易金额" rules={[{ required: true, message: '请输入交易金额' }]} className="min-w-[220px]">
-                  <Input />
-                </Form.Item>
-                <Form.Item name="currency" label="币种" rules={[{ required: true, message: '请输入币种' }]} className="min-w-[180px]">
-                  <Input />
-                </Form.Item>
+            <Card size="small" className="border-dashed bg-slate-50">
+              <Space direction="vertical" size={4}>
+                <Text strong>卡交易通知将按外部交易ID自动构造请求</Text>
+                <Text type="secondary">
+                  输入已存在的外部交易ID后，系统会自动查询对应台账记录，并按当前交易记录推导交易类型、状态、金额和原始关联信息。
+                </Text>
               </Space>
-            ) : null}
-            <Form.Item name="externalTransactionId" label="交易流水号" rules={[{ required: true, message: '请输入交易流水号' }]}>
-              <Input
-                addonAfter={
-                  <Button
-                    type="link"
-                    onClick={() => mockForm.setFieldValue('externalTransactionId', createMockTxID())}
-                  >
-                    重新生成
-                  </Button>
-                }
-              />
+            </Card>
+            <Form.Item
+              name="externalTransactionId"
+              label="外部交易ID"
+              rules={[{ required: true, message: '请输入已存在的外部交易ID' }]}
+            >
+              <Input placeholder="请输入已存在的 externalTransactionId" />
             </Form.Item>
-            {showOriginalExternalTransactionId ? (
-              <Form.Item
-                name="originalExternalTransactionId"
-                label="原始交易流水号"
-                rules={[{ required: true, message: '请输入原始交易流水号' }]}
-              >
-                <Input placeholder="关联原授权交易号" />
-              </Form.Item>
-            ) : null}
-            {showMerchantInfo ? (
-              <>
-                <Form.Item name="merchantName" label="商户名称">
-                  <Input />
-                </Form.Item>
-                <Form.Item name="transactionDesc" label="交易描述">
-                  <Input />
-                </Form.Item>
-              </>
-            ) : null}
-            <Form.Item name="acquirerReferenceNo" label="收单参考号">
-              <Input />
-            </Form.Item>
-            <Space className="w-full" size="large" align="start">
-              <Form.Item name="createdDate" label="创建时间" className="min-w-[240px]">
-                <Input />
-              </Form.Item>
-              <Form.Item name="confirmedTime" label="确认时间" className="min-w-[240px]">
-                <Input />
-              </Form.Item>
-            </Space>
           </>
         )
     }
