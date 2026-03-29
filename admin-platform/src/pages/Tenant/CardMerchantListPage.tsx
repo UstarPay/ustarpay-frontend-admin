@@ -240,11 +240,36 @@ const CardMerchantListPage: React.FC = () => {
     }
   }, [cardInfo?.currency, mockForm, mockVisible, selectedEvent])
 
+  useEffect(() => {
+    if (!mockVisible || selectedEvent !== 'CARD_TRANSACTION') {
+      return
+    }
+    if (!mockForm.getFieldValue('transactionType')) {
+      mockForm.setFieldValue('transactionType', 'AUTHORIZATION')
+    }
+  }, [mockForm, mockVisible, selectedEvent])
+
   const merchants = data?.items || []
   const requestPayloadData =
     mockResult && mockResult.request_payload && typeof mockResult.request_payload.data === 'object' && mockResult.request_payload.data !== null
       ? (mockResult.request_payload.data as Record<string, unknown>)
       : null
+  const replayExternalTransactionId = String(
+    requestPayloadData?.externalTransactionId ||
+      mockResult?.response_payload?.externalTransactionId ||
+      '',
+  )
+  const replayTransactionType = String(
+    requestPayloadData?.transactionType ||
+      mockResult?.request_payload?.transactionType ||
+      '',
+  )
+  const replayTransactionState = String(
+    requestPayloadData?.transactionState ||
+      mockResult?.request_payload?.transactionState ||
+      '',
+  )
+  const replayResolvedLedgerId = String(mockResult?.response_payload?.resolvedFromTransactionId || '')
 
   const columns: ColumnsType<CardMerchant> = [
     {
@@ -447,6 +472,7 @@ const CardMerchantListPage: React.FC = () => {
       case 'CARD_TRANSACTION':
       default:
         return {
+          transactionType: values.transactionType,
           externalTransactionId: values.externalTransactionId,
         }
     }
@@ -562,10 +588,17 @@ const CardMerchantListPage: React.FC = () => {
               <Space direction="vertical" size={4}>
                 <Text strong>卡交易通知将按外部交易ID自动构造请求</Text>
                 <Text type="secondary">
-                  输入已存在的外部交易ID后，系统会自动查询对应台账记录，并按当前交易记录推导交易类型、状态、金额和原始关联信息。
+                  选择本次要执行的通知类型后，输入已存在的外部交易ID。系统会自动查询对应台账记录，并按所选通知类型补齐状态、金额和原始关联信息。
                 </Text>
               </Space>
             </Card>
+            <Form.Item
+              name="transactionType"
+              label="通知类型"
+              rules={[{ required: true, message: '请选择通知类型' }]}
+            >
+              <Select options={TX_TYPE_OPTIONS} />
+            </Form.Item>
             <Form.Item
               name="externalTransactionId"
               label="外部交易ID"
@@ -816,11 +849,17 @@ const CardMerchantListPage: React.FC = () => {
                 ) : null}
                 {mockResult.event === 'CARD_TRANSACTION' ? (
                   <>
-                    <Descriptions.Item label="交易类型">
-                      {getTxTypeLabel(String(requestPayloadData?.transactionType || mockResult.request_payload?.transactionType || ''))}
+                    <Descriptions.Item label="外部交易ID">
+                      {replayExternalTransactionId || '-'}
                     </Descriptions.Item>
-                    <Descriptions.Item label="交易状态">
-                      {getTxStateLabel(String(requestPayloadData?.transactionState || mockResult.request_payload?.transactionState || ''))}
+                    <Descriptions.Item label="通知类型">
+                      {getTxTypeLabel(replayTransactionType)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="解析来源台账ID">
+                      {replayResolvedLedgerId || '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="回放状态">
+                      {getTxStateLabel(replayTransactionState)}
                     </Descriptions.Item>
                   </>
                 ) : null}
