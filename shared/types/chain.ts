@@ -38,28 +38,27 @@ export interface CreateChainRequest {
   chainId: number
   chainCode: string
   chainName: string
-  chain_network?: string
+  chainNetwork?: string
   nativeSymbol: string
   rpcUrls: string[]
-  wsUrls?: string[]
   explorerUrls?: string[]
   confirmationBlocks?: number
   scanHeight?: number
   scanInterval?: number
-  blockTime?: number
-  isActive?: boolean
-  isMainnet?: boolean
   status?: number
 }
 
 export interface UpdateChainRequest extends Partial<CreateChainRequest> {
+  explorerUrl?: string
 }
 
 export interface ChainListParams {
   page?: number
   pageSize?: number
   status?: number
-  search?: string
+  chainCode?: string
+  chainName?: string
+  chainNetwork?: string
 }
 
 export interface ChainListResponse {

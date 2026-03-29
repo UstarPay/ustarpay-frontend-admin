@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Form, Input, Select, Button, Row, Col, Space } from 'antd'
+import { Form, Input, Select, Button, Row, Col, Space } from 'antd'
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ChainListParams } from '@shared/types/chain'
 
@@ -14,7 +14,7 @@ interface ChainSearchFormProps {
 const ChainSearchForm: React.FC<ChainSearchFormProps> = ({
   loading,
   onSearch,
-  onReset
+  onReset,
 }) => {
   const [form] = Form.useForm()
 
@@ -22,17 +22,20 @@ const ChainSearchForm: React.FC<ChainSearchFormProps> = ({
     const values = form.getFieldsValue()
     const params: ChainListParams = {
       page: 1,
-      page_size: 20,
-      ...values
+      pageSize: 20,
+      ...values,
     }
-    
+
     // 过滤空值
-    Object.keys(params).forEach(key => {
-      if (params[key as keyof ChainListParams] === undefined || params[key as keyof ChainListParams] === '') {
+    Object.keys(params).forEach((key) => {
+      if (
+        params[key as keyof ChainListParams] === undefined ||
+        params[key as keyof ChainListParams] === ''
+      ) {
         delete params[key as keyof ChainListParams]
       }
     })
-    
+
     onSearch(params)
   }
 
@@ -42,63 +45,65 @@ const ChainSearchForm: React.FC<ChainSearchFormProps> = ({
   }
 
   return (
-    <Card style={{ marginBottom: '16px' }}>
-      <Form form={form} layout="vertical">
-        <Row gutter={16}>
-          <Col span={6}>
-            <Form.Item name="chain_name" label="链名称">
-              <Input 
-                placeholder="搜索链名称" 
+    <div className="chain-search-form">
+      <Form form={form} layout="vertical" onFinish={handleSearch}>
+        <Row gutter={[16, 0]}>
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="chainName" label="链名称">
+              <Input
+                placeholder="搜索链名称"
                 allowClear
                 onPressEnter={handleSearch}
               />
             </Form.Item>
           </Col>
-          
-          <Col span={6}>
-            <Form.Item name="chain_code" label="链代码">
-              <Input 
-                placeholder="搜索链代码" 
+
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="chainCode" label="链代码">
+              <Input
+                placeholder="搜索链代码"
                 allowClear
                 onPressEnter={handleSearch}
               />
             </Form.Item>
           </Col>
-          
-          <Col span={6}>
-            <Form.Item name="network_type" label="网络类型">
+
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="chainNetwork" label="网络类型">
               <Select placeholder="选择网络类型" allowClear>
-                <Option value="evm">EVM</Option>
-                <Option value="bitcoin">Bitcoin</Option>
-                <Option value="tron">Tron</Option>
-                <Option value="other">其他</Option>
+                <Option value="EVM">EVM</Option>
+                <Option value="Bitcoin">Bitcoin</Option>
+                <Option value="Tron">Tron</Option>
+                <Option value="其他">其他</Option>
               </Select>
             </Form.Item>
           </Col>
-          
-          <Col span={6}>
-            <Form.Item name="is_mainnet" label="网络环境">
-              <Select placeholder="选择网络环境" allowClear>
-                <Option value={true}>主网</Option>
-                <Option value={false}>测试网</Option>
+
+          <Col xs={24} sm={12} xl={6}>
+            <Form.Item name="status" label="状态">
+              <Select placeholder="选择状态" allowClear>
+                <Option value={1}>启用</Option>
+                <Option value={0}>禁用</Option>
               </Select>
             </Form.Item>
           </Col>
         </Row>
-        
+
         <Row>
           <Col span={24}>
             <Form.Item style={{ marginBottom: 0 }}>
               <Space>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
+                  className="chain-primary-btn"
                   icon={<SearchOutlined />}
-                  onClick={handleSearch}
+                  htmlType="submit"
                   loading={loading}
                 >
                   搜索
                 </Button>
-                <Button 
+                <Button
+                  className="chain-ghost-btn"
                   icon={<ReloadOutlined />}
                   onClick={handleReset}
                 >
@@ -109,7 +114,7 @@ const ChainSearchForm: React.FC<ChainSearchFormProps> = ({
           </Col>
         </Row>
       </Form>
-    </Card>
+    </div>
   )
 }
 

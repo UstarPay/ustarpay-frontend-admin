@@ -1,44 +1,877 @@
 .chain-list-page {
   padding: 24px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(59, 130, 246, 0.12),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(14, 165, 233, 0.14),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #f4f8ff 0%, #eef4ff 100%);
+  min-height: 100%;
 }
 
-.page-header {
+.chain-top-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.chain-side-column,
+.chain-main-column {
+  min-width: 0;
+}
+
+.chain-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.chain-side-column .chain-hero-card,
+.chain-side-column .chain-panel {
+  margin-bottom: 0;
+}
+
+.chain-side-column .chain-hero-top,
+.chain-side-column .chain-panel-header {
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.chain-side-column .chain-panel-header p {
+  max-width: none;
+  text-align: left;
+}
+
+.chain-side-column .chain-page-actions {
+  display: flex;
+  width: 100%;
+}
+
+.chain-side-column .chain-page-actions .ant-space {
+  width: 100%;
+}
+
+.chain-side-column .chain-page-actions .ant-space-item,
+.chain-side-column .chain-page-actions .ant-btn {
+  width: 100%;
+}
+
+.chain-side-column .chain-metrics-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chain-permission-card {
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.chain-hero-card,
+.chain-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 26px 80px rgba(7, 22, 53, 0.18);
+}
+
+.chain-hero-card {
+  padding: 32px;
+  background: linear-gradient(135deg, #06142f 0%, #0e2b5f 50%, #163f85 100%);
+  color: #fff;
+}
+
+.chain-hero-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(12px);
+}
+
+.chain-hero-orb-left {
+  top: -80px;
+  left: -60px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(
+    circle,
+    rgba(96, 165, 250, 0.28) 0%,
+    rgba(96, 165, 250, 0) 70%
+  );
+}
+
+.chain-hero-orb-right {
+  right: -50px;
+  bottom: -120px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(
+    circle,
+    rgba(103, 232, 249, 0.18) 0%,
+    rgba(103, 232, 249, 0) 72%
+  );
+}
+
+.chain-hero-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
 }
 
-.page-title h1 {
-  margin: 0 0 4px 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #262626;
+.chain-page-title {
+  max-width: 760px;
 }
 
-.page-title p {
+.chain-page-kicker {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border: 1px solid rgba(191, 219, 254, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfe4ff;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.chain-page-title h1 {
+  margin: 0 0 10px;
+  color: #f8fbff;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.chain-page-title p {
   margin: 0;
-  color: #8c8c8c;
-  font-size: 14px;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
-.page-actions {
+.chain-highlight-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.chain-highlight-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(191, 219, 254, 0.18);
+  color: #eff6ff;
+  font-size: 13px;
+}
+
+.chain-page-actions {
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.chain-primary-btn.ant-btn {
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2f6df6 0%, #4f8bff 100%);
+  box-shadow: 0 14px 26px rgba(47, 109, 246, 0.28);
+  font-weight: 600;
+}
+
+.chain-primary-btn.ant-btn:hover,
+.chain-primary-btn.ant-btn:focus {
+  background: linear-gradient(135deg, #3b7cff 0%, #5ea2ff 100%) !important;
+}
+
+.chain-ghost-btn.ant-btn {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  box-shadow: none;
+}
+
+.chain-ghost-btn.ant-btn:hover,
+.chain-ghost-btn.ant-btn:focus {
+  border-color: rgba(191, 219, 254, 0.34) !important;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.chain-metrics-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chain-metric-card {
+  padding: 20px 20px 18px;
+  border-radius: 22px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(148, 163, 184, 0.08) 100%
+  );
+  border: 1px solid rgba(191, 219, 254, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.chain-metric-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #bfdbfe;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chain-metric-card strong {
+  display: block;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.chain-metric-card p {
+  margin: 10px 0 0;
+  color: rgba(226, 232, 240, 0.74);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chain-panel {
+  padding: 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #071932 0%, #0f2f68 52%, #1d4e89 100%);
+  color: #fff;
+}
+
+.chain-table-panel {
+  margin-bottom: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.chain-table-panel .chain-panel-eyebrow {
+  color: #2563eb;
+}
+
+.chain-table-panel .chain-panel-header h2 {
+  color: #0f172a;
+}
+
+.chain-table-panel .chain-panel-header p {
+  color: #475569;
+}
+
+.chain-panel-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.chain-panel-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.chain-panel-header h2 {
+  margin: 0;
+  color: #f8fbff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.chain-panel-header p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 420px;
+  text-align: right;
+}
+
+.chain-search-form {
+  position: relative;
+  z-index: 1;
+}
+
+.chain-side-column .chain-search-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chain-side-column .chain-search-form .ant-row:first-child {
+  margin: 0 !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chain-side-column .chain-search-form .ant-row:first-child > .ant-col {
+  max-width: 100%;
+  flex: 0 0 100%;
+  width: 100%;
+  padding-bottom: 0 !important;
+}
+
+.chain-side-column .chain-search-form .ant-row:first-child .ant-form-item {
+  height: 100%;
+  margin-bottom: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.chain-side-column .chain-search-form .ant-row:first-child .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.chain-search-form .ant-form-item-label > label {
+  color: #dbeafe;
+  font-weight: 500;
+}
+
+.chain-search-form .ant-input,
+.chain-search-form .ant-input-affix-wrapper,
+.chain-search-form .ant-select .ant-select-selector {
+  min-height: 42px;
+  border-radius: 14px !important;
+  border: 1px solid rgba(191, 219, 254, 0.18) !important;
+  background: rgba(15, 23, 42, 0.28) !important;
+  color: #f8fbff !important;
+  box-shadow: none !important;
+}
+
+.chain-side-column .chain-search-form .ant-form-item-label {
+  padding-bottom: 6px;
+}
+
+.chain-side-column .chain-search-form .ant-form-item-label > label {
+  color: rgba(219, 234, 254, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.chain-side-column .chain-search-form .ant-input,
+.chain-side-column .chain-search-form .ant-input-affix-wrapper,
+.chain-side-column .chain-search-form .ant-select .ant-select-selector {
+  min-height: 44px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(191, 219, 254, 0.16) !important;
+  background: rgba(9, 23, 47, 0.44) !important;
+  color: #f8fbff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease !important;
+}
+
+.chain-side-column .chain-search-form .ant-input:hover,
+.chain-side-column .chain-search-form .ant-input-affix-wrapper:hover,
+.chain-side-column .chain-search-form .ant-select:hover .ant-select-selector {
+  border-color: rgba(147, 197, 253, 0.28) !important;
+  background: rgba(9, 23, 47, 0.58) !important;
+}
+
+.chain-side-column .chain-search-form .ant-input:focus,
+.chain-side-column .chain-search-form .ant-input-affix-wrapper-focused,
+.chain-side-column .chain-search-form .ant-select-focused .ant-select-selector {
+  border-color: rgba(96, 165, 250, 0.52) !important;
+  background: rgba(10, 26, 54, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14) !important;
+}
+
+.chain-search-form .ant-input::placeholder,
+.chain-search-form .ant-select-selection-placeholder {
+  color: rgba(191, 219, 254, 0.45) !important;
+}
+
+.chain-side-column .chain-search-form .ant-input,
+.chain-side-column .chain-search-form .ant-input-affix-wrapper input,
+.chain-side-column .chain-search-form .ant-select-selection-item {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.chain-search-form .ant-select-arrow,
+.chain-search-form .ant-input-clear-icon {
+  color: rgba(191, 219, 254, 0.72) !important;
+}
+
+.chain-side-column .chain-search-form .ant-row:last-child {
+  margin: 0 !important;
+  padding: 0;
+}
+
+.chain-side-column .chain-search-form .ant-space {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+
+.chain-side-column .chain-search-form .ant-space-item {
+  flex: 1 1 0;
+}
+
+.chain-side-column .chain-search-form .chain-primary-btn.ant-btn,
+.chain-side-column .chain-search-form .chain-ghost-btn.ant-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.chain-alert.ant-alert {
+  margin-bottom: 24px;
+  border-radius: 18px;
+  border: 1px solid rgba(253, 186, 116, 0.22);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+}
+
+.chain-table {
+  position: relative;
+  z-index: 1;
+}
+
+.chain-search-panel .chain-table .ant-table,
+.chain-panel:not(.chain-table-panel) .chain-table .ant-table,
+.chain-table .ant-table {
+  color: #dbeafe;
+  background: transparent;
+}
+
+.chain-table .ant-table-container {
+  border: 1px solid rgba(191, 219, 254, 0.12);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.chain-table .ant-table-thead > tr > th {
+  background: rgba(3, 7, 18, 0.34) !important;
+  border-bottom: 1px solid rgba(191, 219, 254, 0.12) !important;
+  color: #bfdbfe !important;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.chain-table .ant-table-tbody > tr > td {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid rgba(191, 219, 254, 0.08) !important;
+  color: #e2e8f0;
+}
+
+.chain-table .ant-table-tbody > tr.ant-table-row:hover > td,
+.chain-table .ant-table-tbody > tr.ant-table-row.ant-table-row-selected > td {
+  background: rgba(96, 165, 250, 0.12) !important;
+}
+
+.chain-table .ant-table-placeholder .ant-table-cell {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.chain-table-title-block,
+.chain-scan-config {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chain-table-title {
+  color: #f8fbff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chain-table-subtitle {
+  color: rgba(191, 219, 254, 0.74);
+  font-size: 12px;
+}
+
+.chain-network-tag.ant-tag,
+.chain-chip-tag.ant-tag,
+.chain-native-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+}
+
+.chain-network-tag.ant-tag {
+  margin-inline-end: 0;
+  color: #eff6ff;
+}
+
+.chain-chip-tag.ant-tag {
+  margin-inline-end: 0;
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(191, 219, 254, 0.16);
+  color: #dbeafe;
+}
+
+.chain-network-evm.ant-tag {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.chain-network-bitcoin.ant-tag {
+  background: rgba(249, 115, 22, 0.16);
+  border-color: rgba(251, 146, 60, 0.26);
+}
+
+.chain-network-tron.ant-tag {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(248, 113, 113, 0.28);
+}
+
+.chain-network-default.ant-tag {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(191, 219, 254, 0.16);
+}
+
+.chain-native-symbol {
+  background: rgba(14, 165, 233, 0.14);
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  color: #f8fbff;
+  font-weight: 600;
+}
+
+.chain-action-btn.ant-btn {
+  border-radius: 12px;
+  color: #dbeafe;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.chain-action-btn.ant-btn:hover,
+.chain-action-btn.ant-btn:focus {
+  color: #fff !important;
+  background: rgba(96, 165, 250, 0.18) !important;
+}
+
+.chain-action-btn-danger.ant-btn:hover,
+.chain-action-btn-danger.ant-btn:focus {
+  background: rgba(239, 68, 68, 0.16) !important;
+}
+
+.chain-table .ant-badge-status-text {
+  color: #e2e8f0;
+}
+
+.chain-table .ant-pagination {
+  margin-top: 20px;
+}
+
+.chain-table .ant-pagination .ant-pagination-total-text,
+.chain-table .ant-pagination .ant-select-selection-item,
+.chain-table .ant-pagination .ant-pagination-options-quick-jumper,
+.chain-table .ant-pagination .ant-pagination-options-quick-jumper input {
+  color: #dbeafe;
+}
+
+.chain-table .ant-pagination .ant-pagination-item,
+.chain-table .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+.chain-table .ant-pagination .ant-pagination-next .ant-pagination-item-link {
+  border-radius: 12px;
+  border-color: rgba(191, 219, 254, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.chain-table .ant-pagination .ant-pagination-item a,
+.chain-table .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+.chain-table .ant-pagination .ant-pagination-next .ant-pagination-item-link {
+  color: #dbeafe;
+}
+
+.chain-table .ant-pagination .ant-pagination-item-active {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(96, 165, 250, 0.32);
+}
+
+.chain-table .ant-pagination .ant-pagination-item-active a {
+  color: #fff;
+}
+
+.chain-table .ant-select .ant-select-selector,
+.chain-table .ant-pagination .ant-pagination-options-quick-jumper input {
+  border-radius: 12px !important;
+  border-color: rgba(191, 219, 254, 0.12) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.chain-table .ant-spin-dot-item {
+  background-color: #93c5fd;
+}
+
+.chain-table-panel .chain-table .ant-table {
+  color: #1e293b;
+}
+
+.chain-table-panel .chain-table .ant-table-container {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.chain-table-panel .chain-table .ant-table-thead > tr > th {
+  background: #eff6ff !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24) !important;
+  color: #334155 !important;
+}
+
+.chain-table-panel .chain-table .ant-table-tbody > tr > td {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95) !important;
+  color: #334155;
+}
+
+.chain-table-panel .chain-table .ant-table-tbody > tr.ant-table-row:hover > td,
+.chain-table-panel
+  .chain-table
+  .ant-table-tbody
+  > tr.ant-table-row.ant-table-row-selected
+  > td {
+  background: #f8fbff !important;
+}
+
+.chain-table-panel .chain-table .ant-table-placeholder .ant-table-cell {
+  background: #ffffff !important;
+  color: #64748b;
+}
+
+.chain-table-panel .chain-table-title {
+  color: #0f172a;
+}
+
+.chain-table-panel .chain-table-subtitle {
+  color: #64748b;
+}
+
+.chain-table-panel .chain-chip-tag.ant-tag {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #334155;
+}
+
+.chain-table-panel .chain-network-tag.ant-tag {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.chain-table-panel .chain-network-evm.ant-tag {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.chain-table-panel .chain-network-bitcoin.ant-tag {
+  background: #ffedd5;
+  border-color: #fdba74;
+  color: #c2410c;
+}
+
+.chain-table-panel .chain-network-tron.ant-tag {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.chain-table-panel .chain-network-default.ant-tag {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.chain-table-panel .chain-native-symbol {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(59, 130, 246, 0.16);
+  color: #1d4ed8;
+}
+
+.chain-table-panel .chain-action-btn.ant-btn {
+  color: #334155;
+  background: #f8fafc;
+}
+
+.chain-table-panel .chain-action-btn.ant-btn:hover,
+.chain-table-panel .chain-action-btn.ant-btn:focus {
+  color: #1d4ed8 !important;
+  background: #eff6ff !important;
+}
+
+.chain-table-panel .chain-action-btn-danger.ant-btn:hover,
+.chain-table-panel .chain-action-btn-danger.ant-btn:focus {
+  color: #dc2626 !important;
+  background: #fef2f2 !important;
+}
+
+.chain-table-panel .chain-table .ant-badge-status-text {
+  color: #334155;
+}
+
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-total-text,
+.chain-table-panel .chain-table .ant-pagination .ant-select-selection-item,
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-options-quick-jumper,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-options-quick-jumper
+  input {
+  color: #475569;
+}
+
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-item,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-prev
+  .ant-pagination-item-link,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-next
+  .ant-pagination-item-link {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: #ffffff;
+}
+
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-item a,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-prev
+  .ant-pagination-item-link,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-next
+  .ant-pagination-item-link {
+  color: #334155;
+}
+
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-item-active {
+  background: #eff6ff;
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.chain-table-panel .chain-table .ant-pagination .ant-pagination-item-active a {
+  color: #1d4ed8;
+}
+
+.chain-table-panel .chain-table .ant-select .ant-select-selector,
+.chain-table-panel
+  .chain-table
+  .ant-pagination
+  .ant-pagination-options-quick-jumper
+  input {
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: #ffffff !important;
+  color: #334155 !important;
 }
 
 @media (max-width: 768px) {
   .chain-list-page {
     padding: 16px;
   }
-  
-  .page-header {
+
+  .chain-top-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .chain-hero-card,
+  .chain-panel {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .chain-hero-top,
+  .chain-panel-header {
     flex-direction: column;
     gap: 16px;
-    align-items: stretch;
+    align-items: flex-start;
   }
-  
-  .page-actions {
+
+  .chain-panel-header p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .chain-page-title h1 {
+    font-size: 28px;
+  }
+
+  .chain-page-actions {
     display: flex;
-    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .chain-page-actions .ant-space {
+    width: 100%;
+  }
+
+  .chain-page-actions .ant-space-item,
+  .chain-page-actions .ant-btn {
+    width: 100%;
+  }
+
+  .chain-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1280px) {
+  .chain-top-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chain-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

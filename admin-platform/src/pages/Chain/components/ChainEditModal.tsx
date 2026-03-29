@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react'
-import { Modal, Form, Input, InputNumber, Switch, Row, Col } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Modal, Form, Input, InputNumber, Switch, Row, Col, Select } from 'antd'
 import type { Chain, UpdateChainRequest } from '@shared/types/chain'
 
 const { TextArea } = Input
+const { Option } = Select
+const DEFAULT_CHAIN_NETWORK_OPTIONS = ['EVM', 'Bitcoin', 'Tron', '其他']
 
 interface ChainEditModalProps {
   visible: boolean
@@ -17,17 +19,20 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
   loading,
   chain,
   onCancel,
-  onSubmit
+  onSubmit,
 }) => {
   const [form] = Form.useForm()
+  const [chainNetworkOptions] = useState<string[]>(
+    DEFAULT_CHAIN_NETWORK_OPTIONS
+  )
 
   useEffect(() => {
     if (visible && chain) {
       const formValues = {
         ...chain,
         rpcUrlsText: chain.rpcUrls?.join('\n') || '',
-        explorerUrlText: chain.explorerUrl || '',
-        status: chain.status === 1
+        explorerUrlsText: chain.explorerUrl || '',
+        status: chain.status === 1,
       }
       form.setFieldsValue(formValues)
     }
@@ -35,25 +40,33 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
 
   const handleSubmit = async () => {
     if (!chain) return
-    
+
     try {
       const values = await form.validateFields()
       const rpcUrls = values.rpcUrlsText
-        ? values.rpcUrlsText.split('\n').map((url: string) => url.trim()).filter((url: string) => url)
+        ? values.rpcUrlsText
+            .split('\n')
+            .map((url: string) => url.trim())
+            .filter((url: string) => url)
         : []
-      const explorerUrl = values.explorerUrlText
-        ? values.explorerUrlText.split('\n').map((url: string) => url.trim()).find((url: string) => url) || ''
+      const explorerUrl = values.explorerUrlsText
+        ? values.explorerUrlsText
+            .split('\n')
+            .map((url: string) => url.trim())
+            .find((url: string) => url) || ''
         : ''
 
       const processedValues = {
-        chainName: values.chainName,
-        nativeSymbol: values.nativeSymbol,
+        chainId: values.chainId,
+        chainName: values.chainName?.trim(),
+        chainNetwork: values.chainNetwork,
+        nativeSymbol: values.nativeSymbol?.trim(),
         rpcUrls,
         explorerUrl,
         confirmationBlocks: values.confirmationBlocks,
-        scanHeight: values.scanHeight,
+        scanHeight: values.scanHeight ?? 0,
         scanInterval: values.scanInterval,
-        status: values.status ? 1 : 0
+        status: values.status ? 1 : 0,
       }
 
       onSubmit(chain.id, processedValues)
@@ -86,9 +99,9 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
               label="链ID"
               rules={[{ required: true, message: '请输入链ID' }]}
             >
-              <InputNumber 
-                min={1} 
-                style={{ width: '100%' }} 
+              <InputNumber
+                min={1}
+                style={{ width: '100%' }}
                 placeholder="如: 1 (以太坊主网)"
               />
             </Form.Item>
@@ -99,7 +112,7 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
               label="链代码"
               rules={[{ required: true, message: '请输入链代码' }]}
             >
-              <Input placeholder="如: ETH, BSC, BTC" maxLength={20} />
+              <Input placeholder="如: ETH, BSC, BTC" maxLength={20} disabled />
             </Form.Item>
           </Col>
         </Row>
@@ -107,13 +120,34 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
+              name="chainNetwork"
+              label="网络类型"
+              rules={[{ required: true, message: '请选择网络类型' }]}
+            >
+              <Select placeholder="选择网络类型">
+                {chainNetworkOptions.map((option) => (
+                  <Option key={option} value={option}>
+                    {option}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
               name="chainName"
               label="链名称"
               rules={[{ required: true, message: '请输入链名称' }]}
             >
-              <Input placeholder="如: Ethereum, Binance Smart Chain" maxLength={50} />
+              <Input
+                placeholder="如: Ethereum, Binance Smart Chain"
+                maxLength={50}
+              />
             </Form.Item>
           </Col>
+        </Row>
+
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               name="nativeSymbol"
@@ -123,6 +157,14 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
               <Input placeholder="如: ETH, BNB, BTC" maxLength={10} />
             </Form.Item>
           </Col>
+          <Col span={12}>
+            <Form.Item name="explorerUrlsText" label="区块浏览器地址">
+              <TextArea
+                rows={2}
+                placeholder="https://etherscan.io&#10;https://cn.etherscan.com"
+              />
+            </Form.Item>
+          </Col>
         </Row>
 
         <Form.Item
@@ -130,61 +172,34 @@ const ChainEditModal: React.FC<ChainEditModalProps> = ({
           label="RPC地址"
           rules={[{ required: true, message: '请输入至少一个RPC地址' }]}
         >
-          <TextArea 
-            rows={3} 
+          <TextArea
+            rows={3}
             placeholder="每行一个RPC地址&#10;https://eth-mainnet.g.alchemy.com/v2/your-api-key&#10;https://rpc.ankr.com/eth"
           />
         </Form.Item>
 
-        <Form.Item
-          name="explorerUrlText"
-          label="区块浏览器地址"
-        >
-          <TextArea 
-            rows={2} 
-            placeholder="https://etherscan.io&#10;https://cn.etherscan.com"
-          />
-        </Form.Item>
- 
-
-        <Row gutter={16}> 
+        <Row gutter={16}>
           <Col span={8}>
-            <Form.Item
-              name="confirmationBlocks"
-              label="确认块数"
-            >
+            <Form.Item name="confirmationBlocks" label="确认块数">
               <InputNumber min={1} max={100} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item
-              name="scanHeight"
-              label="扫描高度"
-            >
+            <Form.Item name="scanHeight" label="扫描高度">
               <InputNumber min={0} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item
-              name="lastScanHeight"
-              label="最新扫描高度"
-            >
-              <InputNumber min={0} style={{ width: '100%' }} />
+            <Form.Item name="scanInterval" label="扫描间隔(秒)">
+              <InputNumber min={1} max={3600} style={{ width: '100%' }} />
             </Form.Item>
           </Col>
         </Row>
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              name="status"
-              label="启用状态"
-              valuePropName="checked"
-            >
-              <Switch 
-                checkedChildren="启用" 
-                unCheckedChildren="禁用" 
-              />
+            <Form.Item name="status" label="启用状态" valuePropName="checked">
+              <Switch checkedChildren="启用" unCheckedChildren="禁用" />
             </Form.Item>
           </Col>
         </Row>

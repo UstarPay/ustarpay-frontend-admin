@@ -51,26 +51,59 @@ const SCENE_META: Record<
   {
     heroLabel: string;
     heroGradient: string;
-    infoBorder: string;
-    infoBackground: string;
+    infoCardClassName: string;
     infoIconBackground: string;
+    infoTitleClassName: string;
+    infoTextClassName: string;
+    overviewCardClassNames: string[];
+    overviewIconClassName: string;
+    overviewLabelClassName: string;
+    overviewValueClassName: string;
+    overviewDescriptionClassName: string;
+    activeTagClassName: string;
   }
 > = {
   withdrawal: {
     heroLabel: "WITHDRAW NETWORK CENTER",
     heroGradient:
-      "bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_58%,#38bdf8_100%)]",
-    infoBorder: "border-sky-100",
-    infoBackground: "bg-sky-50/90",
-    infoIconBackground: "bg-sky-500",
+      "bg-[radial-gradient(circle_at_top_right,rgba(125,211,252,0.24),transparent_30%),linear-gradient(135deg,#06152f_0%,#0b2b66_48%,#1747a7_100%)]",
+    infoCardClassName:
+      "border border-[rgba(125,211,252,0.18)] bg-[radial-gradient(circle_at_top_left,rgba(147,197,253,0.18),transparent_32%),linear-gradient(135deg,rgba(6,21,47,0.98)_0%,rgba(10,35,84,0.96)_52%,rgba(18,70,150,0.94)_100%)] shadow-[0_24px_60px_rgba(7,20,48,0.18)]",
+    infoIconBackground: "border border-white/10 bg-white/10",
+    infoTitleClassName: "text-white",
+    infoTextClassName: "text-slate-200",
+    overviewCardClassNames: [
+      "border border-[rgba(125,211,252,0.18)] bg-[linear-gradient(135deg,rgba(6,21,47,0.98)_0%,rgba(9,30,71,0.96)_100%)] shadow-[0_20px_48px_rgba(7,20,48,0.18)]",
+      "border border-[rgba(59,130,246,0.2)] bg-[linear-gradient(135deg,rgba(8,27,61,0.98)_0%,rgba(17,65,146,0.96)_100%)] shadow-[0_20px_48px_rgba(8,27,61,0.18)]",
+      "border border-[rgba(56,189,248,0.18)] bg-[linear-gradient(135deg,rgba(6,21,47,0.98)_0%,rgba(11,54,112,0.95)_100%)] shadow-[0_20px_48px_rgba(6,21,47,0.18)]",
+    ],
+    overviewIconClassName: "border border-white/10 bg-white/10 text-sky-100",
+    overviewLabelClassName: "text-sky-100/75",
+    overviewValueClassName: "text-white",
+    overviewDescriptionClassName: "text-slate-300",
+    activeTagClassName:
+      "!m-0 rounded-full border border-[rgba(96,165,250,0.22)] bg-[linear-gradient(135deg,rgba(8,27,61,0.92)_0%,rgba(17,65,146,0.88)_100%)] px-3 py-1 text-sm text-sky-100 shadow-[0_12px_28px_rgba(8,27,61,0.16)]",
   },
   deposit: {
     heroLabel: "DEPOSIT NETWORK CENTER",
     heroGradient:
-      "bg-[linear-gradient(135deg,#134e4a_0%,#0f766e_52%,#14b8a6_100%)]",
-    infoBorder: "border-emerald-100",
-    infoBackground: "bg-emerald-50/90",
-    infoIconBackground: "bg-emerald-500",
+      "bg-[radial-gradient(circle_at_top_right,rgba(103,232,249,0.22),transparent_30%),linear-gradient(135deg,#081a3b_0%,#0d316d_48%,#1453b8_100%)]",
+    infoCardClassName:
+      "border border-[rgba(103,232,249,0.16)] bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.14),transparent_30%),linear-gradient(135deg,rgba(8,26,59,0.98)_0%,rgba(10,39,89,0.96)_52%,rgba(20,83,184,0.94)_100%)] shadow-[0_24px_60px_rgba(8,26,59,0.18)]",
+    infoIconBackground: "border border-white/10 bg-white/10",
+    infoTitleClassName: "text-white",
+    infoTextClassName: "text-slate-200",
+    overviewCardClassNames: [
+      "border border-[rgba(103,232,249,0.16)] bg-[linear-gradient(135deg,rgba(8,26,59,0.98)_0%,rgba(12,42,95,0.96)_100%)] shadow-[0_20px_48px_rgba(8,26,59,0.18)]",
+      "border border-[rgba(59,130,246,0.2)] bg-[linear-gradient(135deg,rgba(8,26,59,0.98)_0%,rgba(17,65,146,0.96)_100%)] shadow-[0_20px_48px_rgba(8,26,59,0.18)]",
+      "border border-[rgba(34,211,238,0.16)] bg-[linear-gradient(135deg,rgba(8,26,59,0.98)_0%,rgba(13,86,130,0.94)_100%)] shadow-[0_20px_48px_rgba(8,26,59,0.18)]",
+    ],
+    overviewIconClassName: "border border-white/10 bg-white/10 text-cyan-100",
+    overviewLabelClassName: "text-cyan-100/75",
+    overviewValueClassName: "text-white",
+    overviewDescriptionClassName: "text-slate-300",
+    activeTagClassName:
+      "!m-0 rounded-full border border-[rgba(103,232,249,0.18)] bg-[linear-gradient(135deg,rgba(8,26,59,0.92)_0%,rgba(13,86,130,0.88)_100%)] px-3 py-1 text-sm text-cyan-100 shadow-[0_12px_28px_rgba(8,26,59,0.16)]",
   },
 };
 
@@ -332,7 +365,7 @@ export default function AssetSupportConfigManager({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[28px] bg-[radial-gradient(circle_at_top_left,#dbeafe_0,#eff6ff_32%,#f8fafc_100%)] p-5">
+      <div className="rounded-[28px] bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18)_0%,rgba(15,23,42,0.08)_36%,rgba(248,250,252,0.94)_100%)] p-5">
         <div
           className={`overflow-hidden rounded-[24px] ${sceneMeta.heroGradient} px-7 py-6 text-white shadow-sm`}
         >
@@ -350,7 +383,7 @@ export default function AssetSupportConfigManager({
             </div>
 
             <div className="flex flex-col gap-3 lg:min-w-[360px]">
-              <div className="rounded-[22px] bg-white px-5 py-4 text-slate-900 shadow-lg shadow-slate-950/10">
+              <div className="rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(7,20,48,0.36)_0%,rgba(18,70,150,0.24)_100%)] px-5 py-4 text-white shadow-lg shadow-slate-950/20 backdrop-blur-sm">
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="large"
@@ -396,7 +429,7 @@ export default function AssetSupportConfigManager({
       </div>
 
       <div
-        className={`rounded-[24px] border ${sceneMeta.infoBorder} ${sceneMeta.infoBackground} p-5 shadow-sm`}
+        className={`rounded-[24px] p-5 ${sceneMeta.infoCardClassName}`}
       >
         <div className="flex gap-4">
           <div
@@ -405,8 +438,10 @@ export default function AssetSupportConfigManager({
             <InfoCircleOutlined />
           </div>
           <div>
-            <div className="text-base font-semibold text-slate-900">配置说明</div>
-            <div className="mt-2 text-sm leading-7 text-slate-600">
+            <div className={`text-base font-semibold ${sceneMeta.infoTitleClassName}`}>
+              配置说明
+            </div>
+            <div className={`mt-2 text-sm leading-7 ${sceneMeta.infoTextClassName}`}>
               {currentInfoDescription}
             </div>
           </div>
@@ -414,25 +449,31 @@ export default function AssetSupportConfigManager({
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {overviewCards.map((item) => (
+        {overviewCards.map((item, index) => (
           <div
             key={item.key}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60"
+            className={`rounded-2xl p-5 ${sceneMeta.overviewCardClassNames[index % sceneMeta.overviewCardClassNames.length]}`}
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                <div
+                  className={`text-xs uppercase tracking-[0.18em] ${sceneMeta.overviewLabelClassName}`}
+                >
                   {item.label}
                 </div>
-                <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                <div
+                  className={`mt-3 text-3xl font-semibold tracking-tight ${sceneMeta.overviewValueClassName}`}
+                >
                   {item.value}
                 </div>
-                <div className="mt-2 text-sm leading-6 text-slate-500">
+                <div
+                  className={`mt-2 text-sm leading-6 ${sceneMeta.overviewDescriptionClassName}`}
+                >
                   {item.description}
                 </div>
               </div>
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${item.iconClassName}`}
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${sceneMeta.overviewIconClassName}`}
               >
                 {item.icon}
               </div>
@@ -450,7 +491,7 @@ export default function AssetSupportConfigManager({
             筛选网络与币种，批量调整启用状态并保存生效。
           </div>
         </div>
-        <Tag className="!m-0 rounded-full border-0 bg-amber-50 px-3 py-1 text-sm text-amber-600">
+        <Tag className={sceneMeta.activeTagClassName}>
           当前列表启用 {enabledCount} 项
         </Tag>
       </div>

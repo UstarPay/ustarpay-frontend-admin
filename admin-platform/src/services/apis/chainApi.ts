@@ -73,7 +73,7 @@ export const chainApi = {
    */
   updateScanHeight: async (chainCode: string, scanHeight: number): Promise<Chain> => {
     const response = await apiClient.patch<Chain>(`/chains/${chainCode}/scan-height`, {
-      scan_height: scanHeight
+      height: scanHeight
     })
     return response.data
   }

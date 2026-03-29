@@ -1,6 +1,11 @@
 import React from 'react'
-import { Table, Tag, Space, Button, Tooltip, Popconfirm, Switch } from 'antd'
-import { EditOutlined, DeleteOutlined, EyeOutlined, SyncOutlined } from '@ant-design/icons'
+import { Table, Tag, Space, Button, Tooltip, Popconfirm, Badge } from 'antd'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  SyncOutlined,
+} from '@ant-design/icons'
 import { useAuthStore } from '@/stores/authStore'
 import type { Chain } from '@shared/types/chain'
 import type { ColumnsType } from 'antd/es/table'
@@ -31,13 +36,21 @@ const ChainList: React.FC<ChainListProps> = ({
   onView,
   onDelete,
   onUpdateScanHeight,
-  onPaginationChange
+  onPaginationChange,
 }) => {
   const { hasPermission } = useAuthStore()
 
-  // 获取网络类型标签颜色
-  const getNetworkTypeColor = (): string => {
-    return 'blue'
+  const getNetworkTypeClass = (networkType?: string): string => {
+    switch ((networkType || '').toLowerCase()) {
+      case 'bitcoin':
+        return 'chain-network-bitcoin'
+      case 'tron':
+        return 'chain-network-tron'
+      case 'evm':
+        return 'chain-network-evm'
+      default:
+        return 'chain-network-default'
+    }
   }
 
   const columns: ColumnsType<Chain> = [
@@ -46,44 +59,72 @@ const ChainList: React.FC<ChainListProps> = ({
       dataIndex: 'chainName',
       key: 'chainName',
       render: (_, record: Chain) => (
-        <div>
-          <div style={{ fontWeight: 500, fontSize: '14px' }}>
-            {record.chainName}
-          </div>
-          <div style={{ color: '#666', fontSize: '12px' }}>
-            {record.chainCode}
-          </div>
+        <div className="chain-table-title-block">
+          <div className="chain-table-title">{record.chainName}</div>
+          <div className="chain-table-subtitle">{record.chainCode}</div>
         </div>
-      )
+      ),
     },
     {
-      title: '网络类型',
-      dataIndex: 'networkType',
-      key: 'networkType',
-      render: () => (
-        <Tag color={getNetworkTypeColor()}>
-          EVM
-        </Tag>
-      )
+      title: '网络信息',
+      key: 'networkInfo',
+      render: (_, record: Chain) => (
+        <Space size={[4, 4]} wrap>
+          <Tag
+            className={`chain-network-tag ${getNetworkTypeClass(record.chainNetwork)}`}
+          >
+            {record.chainNetwork || '未设置'}
+          </Tag>
+          <Tag className="chain-chip-tag">{`Chain ID ${record.chainId}`}</Tag>
+        </Space>
+      ),
     },
     {
       title: '原生币',
       dataIndex: 'nativeSymbol',
       key: 'nativeSymbol',
       render: (_, record: Chain) => (
-        <span>{record.nativeSymbol}</span>
-      )
+        <span className="chain-native-symbol">{record.nativeSymbol}</span>
+      ),
+    },
+    {
+      title: '扫描配置',
+      key: 'scanConfig',
+      render: (_, record: Chain) => (
+        <div className="chain-scan-config">
+          <div className="chain-table-title">{`高度 ${Number(record.scanHeight || 0).toLocaleString()}`}</div>
+          <div className="chain-table-subtitle">
+            {`间隔 ${record.scanInterval || 0}s / 确认 ${record.confirmationBlocks || 0} 块`}
+          </div>
+        </div>
+      ),
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       render: (_, record: Chain) => (
-        <Switch
-          checked={record.status === 1}
-          onChange={() => {}}
+        <Badge
+          status={record.status === 1 ? 'success' : 'default'}
+          text={record.status === 1 ? '启用' : '禁用'}
         />
-      )
+      ),
+    },
+    {
+      title: '最新扫描高度',
+      dataIndex: 'lastScanHeight',
+      key: 'lastScanHeight',
+      render: (value: number) => (
+        <span>{Number(value || 0).toLocaleString()}</span>
+      ),
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      render: (value: string) => (
+        <span>{value ? new Date(value).toLocaleString() : '-'}</span>
+      ),
     },
     {
       title: '操作',
@@ -94,33 +135,36 @@ const ChainList: React.FC<ChainListProps> = ({
             <Button
               type="text"
               size="small"
+              className="chain-action-btn"
               icon={<EyeOutlined />}
               onClick={() => onView(record)}
             />
           </Tooltip>
-          
+
           {hasPermission('chain:update') && (
             <Tooltip title="编辑">
               <Button
                 type="text"
                 size="small"
+                className="chain-action-btn"
                 icon={<EditOutlined />}
                 onClick={() => onEdit(record)}
               />
             </Tooltip>
           )}
-          
+
           {hasPermission('chain:update') && (
             <Tooltip title="更新扫描高度">
               <Button
                 type="text"
                 size="small"
+                className="chain-action-btn"
                 icon={<SyncOutlined />}
                 onClick={() => onUpdateScanHeight(record)}
               />
             </Tooltip>
           )}
-          
+
           {hasPermission('chain:delete') && (
             <Popconfirm
               title="确认删除"
@@ -134,6 +178,7 @@ const ChainList: React.FC<ChainListProps> = ({
                 <Button
                   type="text"
                   size="small"
+                  className="chain-action-btn chain-action-btn-danger"
                   danger
                   icon={<DeleteOutlined />}
                 />
@@ -141,22 +186,25 @@ const ChainList: React.FC<ChainListProps> = ({
             </Popconfirm>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ]
 
   return (
     <Table
+      className="chain-table"
       columns={columns}
-              dataSource={Array.isArray(data) ? data : []}
+      dataSource={Array.isArray(data) ? data : []}
       loading={loading}
       rowKey="id"
+      size="middle"
       pagination={{
         ...pagination,
         onChange: onPaginationChange,
-        onShowSizeChange: onPaginationChange
+        onShowSizeChange: onPaginationChange,
       }}
-      scroll={{ x: 800 }}
+      rowClassName={() => 'chain-table-row'}
+      scroll={{ x: 1200 }}
     />
   )
 }
