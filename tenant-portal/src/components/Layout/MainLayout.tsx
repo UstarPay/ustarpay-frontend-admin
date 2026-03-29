@@ -128,7 +128,7 @@ const menuTree: MenuNode[] = [
     key: "/wallets",
     icon: <WalletOutlined />,
     label: "资产管理",
-    permissions: ["wallets:view"],
+    permissions: ["wallets:view", "config:view"],
     children: [
       {
         key: "/wallets/list",
@@ -144,6 +144,11 @@ const menuTree: MenuNode[] = [
         key: "/wallets/card-fund-accounts",
         label: "持卡账户档案",
         permissions: ["wallets:view"],
+      },
+      {
+        key: "/wallets/transfer-config",
+        label: "资金转账配置",
+        permissions: ["config:view"],
       },
     ],
   },
@@ -332,16 +337,6 @@ const menuTree: MenuNode[] = [
         label: "\u7528\u6237\u540d\u89c4\u5219",
         permissions: ["config:view"],
       },
-      {
-        key: "/settings/kyc-country-filter",
-        label: "L1国家过滤",
-        permissions: ["config:view"],
-      },
-      {
-        key: "/settings/transfer-fee",
-        label: "转账配置",
-        permissions: ["config:view"],
-      },
     ],
   },
   {
@@ -411,6 +406,18 @@ function toMenuItems(nodes: MenuNode[]): MenuItem[] {
   }));
 }
 
+function resolveMenuPath(pathname: string) {
+  if (pathname === "/collection/tasks") {
+    return "/collection/configs";
+  }
+
+  if (pathname === "/settings/kyc-country-filter") {
+    return "/tenant-users/kyc";
+  }
+
+  return pathname;
+}
+
 export function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -438,10 +445,7 @@ export function MainLayout() {
   }, [setSidebarCollapsed, setSidebarMobile]);
 
   const getSelectedKeys = () => {
-    const pathname =
-      location.pathname === "/collection/tasks"
-        ? "/collection/configs"
-        : location.pathname;
+    const pathname = resolveMenuPath(location.pathname);
     if (visibleMenuItems.some((item) => item?.key === pathname)) {
       return [pathname];
     }
@@ -464,10 +468,7 @@ export function MainLayout() {
   };
 
   const getOpenKeys = () => {
-    const pathname =
-      location.pathname === "/collection/tasks"
-        ? "/collection/configs"
-        : location.pathname;
+    const pathname = resolveMenuPath(location.pathname);
     const openKeys: string[] = [];
 
     for (const item of visibleMenuItems) {

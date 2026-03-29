@@ -11,10 +11,16 @@ import {
   Space,
   Statistic,
   Switch,
+  Tag,
   Typography,
   message,
 } from "antd";
-import { ReloadOutlined, SaveOutlined, SwapOutlined } from "@ant-design/icons";
+import {
+  ArrowRightOutlined,
+  ReloadOutlined,
+  SaveOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
 
 import { TENANT_PERMISSION } from "@/constants/rbac";
 import {
@@ -214,7 +220,7 @@ export default function TransferFeeConfigPage() {
       setSaving(true);
       const response = await transferFeeConfigService.updateConfig(payload);
       applyConfigToForm(response.data);
-      message.success("转账配置已保存");
+      message.success("资金转账配置已保存");
     } catch (error) {
       if ((error as { errorFields?: unknown }).errorFields) {
         return;
@@ -243,33 +249,55 @@ export default function TransferFeeConfigPage() {
   }, [effectiveConfig]);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_26%),radial-gradient(circle_at_85%_15%,rgba(56,189,248,0.16),transparent_22%),linear-gradient(180deg,#eff6ff_0%,#f8fbff_42%,#eef4ff_100%)]">
       <Card
         bordered={false}
-        className="overflow-hidden rounded-[30px] border-0 bg-[linear-gradient(135deg,#0f172a_0%,#111827_48%,#14532d_100%)] text-white shadow-[0_24px_70px_rgba(20,83,45,0.22)]"
+        className="overflow-hidden rounded-[34px] border-0 bg-[linear-gradient(135deg,#020617_0%,#0f1b3d_34%,#102a6b_68%,#1d4ed8_100%)] text-white shadow-[0_30px_90px_rgba(15,23,66,0.38)]"
         bodyStyle={{ padding: 0 }}
       >
-        <div className="relative overflow-hidden px-6 py-6 lg:px-7">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(110,231,183,0.16),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(251,191,36,0.18),transparent_34%)]" />
+        <div className="relative overflow-hidden px-6 py-7 lg:px-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(125,211,252,0.22),transparent_24%),radial-gradient(circle_at_88%_22%,rgba(191,219,254,0.18),transparent_28%),radial-gradient(circle_at_78%_82%,rgba(59,130,246,0.28),transparent_34%)]" />
+          <div className="absolute -right-10 top-8 h-36 w-36 rounded-full border border-white/10 bg-white/5 blur-[2px]" />
+          <div className="absolute bottom-[-48px] left-[42%] h-40 w-40 rounded-full border border-sky-200/10 bg-sky-300/10 blur-2xl" />
           <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-            <div className="flex flex-col gap-4 rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-emerald-100/80">
-                Wallet to Card Transfer
+            <div className="flex flex-col gap-5 rounded-[28px] border border-white/12 bg-white/8 p-6 backdrop-blur-md">
+              <div className="text-[11px] uppercase tracking-[0.34em] text-sky-100/80">
+                Funds Transfer Control Deck
               </div>
               <div className="flex flex-col gap-2">
                 <Title level={2} className="!m-0 !text-white">
-                  转账配置
+                  资金转账配置
                 </Title>
-                <Paragraph className="!m-0 !text-sm !leading-6 !text-slate-200">
-                  管理钱包向卡片转账时的开关、手续费、到账限额、可用币种和汇率规则。保存后会实时覆盖租户当前的钱包转卡逻辑。
+                <Paragraph className="!m-0 !max-w-3xl !text-sm !leading-7 !text-sky-100/85">
+                  在一个控制台里统一管理钱包转卡的开关、手续费、到账区间、支持币种与换汇规则。
+                  保存后会实时覆盖当前生效的资金转账策略。
                 </Paragraph>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-sky-100/70">Execution</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">{effectiveConfig.enabled ? "Online" : "Paused"}</div>
+                  <div className="mt-1 text-xs text-sky-100/70">资金转账入口当前状态</div>
+                </div>
+                <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-sky-100/70">Fee Rate</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">{preview.feePercent.toFixed(2)}%</div>
+                  <div className="mt-1 text-xs text-sky-100/70">当前生效手续费率</div>
+                </div>
+                <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-sky-100/70">Currencies</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">
+                    {effectiveConfig.supportedCurrencies.length || "All"}
+                  </div>
+                  <div className="mt-1 text-xs text-sky-100/70">已设置可用币种数量</div>
+                </div>
               </div>
               <Space wrap>
                 <Button
                   icon={<ReloadOutlined />}
                   loading={loading}
                   onClick={() => void loadConfig()}
-                  className="h-9 rounded-full border-white/15 bg-white/10 px-4 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white"
+                  className="h-10 rounded-full border-white/15 bg-white/10 px-5 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white"
                 >
                   刷新配置
                 </Button>
@@ -279,7 +307,7 @@ export default function TransferFeeConfigPage() {
                     icon={<SaveOutlined />}
                     loading={saving}
                     onClick={() => void handleSave()}
-                    className="h-9 rounded-full bg-emerald-300 px-4 text-slate-950 shadow-none hover:!bg-emerald-200 hover:!text-slate-950"
+                    className="h-10 rounded-full border-0 bg-[linear-gradient(135deg,#bfdbfe_0%,#7dd3fc_52%,#38bdf8_100%)] px-5 text-slate-950 shadow-none hover:!bg-[linear-gradient(135deg,#dbeafe_0%,#bae6fd_52%,#7dd3fc_100%)] hover:!text-slate-950"
                   >
                     保存配置
                   </Button>
@@ -288,19 +316,46 @@ export default function TransferFeeConfigPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Status</div>
+              <div className="rounded-[24px] border border-white/10 bg-white/8 px-4 py-5 backdrop-blur-sm">
+                <div className="text-xs uppercase tracking-[0.16em] text-sky-100/70">Source</div>
                 <div className="mt-3 text-2xl font-semibold text-white">
-                  {effectiveConfig.enabled ? "已启用" : "已关闭"}
+                  {configSource === "current" ? "Current" : configSource === "legacy" ? "Legacy" : "Default"}
                 </div>
-                <div className="mt-1 text-xs text-slate-200">当前转账开关状态</div>
+                <div className="mt-1 text-xs text-sky-100/70">当前页面加载到的配置来源</div>
               </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Source</div>
+              <div className="rounded-[24px] border border-white/10 bg-white/8 px-4 py-5 backdrop-blur-sm">
+                <div className="text-xs uppercase tracking-[0.16em] text-sky-100/70">Daily Cap</div>
                 <div className="mt-3 text-2xl font-semibold text-white">
-                  {configSource === "current" ? "新配置" : configSource === "legacy" ? "旧费率" : "默认值"}
+                  {Number(effectiveConfig.dailyCreditedLimit) > 0 ? effectiveConfig.dailyCreditedLimit : "Unlimited"}
                 </div>
-                <div className="mt-1 text-xs text-slate-200">当前页面加载到的配置来源</div>
+                <div className="mt-1 text-xs text-sky-100/70">每日累计到账上限</div>
+              </div>
+              <div className="col-span-2 rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.34)_0%,rgba(30,41,59,0.18)_100%)] px-5 py-5 backdrop-blur-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.18em] text-sky-100/70">Transfer Preview</div>
+                    <div className="mt-2 text-base font-semibold text-white">1000 转出资金链路</div>
+                  </div>
+                  <Tag color="blue" className="!m-0 rounded-full px-3 py-1 text-[11px]">
+                    Sample
+                  </Tag>
+                </div>
+                <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-3 text-sm text-sky-50">
+                  <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
+                    <div className="text-xs text-sky-100/70">钱包转出</div>
+                    <div className="mt-1 text-xl font-semibold">1000</div>
+                  </div>
+                  <ArrowRightOutlined className="text-sky-200" />
+                  <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
+                    <div className="text-xs text-sky-100/70">手续费</div>
+                    <div className="mt-1 text-xl font-semibold">{preview.fee.toFixed(2)}</div>
+                  </div>
+                  <ArrowRightOutlined className="text-sky-200" />
+                  <div className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3">
+                    <div className="text-xs text-sky-100/70">最终到账</div>
+                    <div className="mt-1 text-xl font-semibold">{preview.credited.toFixed(2)}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -312,20 +367,24 @@ export default function TransferFeeConfigPage() {
         showIcon
         message="额度统一按卡到账币种计算"
         description="单笔最低到账、单笔最高到账和每日累计到账上限，均按入卡后的目标币种金额校验。手续费仍按钱包侧转出币种扣减。"
-        className="rounded-[22px] border border-sky-100 bg-sky-50/80"
+        className="rounded-[24px] border border-sky-100 bg-white/75 backdrop-blur-sm"
       />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <Card bordered={false} className="rounded-[28px] border border-slate-200 bg-white shadow-sm" bodyStyle={{ padding: 24 }}>
+        <Card
+          bordered={false}
+          className="rounded-[30px] border border-slate-200/70 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+          bodyStyle={{ padding: 28 }}
+        >
           <div className="flex flex-col gap-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#dbeafe_0%,#93c5fd_100%)] text-blue-700 shadow-inner">
                 <SwapOutlined />
               </div>
               <div className="flex flex-col gap-1">
-                <Text className="text-sm font-medium text-slate-500">规则编辑</Text>
+                <Text className="text-sm font-medium text-slate-500">Rule Composer</Text>
                 <Title level={4} className="!m-0">
-                  钱包转卡参数
+                  资金转账规则面板
                 </Title>
               </div>
             </div>
@@ -335,7 +394,7 @@ export default function TransferFeeConfigPage() {
                 label="转账开关"
                 name="enabled"
                 valuePropName="checked"
-                extra="关闭后，前台仍可看到页面，但无法真正提交钱包转卡。"
+                extra="关闭后，前台仍可进入页面，但无法真正提交资金转账。"
               >
                 <Switch checkedChildren="启用" unCheckedChildren="关闭" />
               </Form.Item>
@@ -405,20 +464,24 @@ export default function TransferFeeConfigPage() {
         </Card>
 
         <div className="flex flex-col gap-6">
-          <Card bordered={false} className="rounded-[28px] border border-slate-200 bg-white shadow-sm" bodyStyle={{ padding: 24 }}>
+          <Card
+            bordered={false}
+            className="rounded-[30px] border border-slate-200/70 bg-[linear-gradient(180deg,#0f172a_0%,#172554_100%)] text-white shadow-[0_22px_55px_rgba(15,23,42,0.22)]"
+            bodyStyle={{ padding: 24 }}
+          >
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-sky-200">
                   <SaveOutlined />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Text className="text-sm font-medium text-slate-500">保存格式</Text>
-                  <Title level={4} className="!m-0">
+                  <Text className="text-sm font-medium !text-sky-100/70">Serialized Config</Text>
+                  <Title level={4} className="!m-0 !text-white">
                     配置落库预览
                   </Title>
                 </div>
               </div>
-              <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4 font-mono text-xs leading-6 text-slate-600">
+              <div className="rounded-[24px] border border-white/10 bg-black/20 px-4 py-4 font-mono text-xs leading-6 text-sky-50">
                 {JSON.stringify(effectiveConfig, null, 2)}
               </div>
             </div>
@@ -426,12 +489,12 @@ export default function TransferFeeConfigPage() {
 
           <Card
             bordered={false}
-            className="rounded-[28px] border border-emerald-100 bg-[linear-gradient(180deg,#ffffff_0%,#f0fdf4_100%)] shadow-sm"
+            className="rounded-[30px] border border-blue-100 bg-[linear-gradient(180deg,#ffffff_0%,#edf4ff_100%)] shadow-[0_18px_45px_rgba(37,99,235,0.08)]"
             bodyStyle={{ padding: 24 }}
           >
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1">
-                <Text className="text-sm font-medium text-emerald-700">影响预览</Text>
+                <Text className="text-sm font-medium text-blue-700">Impact Preview</Text>
                 <Title level={4} className="!m-0">
                   以钱包转出 1000 为例
                 </Title>
@@ -444,7 +507,7 @@ export default function TransferFeeConfigPage() {
                 <Statistic title="到账金额" value={preview.credited} precision={2} />
               </div>
 
-              <div className="rounded-[22px] border border-emerald-100 bg-white px-4 py-4">
+              <div className="rounded-[24px] border border-blue-100 bg-white px-4 py-4">
                 <Title level={5} className="!mb-3 !mt-0">
                   当前规则摘要
                 </Title>

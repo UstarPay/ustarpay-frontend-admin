@@ -332,8 +332,16 @@ export function AppRoutes() {
           element={protect(<KycCountryFilterPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
         />
         <Route
-          path="settings/transfer-fee"
+          path="wallets/transfer-config"
           element={protect(<TransferFeeConfigPage />, [TENANT_PERMISSION.CONFIG_VIEW])}
+        />
+        <Route
+          path="transactions/transfer-config"
+          element={<Navigate to="/wallets/transfer-config" replace />}
+        />
+        <Route
+          path="settings/transfer-fee"
+          element={<Navigate to="/wallets/transfer-config" replace />}
         />
 
         <Route

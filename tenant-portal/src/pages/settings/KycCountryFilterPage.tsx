@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Button,
@@ -13,6 +14,7 @@ import {
   message,
 } from "antd";
 import {
+  ArrowLeftOutlined,
   FilterOutlined,
   GlobalOutlined,
   MinusCircleOutlined,
@@ -86,13 +88,14 @@ function renderSelectionTags(
           })}
         </div>
       ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无已选国家" />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无已选地区" />
       )}
     </div>
   );
 }
 
 export default function KycCountryFilterPage() {
+  const navigate = useNavigate();
   const [form] = Form.useForm<FormValues>();
   const canManage = useAuthStore((state) => state.hasPermission(TENANT_PERMISSION.CONFIG_MANAGE));
   const [loading, setLoading] = useState(false);
@@ -118,7 +121,7 @@ export default function KycCountryFilterPage() {
       const response = await kycCountryFilterService.listCountries();
       setCountries(response.data || []);
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "国家列表加载失败");
+      message.error(error instanceof Error ? error.message : "地区列表加载失败");
       setCountries([]);
     } finally {
       setCountriesLoading(false);
@@ -135,7 +138,7 @@ export default function KycCountryFilterPage() {
         denyAlpha3: normalizeCodes(response.data?.denyAlpha3),
       });
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "L1 国家过滤配置加载失败");
+      message.error(error instanceof Error ? error.message : "L1 地区配置加载失败");
       form.setFieldsValue({ allowAlpha3: [], denyAlpha3: [] });
     } finally {
       setLoading(false);
@@ -225,7 +228,7 @@ export default function KycCountryFilterPage() {
       };
       await kycCountryFilterService.updateFilter(payload);
       await loadFilter();
-      message.success("L1 国家过滤配置已保存");
+      message.success("L1 地区配置已保存");
     } catch (error) {
       if (error instanceof Error) {
         message.error(error.message);
@@ -246,13 +249,22 @@ export default function KycCountryFilterPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(147,197,253,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.10),transparent_24%)]" />
           <div className="relative grid grid-cols-1 gap-5 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="flex flex-col gap-4 rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-sky-100/80">L1 Country Filter</div>
+              <Space wrap size={[12, 12]} className="justify-between">
+                <Button
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => navigate("/tenant-users/kyc")}
+                  className="h-9 rounded-full border-white/15 bg-white/10 px-4 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white"
+                >
+                  返回 KYC列表
+                </Button>
+                <div className="text-[11px] uppercase tracking-[0.34em] text-sky-100/80">L1 Region Config</div>
+              </Space>
               <div className="flex flex-col gap-2">
                 <Title level={2} className="!m-0 !text-white">
-                  L1 国家过滤
+                  L1 地区配置
                 </Title>
                 <Paragraph className="!m-0 !text-sm !leading-6 !text-slate-200">
-                  该配置仅影响 App 端 L1 第二步的国家选择范围，不影响注册页、个人资料页和其他国家接口。
+                  该配置仅影响 App 端 L1 第二步的地区选择范围，不影响注册页、个人资料页和其他地区接口。
                 </Paragraph>
               </div>
               <Space wrap>
@@ -272,22 +284,21 @@ export default function KycCountryFilterPage() {
                     loading={saving}
                     className="h-9 rounded-full bg-emerald-400 px-4 text-slate-950 shadow-none hover:!bg-emerald-300 hover:!text-slate-950"
                   >
-                    保存过滤规则
+                    保存地区规则
                   </Button>
                 ) : null}
               </Space>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Countries</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Regions</div>
                 <div className="mt-3 text-2xl font-semibold text-white">{countries.length}</div>
-                <div className="mt-1 text-xs text-slate-200">当前可配置国家总数</div>
+                <div className="mt-1 text-xs text-slate-200">当前可配置地区总数</div>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Search Result</div>
                 <div className="mt-3 text-2xl font-semibold text-white">{filteredCountries.length}</div>
-                <div className="mt-1 text-xs text-slate-200">当前搜索命中国家数</div>
+                <div className="mt-1 text-xs text-slate-200">当前搜索命中地区数</div>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-4 backdrop-blur-sm">
                 <div className="text-xs uppercase tracking-[0.16em] text-slate-300">Allow List</div>
@@ -307,8 +318,8 @@ export default function KycCountryFilterPage() {
       <Alert
         type="info"
         showIcon
-        message="过滤规则说明"
-        description="白名单为空时，App L1 第二步默认展示全部有效国家，再扣除黑名单；当某个国家同时存在于白名单和黑名单时，黑名单优先。"
+        message="地区规则说明"
+        description="白名单为空时，App L1 第二步默认展示全部有效地区，再扣除黑名单；当某个地区同时存在于白名单和黑名单时，黑名单优先。"
         className="rounded-[22px] border border-sky-100 bg-sky-50/80"
       />
 
@@ -323,9 +334,9 @@ export default function KycCountryFilterPage() {
               <GlobalOutlined />
             </div>
             <div className="flex flex-col gap-1">
-              <Text className="text-sm font-medium text-slate-500">国家搜索</Text>
+              <Text className="text-sm font-medium text-slate-500">地区搜索</Text>
               <Title level={4} className="!m-0">
-                按中文、英文或代码筛选国家
+                按中文、英文或代码筛选地区
               </Title>
             </div>
           </div>
@@ -352,7 +363,7 @@ export default function KycCountryFilterPage() {
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <Text className="text-sm font-semibold text-slate-800">候选国家</Text>
+                  <Text className="text-sm font-semibold text-slate-800">候选地区</Text>
                   <div className="text-xs text-slate-500">点击加入允许列表或禁止列表</div>
                 </div>
                 {countriesLoading ? <Spin size="small" /> : null}
@@ -360,7 +371,7 @@ export default function KycCountryFilterPage() {
 
               <div className="flex max-h-[620px] flex-col gap-3 overflow-y-auto pr-1">
                 {!countriesLoading && filteredCountries.length === 0 ? (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有匹配的国家" />
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="没有匹配的地区" />
                 ) : null}
 
                 {filteredCountries.map((country) => {
@@ -407,8 +418,8 @@ export default function KycCountryFilterPage() {
 
             <div className="flex flex-col gap-4">
               {renderSelectionTags(
-                "允许国家",
-                "仅当白名单非空时生效；这里的国家会作为 L1 第二步的候选范围。",
+                "允许地区",
+                "仅当白名单非空时生效；这里的地区会作为 L1 第二步的候选范围。",
                 allowAlpha3,
                 countryMap,
                 "green",
@@ -416,8 +427,8 @@ export default function KycCountryFilterPage() {
                 canManage,
               )}
               {renderSelectionTags(
-                "禁止国家",
-                "黑名单优先级最高，即使同一国家已在允许列表中，也不会返回给 App。",
+                "禁止地区",
+                "黑名单优先级最高，即使同一地区已在允许列表中，也不会返回给 App。",
                 denyAlpha3,
                 countryMap,
                 "red",

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   Card,
@@ -26,6 +27,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   EyeOutlined,
+  GlobalOutlined,
   ReloadOutlined,
   SearchOutlined,
   UnorderedListOutlined,
@@ -231,6 +233,7 @@ function buildOperatorLabel(record: Pick<TenantAppUserKyc, "operatorUsername" | 
 }
 
 const KycListPage: React.FC = () => {
+  const navigate = useNavigate();
   const [userFilterForm] = Form.useForm<UserSearchFormValues>();
   const [submissionFilterForm] = Form.useForm<SubmissionSearchFormValues>();
   const [reviewForm] = Form.useForm<{ rejectReason?: string }>();
@@ -256,6 +259,9 @@ const KycListPage: React.FC = () => {
 
   const canManageKyc = useAuthStore((state) =>
     state.hasPermission(TENANT_PERMISSION.TENANT_USER_KYC_MANAGE),
+  );
+  const canViewRegionConfig = useAuthStore((state) =>
+    state.hasPermission(TENANT_PERMISSION.CONFIG_VIEW),
   );
 
   const loadUsers = useCallback(
@@ -575,106 +581,160 @@ const KycListPage: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
-      <Card bordered={false} className="rounded-[28px] border border-slate-200 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <div className="text-xs uppercase tracking-[0.22em] text-sky-700/70">KYC Review Desk</div>
-            <Title level={2} style={{ marginTop: 12, marginBottom: 8 }}>
-              KYC 审核中心
-            </Title>
-            <Paragraph style={{ marginBottom: 0, color: "#475569" }}>
-              第一层仅看用户，第二层看提交记录，第三层看记录详情。L1 和 L2 保持统一的分层查看方式。
-            </Paragraph>
-          </div>
-          <Space direction="vertical" size="middle" style={{ minWidth: 280 }}>
-            <Segmented block options={levelOptions as any} value={level} onChange={(value) => setLevel(value as KycLevel)} />
-            <Button icon={<ReloadOutlined />} loading={userLoading} onClick={() => void loadUsers(userPagination.current, userPagination.pageSize)}>
-              刷新列表
-            </Button>
-          </Space>
-        </div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_minmax(0,1fr)] 2xl:grid-cols-[380px_minmax(0,1fr)]">
+        <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+          <Card
+            bordered={false}
+            className="overflow-hidden rounded-[30px] border-0 bg-[linear-gradient(145deg,#071a3d_0%,#0d2f6f_46%,#0a4d8c_100%)] text-white shadow-[0_24px_80px_rgba(7,26,61,0.28)]"
+            bodyStyle={{ padding: 0 }}
+          >
+            <div className="relative overflow-hidden px-5 py-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.20),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.18),transparent_28%)]" />
+              <div className="relative space-y-4">
+                <div className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+                  <div className="text-xs uppercase tracking-[0.22em] text-sky-100/80">KYC Review Desk</div>
+                  <Title level={3} className="!mb-0 !mt-3 !text-white">
+                    KYC 审核中心
+                  </Title>
+                </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            { label: "当前层级", value: getLevelTitle(level) },
-            { label: "用户总数", value: String(summary.total) },
-            { label: "待处理用户", value: String(summary.pending) },
-            { label: "已通过 / 已驳回", value: `${summary.approved} / ${summary.rejected}` },
-          ].map((item, index) => (
-            <div
-              key={item.label}
-              className={`rounded-[22px] border px-4 py-4 ${
-                index === 0 ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-slate-50"
-              }`}
-            >
-              <div className={`text-xs uppercase tracking-[0.14em] ${index === 0 ? "text-slate-300" : "text-slate-500"}`}>
-                {item.label}
-              </div>
-              <div className={`mt-3 text-2xl font-semibold ${index === 0 ? "text-white" : "text-slate-900"}`}>
-                {item.value}
+                <div className="rounded-[24px] border border-white/10 bg-white/10 p-3 backdrop-blur-sm">
+                  <Segmented
+                    block
+                    options={levelOptions as any}
+                    value={level}
+                    onChange={(value) => setLevel(value as KycLevel)}
+                  />
+                </div>
+
+                <Space direction="vertical" size="small" className="!flex">
+                  {canViewRegionConfig ? (
+                    <Button
+                      type="primary"
+                      icon={<GlobalOutlined />}
+                      onClick={() => navigate("/settings/kyc-country-filter")}
+                      className="h-11 w-full rounded-full border-0 bg-[linear-gradient(135deg,#38bdf8_0%,#2563eb_55%,#1d4ed8_100%)] px-5 font-medium text-white shadow-[0_14px_30px_rgba(37,99,235,0.38)] hover:!bg-[linear-gradient(135deg,#67e8f9_0%,#3b82f6_55%,#2563eb_100%)] hover:!text-white"
+                    >
+                      L1地区配置
+                    </Button>
+                  ) : null}
+                  <Button
+                    icon={<ReloadOutlined />}
+                    loading={userLoading}
+                    onClick={() => void loadUsers(userPagination.current, userPagination.pageSize)}
+                    className="h-10 w-full rounded-full border-white/15 bg-white/10 px-5 text-white hover:!border-white/30 hover:!bg-white/15 hover:!text-white"
+                  >
+                    刷新列表
+                  </Button>
+                </Space>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "当前层级", value: getLevelTitle(level) },
+                    { label: "用户总数", value: String(summary.total) },
+                    { label: "待处理用户", value: String(summary.pending) },
+                    { label: "已通过 / 已驳回", value: `${summary.approved} / ${summary.rejected}` },
+                  ].map((item, index) => (
+                    <div
+                      key={item.label}
+                      className={`rounded-[22px] border px-4 py-4 backdrop-blur-sm ${
+                        index === 0
+                          ? "border-cyan-200/25 bg-[linear-gradient(160deg,rgba(56,189,248,0.30),rgba(15,23,42,0.38))]"
+                          : "border-white/10 bg-white/10"
+                      }`}
+                    >
+                      <div className="text-[11px] uppercase tracking-[0.16em] text-slate-300">{item.label}</div>
+                      <div className="mt-2 text-lg font-semibold text-white">{item.value}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
+          </Card>
+
+          <Card
+            bordered={false}
+            className="overflow-hidden rounded-[30px] border-0 bg-[linear-gradient(145deg,#081f46_0%,#0b2b61_48%,#133b78_100%)] text-white shadow-[0_22px_70px_rgba(8,31,70,0.24)]"
+            bodyStyle={{ padding: 0 }}
+          >
+            <div className="relative overflow-hidden px-5 py-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(96,165,250,0.16),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.12),transparent_28%)]" />
+              <div className="relative">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-sky-100/75">Level 1 Filters</div>
+                    <div className="mt-1 text-xl font-semibold tracking-tight text-white">用户筛选</div>
+                  </div>
+                  <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-medium text-sky-50 backdrop-blur-sm">
+                    {getLevelTitle(level)}
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)]">
+                  <Form form={userFilterForm} layout="vertical">
+                    <Row gutter={[12, 8]}>
+                      <Col xs={24}>
+                        <Form.Item name="search" label="综合搜索">
+                          <Input allowClear prefix={<SearchOutlined className="text-slate-400" />} placeholder="用户名、邮箱、手机号" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24}>
+                        <Form.Item name="status" label="当前状态">
+                          <Select allowClear options={getStatusOptions(level)} placeholder="全部状态" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24}>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button type="primary" icon={<SearchOutlined />} onClick={() => void handleUserSearch()}>
+                            搜索
+                          </Button>
+                          <Button onClick={() => void handleUserReset()}>重置</Button>
+                        </div>
+                      </Col>
+                    </Row>
+                  </Form>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      <Card bordered={false} className="rounded-[28px] border border-slate-200 shadow-sm">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="text-sm font-medium text-slate-500">Level 1 Filters</div>
-            <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">用户筛选</div>
-            <div className="mt-2 text-sm text-slate-600">第一层只保留用户维度筛选，记录维度条件全部下沉到第二层。</div>
+        <Card
+          bordered={false}
+          className="overflow-hidden rounded-[30px] border-0 bg-[linear-gradient(145deg,#061a3c_0%,#0c275d_50%,#12356d_100%)] text-white shadow-[0_22px_70px_rgba(6,26,60,0.22)]"
+          bodyStyle={{ padding: 0 }}
+        >
+          <div className="relative overflow-hidden px-6 py-6 lg:px-7">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_26%)]" />
+            <div className="relative">
+              <div className="mb-5">
+                <div className="text-sm font-medium text-sky-100/75">Level 1 List</div>
+                <div className="mt-1 text-2xl font-semibold tracking-tight text-white">用户列表</div>
+              </div>
+
+              <div className="rounded-[24px] bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.18)]">
+                <Table
+                  rowKey="userId"
+                  loading={userLoading}
+                  columns={userColumns}
+                  dataSource={userItems}
+                  locale={{ emptyText: <Empty description="暂无 KYC 用户数据" /> }}
+                  pagination={{
+                    current: userPagination.current,
+                    pageSize: userPagination.pageSize,
+                    total: userPagination.total,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    pageSizeOptions: [10, 20, 50],
+                    showTotal: (total) => `共 ${total} 条`,
+                  }}
+                  onChange={handleUserTableChange}
+                />
+              </div>
+            </div>
           </div>
-          <div className="rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600">
-            当前层级：{getLevelTitle(level)}
-          </div>
-        </div>
-
-        <Form form={userFilterForm} layout="vertical">
-          <Row gutter={16}>
-            <Col xs={24} md={14} lg={16}>
-              <Form.Item name="search" label="综合搜索">
-                <Input allowClear prefix={<SearchOutlined className="text-slate-400" />} placeholder="用户名、邮箱、手机号" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={10} lg={8}>
-              <Form.Item name="status" label="当前状态">
-                <Select allowClear options={getStatusOptions(level)} placeholder="全部状态" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => void handleUserSearch()}>
-              搜索
-            </Button>
-            <Button onClick={() => void handleUserReset()}>重置</Button>
-          </div>
-        </Form>
-      </Card>
-
-      <Card bordered={false} className="rounded-[28px] border border-slate-200 shadow-sm">
-        <div className="mb-5">
-          <div className="text-sm font-medium text-slate-500">Level 1 List</div>
-          <div className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">用户列表</div>
-          <div className="mt-2 text-sm text-slate-600">点击右侧“查看记录”进入第二层，查看该用户的审核提交记录。</div>
-        </div>
-
-        <Table
-          rowKey="userId"
-          loading={userLoading}
-          columns={userColumns}
-          dataSource={userItems}
-          locale={{ emptyText: <Empty description="暂无 KYC 用户数据" /> }}
-          pagination={{
-            current: userPagination.current,
-            pageSize: userPagination.pageSize,
-            total: userPagination.total,
-            showSizeChanger: true,
-          }}
-          onChange={handleUserTableChange}
-        />
-      </Card>
+        </Card>
+      </div>
 
       <Modal
         title={`${selectedUser?.userName || "-"} 的提交记录`}
