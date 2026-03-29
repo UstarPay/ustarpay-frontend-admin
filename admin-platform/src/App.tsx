@@ -18,7 +18,10 @@ import TenantCreatePage from '@/pages/Tenant/TenantCreatePage'
 import TenantDetailPage from '@/pages/Tenant/TenantDetailPage'
 import { TenantEditPage } from '@/pages/Tenant'
 import { CardMerchantListPage } from '@/pages/Tenant'
-import { TenantPlanListPage, TenantPlanSubscriptionListPage } from '@/pages/TenantPlan'
+import {
+  TenantPlanListPage,
+  TenantPlanSubscriptionListPage,
+} from '@/pages/TenantPlan'
 import UserListPage from '@/pages/User/UserListPage'
 import RoleListPage from '@/pages/Role/RoleListPage'
 import PermissionListPage from '@/pages/Permission/PermissionListPage'
@@ -30,6 +33,7 @@ import SystemSettingsPage from '@/pages/System/SystemSettingsPage'
 import SumsubConfigPage from '@/pages/System/SumsubConfigPage'
 import EmailDeliveryPage from '@/pages/System/EmailDeliveryPage'
 import SecuritySettingsPage from '@/pages/Security/SecuritySettingsPage'
+import TwoFactorManagementPage from '@/pages/Security/TwoFactorManagementPage'
 import NotFoundPage from '@/pages/Error/NotFoundPage'
 import ForbiddenPage from '@/pages/Error/ForbiddenPage'
 
@@ -99,7 +103,10 @@ function App() {
                 <MainLayout>
                   <Routes>
                     {/* 仪表盘 */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route
+                      path="/"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
                     <Route
                       path="/dashboard"
                       element={
@@ -269,6 +276,14 @@ function App() {
                       element={
                         <ProtectedRoute requiredPermission="security:settings">
                           <SecuritySettingsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/security/2fa"
+                      element={
+                        <ProtectedRoute requiredPermission="system:settings">
+                          <TwoFactorManagementPage />
                         </ProtectedRoute>
                       }
                     />

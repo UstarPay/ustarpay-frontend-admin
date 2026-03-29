@@ -146,6 +146,11 @@ const getMenuItems = (): MenuItem[] => [
         permission: 'system:settings',
       },
       {
+        key: '/security/2fa',
+        label: <Link to="/security/2fa">2FA管理</Link>,
+        permission: 'system:settings',
+      },
+      {
         key: '/security',
         label: <Link to="/security">安全设置</Link>,
         permission: 'security:settings',
@@ -171,7 +176,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const filteredMenuItems = useMemo(() => {
     const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
       return items
-        .map(item => {
+        .map((item) => {
           if (item.children) {
             const filteredChildren = filterMenuItems(item.children)
             if (filteredChildren.length > 0) {
@@ -179,7 +184,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             }
             return null
           } else {
-            return !item.permission || hasPermission(item.permission) ? item : null
+            return !item.permission || hasPermission(item.permission)
+              ? item
+              : null
           }
         })
         .filter(Boolean) as MenuItem[]
@@ -188,19 +195,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return filterMenuItems(menuItems)
   }, [menuItems, hasPermission])
 
-  const findMenuPath = (items: MenuItem[], targetPath: string, parents: string[] = []): string[] => {
+  const findMenuPath = (
+    items: MenuItem[],
+    targetPath: string,
+    parents: string[] = []
+  ): string[] => {
     let bestMatch: { parents: string[]; matchedKey: string } | null = null
 
     for (const item of items) {
       if (item.children && item.children.length > 0) {
-        const matched = findMenuPath(item.children, targetPath, [...parents, item.key])
+        const matched = findMenuPath(item.children, targetPath, [
+          ...parents,
+          item.key,
+        ])
         if (matched.length > 0) {
           const selectedKey = findSelectedKey(item.children, targetPath)
-          if (selectedKey && (!bestMatch || selectedKey.length > bestMatch.matchedKey.length)) {
+          if (
+            selectedKey &&
+            (!bestMatch || selectedKey.length > bestMatch.matchedKey.length)
+          ) {
             bestMatch = { parents: matched, matchedKey: selectedKey }
           }
         }
-      } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
+      } else if (
+        targetPath === item.key ||
+        targetPath.startsWith(item.key + '/')
+      ) {
         if (!bestMatch || item.key.length > bestMatch.matchedKey.length) {
           bestMatch = { parents, matchedKey: item.key }
         }
@@ -209,7 +229,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return bestMatch?.parents || []
   }
 
-  const findSelectedKey = (items: MenuItem[], targetPath: string): string | null => {
+  const findSelectedKey = (
+    items: MenuItem[],
+    targetPath: string
+  ): string | null => {
     let bestMatch: string | null = null
 
     for (const item of items) {
@@ -218,7 +241,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         if (matched && (!bestMatch || matched.length > bestMatch.length)) {
           bestMatch = matched
         }
-      } else if (targetPath === item.key || targetPath.startsWith(item.key + '/')) {
+      } else if (
+        targetPath === item.key ||
+        targetPath.startsWith(item.key + '/')
+      ) {
         if (!bestMatch || item.key.length > bestMatch.length) {
           bestMatch = item.key
         }
@@ -283,8 +309,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className="min-h-screen"
       >
         <div className="flex items-center justify-center h-16 border-b border-gray-700">
-          <h1 className={`text-white font-bold transition-all duration-200 ${sidebarCollapsed ? 'text-lg' : 'text-xl'
-            }`}>
+          <h1
+            className={`text-white font-bold transition-all duration-200 ${
+              sidebarCollapsed ? 'text-lg' : 'text-xl'
+            }`}
+          >
             {sidebarCollapsed ? 'U卡' : 'U卡服务管理系统'}
           </h1>
         </div>
@@ -308,7 +337,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="flex items-center">
             <Button
               type="text"
-              icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              icon={
+                sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
+              }
               onClick={toggleSidebar}
               className="text-lg"
             />
@@ -353,12 +384,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="px-6 pt-4 pb-2">
             <Breadcrumb />
             {/* 页面内容 */}
-            <div className="min-h-[calc(100vh-120px)]">
-              {children}
-            </div>
+            <div className="min-h-[calc(100vh-120px)]">{children}</div>
           </div>
-
-
         </Content>
       </Layout>
     </Layout>
