@@ -113,6 +113,26 @@ export interface TenantAppUserKycDetail extends TenantAppUserKyc {
   selfieUrl?: string
 }
 
+export interface TenantAppUserKycTimelineItem {
+  id: string
+  eventSource: 'submission' | 'webhook' | 'reconcile' | 'manual' | string
+  sourceEventKey?: string
+  providerStatusBefore?: string
+  providerStatusAfter?: string
+  reviewAnswerBefore?: string
+  reviewAnswerAfter?: string
+  reviewRejectTypeBefore?: string
+  reviewRejectTypeAfter?: string
+  l2StatusBefore?: number
+  l2StatusAfter?: number
+  rejectReasonBefore?: string
+  rejectReasonAfter?: string
+  changedFields: string[]
+  occurredAt: string
+  createdAt: string
+  payloadJson?: Record<string, any>
+}
+
 export interface TenantAppUserKycUserSummary {
   userId: string
   userName: string
@@ -245,6 +265,10 @@ export const tenantUserService = {
     api.get(`/app-users/kyc/users/${userId}/submissions`, params),
   getKycSubmissionDetail: (id: string, level?: 'l1' | 'l2') =>
     api.get<TenantAppUserKycDetail>(`/app-users/kyc/submissions/${id}`, level ? { level } : undefined),
+  getL2KycTimeline: (userId: string, recordId: string) =>
+    api.get<{ items: TenantAppUserKycTimelineItem[] }>(`/app-users/kyc/users/${userId}/submissions/${recordId}/timeline`),
+  getL2KycTimelineEventDetail: (userId: string, recordId: string, eventId: string) =>
+    api.get<{ event: TenantAppUserKycTimelineItem }>(`/app-users/kyc/users/${userId}/submissions/${recordId}/timeline/${eventId}`),
   getKyc: (id: string, level?: 'l1' | 'l2') =>
     api.get<TenantAppUserKycDetail>(`/app-users/kyc/${id}`, level ? { level } : undefined),
   createKyc: (payload: TenantUserKycSavePayload) => api.post('/app-users/kyc', payload),

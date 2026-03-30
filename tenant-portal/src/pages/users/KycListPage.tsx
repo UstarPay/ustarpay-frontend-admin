@@ -20,6 +20,7 @@ import {
   Space,
   Table,
   Tag,
+  Timeline,
   Typography,
   message,
 } from "antd";
@@ -37,6 +38,7 @@ import {
   tenantUserService,
   type TenantAppUserKyc,
   type TenantAppUserKycDetail,
+  type TenantAppUserKycTimelineItem,
   type TenantAppUserKycUserSummary,
   type TenantUserKycListParams,
   type TenantUserKycReviewPayload,
@@ -232,6 +234,53 @@ function buildOperatorLabel(record: Pick<TenantAppUserKyc, "operatorUsername" | 
   return record.operatorUsername || record.operatorDisplayName || "-";
 }
 
+function getTimelineEventSourceLabel(value?: string) {
+  switch ((value || "").trim().toLowerCase()) {
+    case "submission":
+      return "用户提交";
+    case "webhook":
+      return "Webhook";
+    case "reconcile":
+      return "主动补查";
+    case "manual":
+      return "人工修正";
+    default:
+      return value || "-";
+  }
+}
+
+function getTimelineEventSourceColor(value?: string) {
+  switch ((value || "").trim().toLowerCase()) {
+    case "submission":
+      return "blue";
+    case "webhook":
+      return "purple";
+    case "reconcile":
+      return "gold";
+    case "manual":
+      return "red";
+    default:
+      return "default";
+  }
+}
+
+function getTimelineChangedFieldLabel(field: string) {
+  switch ((field || "").trim().toLowerCase()) {
+    case "provider_status":
+      return "Provider 状态";
+    case "review_answer":
+      return "审核结果";
+    case "review_reject_type":
+      return "驳回类型";
+    case "l2_status":
+      return "L2 状态";
+    case "reject_reason":
+      return "驳回原因";
+    default:
+      return field;
+  }
+}
+
 const KycListPage: React.FC = () => {
   const navigate = useNavigate();
   const [userFilterForm] = Form.useForm<UserSearchFormValues>();
@@ -252,6 +301,11 @@ const KycListPage: React.FC = () => {
   });
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<TenantAppUserKycDetail | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [timelineItems, setTimelineItems] = useState<TenantAppUserKycTimelineItem[]>([]);
+  const [timelineDetailOpen, setTimelineDetailOpen] = useState(false);
+  const [timelineDetailLoading, setTimelineDetailLoading] = useState(false);
+  const [timelineDetailItem, setTimelineDetailItem] = useState<TenantAppUserKycTimelineItem | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState<ReviewMode>("approve");
   const [reviewingItem, setReviewingItem] = useState<TenantAppUserKyc | null>(null);
@@ -319,6 +373,19 @@ const KycListPage: React.FC = () => {
     [level, submissionFilterForm],
   );
 
+  const loadTimeline = useCallback(async (userId: string, recordId: string) => {
+    try {
+      setTimelineLoading(true);
+      const response = await tenantUserService.getL2KycTimeline(userId, recordId);
+      setTimelineItems(response.data?.items || []);
+    } catch (error) {
+      setTimelineItems([]);
+      message.error(error instanceof Error ? error.message : "加载审核轨迹失败");
+    } finally {
+      setTimelineLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadUsers(1, userPagination.pageSize);
   }, [loadUsers, userPagination.pageSize]);
@@ -329,6 +396,9 @@ const KycListPage: React.FC = () => {
     setSubmissionItems([]);
     setDetailOpen(false);
     setDetailItem(null);
+    setTimelineItems([]);
+    setTimelineDetailItem(null);
+    setTimelineDetailOpen(false);
     submissionFilterForm.resetFields();
   }, [level, submissionFilterForm]);
 
@@ -382,9 +452,31 @@ const KycListPage: React.FC = () => {
     try {
       const response = await tenantUserService.getKycSubmissionDetail(id);
       setDetailItem(response.data || null);
+      setTimelineItems([]);
+      setTimelineDetailItem(null);
+      setTimelineDetailOpen(false);
       setDetailOpen(true);
+      if (level === "l2" && selectedUser?.userId) {
+        void loadTimeline(selectedUser.userId, id);
+      }
     } catch (error) {
       message.error(error instanceof Error ? error.message : "加载详情失败");
+    }
+  };
+
+  const handleViewTimelineDetail = async (eventId: string) => {
+    if (!selectedUser?.userId || !detailItem?.id) {
+      return;
+    }
+    try {
+      setTimelineDetailLoading(true);
+      const response = await tenantUserService.getL2KycTimelineEventDetail(selectedUser.userId, detailItem.id, eventId);
+      setTimelineDetailItem(response.data?.event || null);
+      setTimelineDetailOpen(true);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "加载变化详情失败");
+    } finally {
+      setTimelineDetailLoading(false);
     }
   };
 
@@ -870,6 +962,9 @@ const KycListPage: React.FC = () => {
         onClose={() => {
           setDetailOpen(false);
           setDetailItem(null);
+          setTimelineItems([]);
+          setTimelineDetailItem(null);
+          setTimelineDetailOpen(false);
         }}
       >
         {detailItem ? (
@@ -896,6 +991,62 @@ const KycListPage: React.FC = () => {
                 )}
               </Descriptions>
             </Card>
+
+            {level === "l2" ? (
+              <Card
+                title="审核轨迹"
+                size="small"
+                extra={
+                  detailItem.userId ? (
+                    <Button size="small" loading={timelineLoading} onClick={() => void loadTimeline(detailItem.userId, detailItem.id)}>
+                      刷新轨迹
+                    </Button>
+                  ) : null
+                }
+              >
+                {timelineItems.length > 0 ? (
+                  <Timeline
+                    items={timelineItems.map((event) => ({
+                      color:
+                        (event.l2StatusAfter ?? event.l2StatusBefore) === 1
+                          ? "green"
+                          : (event.l2StatusAfter ?? event.l2StatusBefore) === 2
+                            ? "red"
+                            : (event.l2StatusAfter ?? event.l2StatusBefore) === 4 || (event.l2StatusAfter ?? event.l2StatusBefore) === 5
+                              ? "orange"
+                              : "blue",
+                      children: (
+                        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                          <Space size={8} wrap>
+                            <Text strong>{formatDateTime(event.occurredAt)}</Text>
+                            <Tag color={getTimelineEventSourceColor(event.eventSource)}>
+                              {getTimelineEventSourceLabel(event.eventSource)}
+                            </Tag>
+                          </Space>
+                          <Text>
+                            {getStatusLabel("l2", Number(event.l2StatusBefore ?? 0))} {" -> "}
+                            {getStatusLabel("l2", Number(event.l2StatusAfter ?? event.l2StatusBefore ?? 0))}
+                          </Text>
+                          <Space size={[4, 4]} wrap>
+                            {(event.changedFields || []).map((field) => (
+                              <Tag key={`${event.id}-${field}`}>{getTimelineChangedFieldLabel(field)}</Tag>
+                            ))}
+                          </Space>
+                          <Button type="link" size="small" style={{ paddingInline: 0 }} onClick={() => void handleViewTimelineDetail(event.id)}>
+                            查看变化详情
+                          </Button>
+                        </Space>
+                      ),
+                    }))}
+                  />
+                ) : (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={timelineLoading ? "加载轨迹中..." : "当前记录暂无可展示的状态变化轨迹"}
+                  />
+                )}
+              </Card>
+            ) : null}
 
             <Card title="基础信息" size="small">
               <Descriptions column={1} bordered size="small">
@@ -948,6 +1099,71 @@ const KycListPage: React.FC = () => {
               </Descriptions>
             </Card>
           </Space>
+        ) : null}
+      </Drawer>
+
+      <Drawer
+        title="变化详情"
+        open={timelineDetailOpen}
+        width={620}
+        destroyOnClose
+        onClose={() => {
+          setTimelineDetailOpen(false);
+          setTimelineDetailItem(null);
+        }}
+      >
+        {timelineDetailItem ? (
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Card size="small">
+              <Descriptions column={1} bordered size="small">
+                <Descriptions.Item label="发生时间">{formatDateTime(timelineDetailItem.occurredAt)}</Descriptions.Item>
+                <Descriptions.Item label="事件来源">
+                  <Tag color={getTimelineEventSourceColor(timelineDetailItem.eventSource)}>
+                    {getTimelineEventSourceLabel(timelineDetailItem.eventSource)}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="来源事件 Key">{timelineDetailItem.sourceEventKey || "-"}</Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            <Card size="small" title="状态变化对比">
+              <Descriptions column={1} bordered size="small">
+                <Descriptions.Item label="Provider 状态">
+                  {(timelineDetailItem.providerStatusBefore || "-") + " -> " + (timelineDetailItem.providerStatusAfter || "-")}
+                </Descriptions.Item>
+                <Descriptions.Item label="L2 状态">
+                  {getStatusLabel("l2", Number(timelineDetailItem.l2StatusBefore ?? 0)) +
+                    " -> " +
+                    getStatusLabel("l2", Number(timelineDetailItem.l2StatusAfter ?? timelineDetailItem.l2StatusBefore ?? 0))}
+                </Descriptions.Item>
+                <Descriptions.Item label="审核结果">
+                  {(timelineDetailItem.reviewAnswerBefore || "-") + " -> " + (timelineDetailItem.reviewAnswerAfter || "-")}
+                </Descriptions.Item>
+                <Descriptions.Item label="驳回类型">
+                  {(timelineDetailItem.reviewRejectTypeBefore || "-") + " -> " + (timelineDetailItem.reviewRejectTypeAfter || "-")}
+                </Descriptions.Item>
+                <Descriptions.Item label="驳回原因">
+                  {(timelineDetailItem.rejectReasonBefore || "-") + " -> " + (timelineDetailItem.rejectReasonAfter || "-")}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            <Card size="small" title="变化字段">
+              <Space size={[6, 6]} wrap>
+                {(timelineDetailItem.changedFields || []).map((field) => (
+                  <Tag key={`${timelineDetailItem.id}-${field}`}>{getTimelineChangedFieldLabel(field)}</Tag>
+                ))}
+              </Space>
+            </Card>
+
+            <Card size="small" title="当时原始快照">
+              <pre className="max-h-[420px] overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">
+                {JSON.stringify(timelineDetailItem.payloadJson || {}, null, 2)}
+              </pre>
+            </Card>
+          </Space>
+        ) : timelineDetailLoading ? (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="加载变化详情中..." />
         ) : null}
       </Drawer>
 
